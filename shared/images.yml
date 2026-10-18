@@ -1,0 +1,23 @@
+# Les images du socle, épinglées PAR DIGEST, relevées au registre le 2026-10-18
+# (`crane digest`). Les versions vivent ICI, une seule fois : le setup des labs
+# les lit, il ne les recopie pas.
+traefik:
+  image: "traefik"
+  version: "v3.7.15"
+  digest: "sha256:0f6150202bc1fed72a7bd2107460eaa510e5b8a905f3fdb5b84f2c8619c33368"
+whoami:
+  image: "traefik/whoami"
+  version: "v1.11.0"
+  digest: "sha256:200689790a0a0ea48ca45992e0450bc26ccab5307375b41c84dfc4f2475937ab"
+pebble:
+  image: "ghcr.io/letsencrypt/pebble"
+  version: "2.10.1"
+  digest: "sha256:ddf230642b1a584f519f32e347de1b05a6e4c1f6c35c1863b33effeab5f78199"
+challtestsrv:
+  image: "ghcr.io/letsencrypt/pebble-challtestsrv"
+  version: "2.10.1"
+  digest: "sha256:12ce21884def456bcf9786542113949e1f19dc7738d2c70e156c2d0c38a1405b"
+lego:
+  image: "goacme/lego"
+  version: "v5.5.2"
+  digest: "sha256:1944e8c36055beec47c7de6f15202b41128be75eea0ffa257f0c14d93c5155fd"

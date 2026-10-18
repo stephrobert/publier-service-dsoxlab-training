@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/stephrobert/dsoxlab/main/schemas/meta.schema.json
+#
+# Catalogue publier-service-dsoxlab-training, décrit par le contrat v1 de dsoxlab.
+#
+# Les labs de la formation « Publier un service web » du blog : un point
+# d'entrée (Traefik, puis Nginx et HAProxy en option) devant des services, avec
+# des certificats automatiques. Tout tourne sur UNE machine, en conteneurs.
+#
+# UN LAB ENTRE DANS CETTE LISTE LE JOUR OÙ IL EST ÉCRIT ET JOUÉ, PAS AVANT :
+# `validate-structure` refuse un lab déclaré dont le `lab.yaml` n'existe pas.
+# Ordre de jeu prévu : pub-01 (certificats), pub-02 à pub-04 (Traefik), puis
+# l'épreuve du niveau 1.
+#
+# `repo.id` sert de clé pour l'état local de ce catalogue : le changer
+# déplace ces emplacements.
+schema_version: 1
+
+repo:
+  id: publier-service-dsoxlab-training
+  category: publier-service-dsoxlab-training
+  title: "Publish a web service: a reverse proxy in front of your services, with automatic certificates"
+  blog_url: "https://blog.stephane-robert.info/docs/services/web/"
+  description: |
+    Labs for the "Publish a web service" course. Learners put a reverse proxy
+    in front of real services on a single virtual machine: they obtain a
+    certificate automatically over ACME from a test certificate authority
+    (Pebble), then publish containers behind Traefik.
+
+    Every lab is graded on the state of the system, never on the commands
+    typed: the tests read the certificate that was actually issued, the
+    responses the proxy really serves, and the ports that really listen.
+
+# Où remettre une preuve d'apprentissage, si ce catalogue a un portail. En
+# `https` : le lien porte les résultats d'un apprenant. dsoxlab n'envoie rien —
+# il affiche une adresse, et l'apprenant décide.
+#
+# learning:
+#   portal_url: https://formation.example.org/mon-apprentissage/
+
+infra:
+  provider:
+    - kvm
+    - incus
+  # `lab-pub` donne le pont `virbr-pub`. CIDR pris : 10.10.20 a 90 ; 100 est
+  # reserve a la future formation Base de donnees.
+  network: lab-pub
+  cidr: 10.10.110.0/24
+  hosts:
+    - name: edge.lab
+      distro: ubuntu24
+      role: edge
+      ram_mb: 4096
+      vcpu: 2
+      disk_gb: 20
+
+sections:
+  - id: niveau-1
+    title: "Level 1: publish services behind a reverse proxy"
+    description: "Obtain a certificate automatically with ACME, then publish containers behind Traefik. Other labs of the level are added as they are written and proven."
+    labs:
+      - pub-01-acme-pebble

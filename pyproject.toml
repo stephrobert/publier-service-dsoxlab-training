@@ -1,0 +1,26 @@
+# Ce dépôt n'est pas un paquet : ce fichier ne sert qu'à configurer les outils.
+# dsoxlab s'installe en outil autonome (`uv tool install dsoxlab`) et apporte
+# lui-même pytest et pytest-testinfra, pour qu'un catalogue n'ait aucun outil
+# de test à installer.
+
+[project]
+name = "publier-service-dsoxlab-training"
+version = "0.1.0"
+description = "Labs for the Publish a web service course, played with dsoxlab"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "labs"]
+# `challenge/work` contient le travail de l'apprenant : il n'est jamais
+# collecté, sous peine de ramasser ses fichiers temporaires comme des tests.
+norecursedirs = ["challenge/work", ".git", ".venv"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "S"]
+# S101 : `assert` est l'outil de travail d'un test, pas un défaut.
+per-file-ignores = { "labs/**/tests/*.py" = ["S101"], "tests/*.py" = ["S101"] }

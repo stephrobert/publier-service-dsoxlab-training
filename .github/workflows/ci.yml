@@ -1,0 +1,73 @@
+# La CI d'un catalogue de labs joue trois contrôles, et aucun ne demande
+# d'infrastructure : ils sont donc tous jouables sur un runner public.
+#
+#   1. le contrat est valide, hors ligne (`validate-structure`) ;
+#   2. les garde-fous propres au dépôt passent (`pytest tests/`) ;
+#   3. le python du catalogue est propre (`ruff`).
+#
+# Ce qu'elle NE fait PAS, et c'est délibéré : jouer les labs. Un lab `vm`
+# demande un hyperviseur, et un lab `shell` demande les outils de son domaine.
+# L'attestation se joue sur une machine de formateur, et son verdict est
+# versionné dans `validation-labs.json`.
+#
+# Les actions sont épinglées par SHA de 40 caractères : un tag est déplaçable,
+# un SHA non.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contrat:
+    name: Contract, guardrails and lint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      - name: Install dsoxlab
+        # La borne est DÉCLARÉE, et non supposée. `uv tool install dsoxlab`
+        # installe « ce que PyPI publie aujourd'hui » : le jour où le contrat
+        # gagne un champ, le message accuse le catalogue (« cette clé n'est pas
+        # dans le contrat ») au lieu de dire que le moteur est trop ancien.
+        # Avec la borne, uv répond « aucune version ne satisfait la
+        # contrainte », ce qui nomme le bon coupable.
+        #
+        # La valeur est celle du moteur qui a ÉCRIT ce catalogue : c'est la
+        # seule qu'on puisse affirmer sans analyser son contenu.
+        run: uv tool install 'dsoxlab>=0.5.3'
+
+      - name: List the labs
+        # D'ABORD : un `lab.yaml` qui lève au parsing disparaît du catalogue
+        # sans un mot, et `validate-structure` n'itère que sur ce qui a chargé.
+        # Un catalogue vide ici est un défaut, pas un succès.
+        run: |
+          dsoxlab list-labs
+          test "$(dsoxlab list-labs --json | python3 -c \
+            'import json,sys; print(len(json.load(sys.stdin)["labs"]))')" -gt 0
+
+      - name: Validate the contract
+        run: dsoxlab validate-structure
+
+      - name: Repository guardrails
+        run: uv run --with pytest --with pyyaml pytest tests/ -q
+
+      - name: Lint
+        run: uvx ruff check .

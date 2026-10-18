@@ -1,0 +1,24 @@
+# Surcharge française du catalogue. Elle ne porte QUE `repo.title`,
+# `repo.description`, et les `title` / `description` des sections, appariés
+# par `id` et non par position.
+#
+# La langue par défaut de l'outil est l'anglais : `meta.yml` porte donc
+# l'anglais, et ce fichier le français. Sans lui, une session anglaise lit les
+# titres de sections tels qu'ils sont écrits dans `meta.yml`.
+
+repo:
+  title: "Formation Publier un service web : un reverse proxy devant vos services, avec des certificats automatiques"
+  description: |
+    Les labs de la formation « Publier un service web ». L'apprenant place un
+    reverse proxy devant de vrais services sur une seule machine virtuelle :
+    il obtient un certificat automatiquement par ACME auprès d'une autorité de
+    test (Pebble), puis publie des conteneurs derrière Traefik.
+
+    Chaque lab est noté sur l'état du système, jamais sur les commandes
+    tapées : les tests lisent le certificat réellement émis, les réponses que
+    le proxy sert vraiment et les ports qui écoutent vraiment.
+
+sections:
+  - id: niveau-1
+    title: "Niveau 1 : publier des services derrière un reverse proxy"
+    description: "Obtenir un certificat automatiquement avec ACME, puis publier des conteneurs derrière Traefik. Les autres labs du niveau s'ajoutent à mesure qu'ils sont écrits et prouvés."

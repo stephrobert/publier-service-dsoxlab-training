@@ -1,0 +1,230 @@
+---
+# La couche MACHINE du socle : Docker, Compose, et les outils que les labs
+# interrogent. Incluse par le `setup.yaml` de CHAQUE lab, celui du lab 02
+# compris.
+#
+# POURQUOI DEUX COUCHES, ET PAS UNE
+#
+# `iam-02-keycloak-installer` demande à l'apprenant d'installer Keycloak
+# lui-même : son setup ne peut donc pas le lui livrer déjà monté. Les quinze
+# autres labs, eux, supposent un IdP qui tourne et n'ont pas à le remonter.
+#
+# D'où deux fichiers :
+#
+#   machine-docker.yml  (celui-ci)  Docker et les outils. TOUS les labs.
+#   socle-iam.yml                   Keycloak, PostgreSQL, LLDAP et les témoins.
+#                                   Tous SAUF iam-02.
+#
+# C'est le même partage que le catalogue Kubernetes, qui sépare le nœud du
+# cluster : un lab d'installation a besoin de la machine, pas du produit.
+#
+# AUCUNE GARDE GLOBALE SUR CE FICHIER
+#
+# Chaque tâche porte sa propre idempotence, et c'est délibéré. Le catalogue
+# Kubernetes a payé la leçon : une garde unique en tête du fichier (« Docker
+# répond-il déjà ? ») transforme un échec partiel en échec PERMANENT. Un
+# premier passage interrompu après l'installation mais avant la configuration
+# laisse un Docker qui répond, la garde saute tout, et la machine reste
+# inutilisable sans que rien ne le dise.
+#
+# Ne jamais réintroduire de `when:` qui couvre ce fichier.
+
+- name: Vérifier que la distribution est celle que le catalogue éprouve
+  # Le catalogue n'est jouable que sur `ubuntu24` et `alma10`, les deux seules
+  # distributions que les images de dsoxlab fournissent et que la skill de
+  # validation des VM retient. `debian12` est annoncé mais cassé.
+  #
+  # Échouer ici, avec un message, vaut mieux que de laisser une tâche plus loin
+  # échouer sur un nom de paquet inconnu.
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] in ['Ubuntu', 'AlmaLinux']
+    fail_msg: >-
+      Ce catalogue ne se joue que sur Ubuntu 24.04 ou AlmaLinux 10, et cette
+      machine annonce {{ ansible_facts['distribution'] }}
+      {{ ansible_facts['distribution_version'] }}. Le `meta.yml` déclare la
+      distribution de chaque hôte.
+    quiet: true
+
+- name: Installer les outils que les labs interrogent
+  # Les outils par lesquels les TESTS lisent l'état du système (curl, openssl,
+  # dig). `acl` est la dépendance cachée de `become_user` vers un compte NON
+  # PRIVILÉGIÉ. Mesuré le 2026-10-16 : sans lui, Ansible retombe sur une
+  # syntaxe d'ACL que `chmod` de GNU refuse, et la tâche échoue sur
+  #
+  #   Failed to set permissions on the temporary files Ansible needs to create
+  #   when becoming an unprivileged user
+  #   chmod: invalid mode: 'A+user:student:rx:allow'
+  #
+  # Le message ne nomme pas le paquet manquant, et la piste part vers les
+  # droits du répertoire, qui sont pourtant bons. Tout lab qui lance un
+  # processus sous le compte humain en a besoin.
+  ansible.builtin.package:
+    name: "{{ outils_du_socle }}"
+    state: present
+  vars:
+    outils_du_socle: >-
+      {{
+        ['ca-certificates', 'curl', 'jq', 'openssl', 'acl']
+        + (['dnsutils'] if ansible_facts['os_family'] == 'Debian' else ['bind-utils'])
+      }}
+  register: outils_installes
+  retries: 3
+  delay: 5
+  # `until: outils_installes is succeeded`, et non `until: true`.
+  #
+  # Avec `until: true`, la condition est satisfaite dès la première tentative,
+  # y compris quand celle-ci a échoué : les trois essais annoncés n'ont alors
+  # jamais lieu. Un miroir de paquets momentanément indisponible, qui est
+  # précisément ce que ces essais visent, faisait échouer le setup du premier
+  # coup.
+  until: outils_installes is succeeded
+
+- name: Déclarer le dépôt Docker officiel
+  # Le paquet `docker.io` d'Ubuntu est en retard et ne fournit pas le plugin
+  # Compose v2, que tous les labs utilisent. On prend le dépôt de Docker, comme
+  # la leçon d'installation du site le fait.
+  when: ansible_facts['os_family'] == 'Debian'
+  block:
+    - name: Créer le répertoire des clés de dépôt
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Récupérer la clé du dépôt Docker
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+        force: false
+
+    - name: Déclarer le dépôt
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch={{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else ansible_facts['architecture'] }}
+          signed-by=/etc/apt/keyrings/docker.asc]
+          https://download.docker.com/linux/ubuntu
+          {{ ansible_facts['distribution_release'] }} stable
+        filename: docker
+        state: present
+
+- name: Déclarer le dépôt Docker officiel (familles RHEL)
+  when: ansible_facts['os_family'] == 'RedHat'
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    enabled: true
+
+- name: Installer Docker et le plugin Compose
+  ansible.builtin.package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  register: docker_installe
+  retries: 3
+  delay: 10
+  # Voir la tâche des outils : `until: true` annule les essais qu'il annonce.
+  until: docker_installe is succeeded
+
+- name: Démarrer Docker, et le rendre persistant
+  # `enabled: true` n'est pas décoratif : un lab qui parle de persistance se
+  # joue sur une machine dont les services survivent au redémarrage, et
+  # plusieurs tests redémarrent les conteneurs.
+  ansible.builtin.systemd_service:
+    name: docker
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Autoriser le compte de service à parler au démon
+  # `ansible` est le compte de SERVICE, celui par lequel dsoxlab et les
+  # playbooks se connectent. `student` est le compte humain. Tout ce qui
+  # automatise vise `ansible` : un lab qui donnerait l'accès au seul `student`
+  # couperait sa propre validation.
+  ansible.builtin.user:
+    name: ansible
+    groups: docker
+    append: true
+
+- name: Autoriser aussi le compte humain, pour que l'apprenant travaille sans sudo
+  ansible.builtin.user:
+    name: student
+    groups: docker
+    append: true
+  failed_when: false
+
+- name: Rendre le groupe effectif pour la session en cours
+  # L'appartenance à un groupe ne s'applique qu'aux sessions ouvertes APRÈS
+  # l'avoir accordée. Sans ce reset, la première tâche qui appelle `docker`
+  # dans le même play échoue sur la socket, et le message ne parle que de
+  # permission refusée.
+  ansible.builtin.meta: reset_connection
+
+- name: Vérifier que le démon répond, et par le compte de service
+  # Le contrôle porte sur le COMPORTEMENT, pas sur la présence du paquet. Un
+  # Docker installé dont la socket refuse le compte de service est un Docker
+  # inutilisable, et c'est l'erreur que ce contrôle attrape.
+  ansible.builtin.command: docker version --format '{{ "{{" }}.Server.Version{{ "}}" }}'
+  become: false
+  register: version_docker
+  changed_when: false
+  retries: 6
+  delay: 5
+  until: version_docker.rc == 0
+
+- name: Vérifier que le plugin Compose est là
+  ansible.builtin.command: docker compose version --short
+  become: false
+  register: version_compose
+  changed_when: false
+
+- name: Refuser le vieux Compose v1
+  # `docker-compose` v1, en Python, ne lit pas la même grammaire de fichier et
+  # ne comprend ni `depends_on.condition` ni les `healthcheck` sur lesquels le
+  # socle s'appuie pour démarrer Keycloak après sa base.
+  #
+  # LE CONTRÔLE PORTE SUR LA NATURE, PAS SUR UN NUMÉRO. La première version
+  # exigeait `^v?2\.`, en confondant « Compose v2 », qui est la GÉNÉRATION du
+  # plugin écrit en Go, avec « la version 2.x ». Mesuré le 2026-10-16 : le
+  # plugin annonce 5.6.0, et l'assertion a refusé une machine parfaitement
+  # bonne. Le numéro a continué d'avancer, la génération non.
+  #
+  # Ce qu'il faut vérifier est donc l'inverse : que ce n'est PAS un 1.x. Le
+  # fait que `docker compose` réponde comme SOUS-COMMANDE l'établit déjà,
+  # puisque le v1 était un binaire séparé, `docker-compose`, et que
+  # `docker compose` n'existait pas alors. L'assertion ne garde que le filet.
+  ansible.builtin.assert:
+    that:
+      - (version_compose.stdout | trim) | length > 0
+      - version_compose.stdout is not match('^v?1\\.')
+    fail_msg: >-
+      Le socle a besoin du plugin Compose, et la machine annonce
+      « {{ version_compose.stdout | trim }} ». Le vieux `docker-compose` v1 en
+      Python ne comprend pas les conditions de `depends_on` dont le socle se
+      sert pour démarrer Keycloak après que sa base est prête.
+    quiet: true
+
+- name: Dire quelle version de Docker la machine porte
+  # Le relevé de validation porte les versions RÉELLEMENT jouées : sans
+  # cette trace, un lab qui casse après une montée de version du démon ne
+  # se distingue pas d'un lab cassé par son propre contenu.
+  #
+  # Elle vient APRÈS la lecture de Compose, et elle dit son numéro exact.
+  # La première version annonçait « Compose v2 » en dur, ce qui était faux
+  # sur une machine qui porte 5.6.0 : un message qui ment est pire
+  # qu'absent.
+  ansible.builtin.debug:
+    msg: >-
+      Docker {{ version_docker.stdout | trim }},
+      Compose {{ version_compose.stdout | trim }},
+      sur {{ ansible_facts['distribution'] }}
+      {{ ansible_facts['distribution_version'] }}

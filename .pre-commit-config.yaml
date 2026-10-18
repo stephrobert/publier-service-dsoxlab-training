@@ -1,0 +1,65 @@
+# Les hooks de ce catalogue. Ils mesurent ce qu'une relecture ne voit pas.
+#
+# `pass_filenames: false` partout : ces contrôles portent sur le dépôt entier,
+# pas sur les fichiers d'un commit. Un lab retiré du `meta.yml` casse le
+# catalogue sans qu'aucun fichier du commit ne le montre.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      # LICENSE est EXCLUE des deux hooks d'espaces. Le texte d'une licence se
+      # reconnaît au caractère près : GitHub l'identifie en le comparant, et
+      # `end-of-file-fixer` lui retirait sa ligne finale à chaque passage.
+      # Mesuré sur sept catalogues neufs : `git status` affichait `M LICENSE`
+      # sans qu'aucun humain y ait touché.
+      - id: trailing-whitespace
+        exclude: '^LICENSE$'
+      - id: end-of-file-fixer
+        exclude: '^LICENSE$'
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: contrat-valide
+        name: le contrat du catalogue est valide
+        # `entry: dsoxlab …` emploierait le moteur du PATH, c'est-à-dire ce qui
+        # traîne sur la machine du contributeur. `uvx` avec une borne prend une
+        # version DÉCLARÉE, la même qu'en CI, et les guillemets sont
+        # nécessaires : sans eux, la ligne recopiée dans un terminal crée un
+        # fichier nommé `=0.5.0` par redirection.
+        entry: uvx 'dsoxlab>=0.5.3' validate-structure
+        language: system
+        pass_filenames: false
+
+      # Le verrou décrit ce qui s'installe, et c'est lui que les scanners de
+      # vulnérabilités lisent. Un verrou qui dérive de son `pyproject.toml` ne
+      # verrouille plus rien.
+      #
+      # PREMIER GESTE après la création du catalogue : `uv lock`. Le socle ne
+      # peut pas produire ce fichier, puisque le résoudre demande le réseau ;
+      # ce hook échouera donc jusqu'à ce que vous l'ayez lancé, et il le dira.
+      - id: verrou-a-jour
+        name: uv.lock décrit bien le pyproject
+        entry: uv lock --check
+        language: system
+        pass_filenames: false
+        files: '^(pyproject\.toml|uv\.lock)$'
+
+      - id: garde-fous
+        name: les garde-fous du dépôt passent
+        entry: uv run --with pytest --with pyyaml pytest tests/ -q
+        language: system
+        pass_filenames: false
+
+      # La règle d'écriture du projet interdit le tiret cadratin en français :
+      # il se remplace par la ponctuation qui dit son rôle. Mesuré sur un
+      # catalogue sans ce hook : 51 `lab.fr.yaml`, 172 README de labs et 86
+      # scénarios en portaient un.
+      - id: pas-de-tiret-cadratin
+        name: ni emoji ni tiret cadratin dans ce que lit l'apprenant
+        entry: python3 tests/outils/pas_de_tiret_cadratin.py
+        language: system
+        pass_filenames: false

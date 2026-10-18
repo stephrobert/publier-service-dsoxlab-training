@@ -1,0 +1,6 @@
+# Surcharge française : titre et description, rien d'autre.
+title: "Obtenir un certificat automatiquement avec ACME"
+description: |
+  Lancez Pebble, un serveur ACME de test, et obtenez-en un certificat avec lego
+  par le défi HTTP-01. Noté sur le certificat lui-même : qui l'a émis, pour
+  quel nom, et si la validation a réellement eu lieu.
