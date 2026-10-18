@@ -1,0 +1,19 @@
+{
+  "genere_le": "2026-10-18 12:53:08",
+  "act": "act version 0.2.84",
+  "dsoxlab": "dsoxlab 0.5.3",
+  "labs": {
+    "pub-01-acme-pebble": {
+      "id": "pub-01-acme-pebble",
+      "chemin": "pub-01-acme-pebble",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "8/8",
+      "duree_s": 74.5,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-18"
+    }
+  }
+}
