@@ -1,0 +1,22 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+- name: Préparer le lab pub-02-traefik-docker
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer la couche machine (Docker, Compose, outils)
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les versions et digests épinglés
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    - name: Poser la situation du lab
+      # La trace va dans /var/log/dsoxlab-prepare.log sur la machine.
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_TRAEFIK: "{{ socle_images.traefik.image }}:{{ socle_images.traefik.version }}@{{ socle_images.traefik.digest }}"
+        IMG_WHOAMI: "{{ socle_images.whoami.image }}:{{ socle_images.whoami.version }}@{{ socle_images.whoami.digest }}"

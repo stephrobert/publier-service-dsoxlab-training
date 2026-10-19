@@ -1,0 +1,41 @@
+---
+# Joué par `dsoxlab clean` : rien ne doit rester, volumes et réseaux compris.
+- name: Nettoyer le lab pub-02-traefik-docker
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter ce que l'apprenant a monté
+      ansible.builtin.command:
+        cmd: docker compose down -v --remove-orphans
+        chdir: /opt/pub-lab
+      changed_when: true
+      failed_when: false
+
+    - name: Retirer les conteneurs Traefik et whoami restés hors Compose
+      ansible.builtin.shell:
+        cmd: |
+          ids=$({% raw %}docker ps -a --format '{{.ID}} {{.Image}}' | awk '$2 ~ /^traefik(\/whoami)?[:@]/ {print $1}'{% endraw %})
+          [ -n "$ids" ] && docker rm -f $ids || true
+        executable: /bin/bash
+      changed_when: true
+      failed_when: false
+
+    - name: Retirer le réseau du lab
+      ansible.builtin.command: docker network rm pub-lab
+      changed_when: true
+      failed_when: false
+
+    - name: Retirer le répertoire de travail et la trace
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-lab
+        - /var/log/dsoxlab-prepare.log
+
+    - name: Vérifier que le port 80 n'écoute plus
+      ansible.builtin.wait_for:
+        port: 80
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60

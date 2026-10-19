@@ -1,0 +1,7 @@
+# Surcharge française : titre et description, rien d'autre.
+title: "Publier deux conteneurs derrière Traefik, avec le fournisseur Docker"
+description: |
+  Placez Traefik devant deux instances d'un service web, découvertes par les
+  étiquettes Docker : rien d'exposé par défaut, aucun port de backend publié, et
+  une instance qui peut disparaître sans que le client s'en aperçoive. Noté sur
+  ce que voit un client et sur ce que la machine publie réellement.
