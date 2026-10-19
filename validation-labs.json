@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-18 12:53:08",
+  "genere_le": "2026-10-18 13:01:02",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.3",
   "labs": {
@@ -13,6 +13,18 @@
       "duree_s": 74.5,
       "traces": [],
       "pourquoi": "",
+      "date": "2026-10-18"
+    },
+    "pub-02-traefik-docker": {
+      "id": "pub-02-traefik-docker",
+      "chemin": "pub-02-traefik-docker",
+      "verdict": "ROUGE",
+      "score_avant": 0,
+      "score_apres": 83,
+      "tests": "5/6",
+      "duree_s": 96.5,
+      "traces": [],
+      "pourquoi": "la solution de référence ne passe que 5/6 tests (test_une_instance_arretee_ne_cause_aucune_erreur). Soit elle est fausse, soit un test exige l'impossible.",
       "date": "2026-10-18"
     }
   }

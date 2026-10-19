@@ -19,7 +19,7 @@ repo:
   id: publier-service-dsoxlab-training
   category: publier-service-dsoxlab-training
   title: "Publish a web service: a reverse proxy in front of your services, with automatic certificates"
-  blog_url: "https://blog.stephane-robert.info/docs/services/web/"
+  blog_url: "https://www.stephane-robert.info/docs/services/web/"
   description: |
     Labs for the "Publish a web service" course. Learners put a reverse proxy
     in front of real services on a single virtual machine: they obtain a
@@ -59,3 +59,4 @@ sections:
     description: "Obtain a certificate automatically with ACME, then publish containers behind Traefik. Other labs of the level are added as they are written and proven."
     labs:
       - pub-01-acme-pebble
+      - pub-02-traefik-docker

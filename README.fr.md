@@ -3,7 +3,7 @@
 **Langue :** [English](./README.md) · [Français](./README.fr.md)
 
 Des labs vérifiables pour la formation
-[« Publier un service web »](https://blog.stephane-robert.info/docs/services/web/)
+[« Publier un service web »](https://www.stephane-robert.info/docs/services/web/)
 du blog, joués avec [dsoxlab](https://github.com/stephrobert/dsoxlab).
 
 ## Ce que c'est

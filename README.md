@@ -3,7 +3,7 @@
 **Language:** [English](./README.md) · [Français](./README.fr.md)
 
 Verifiable labs for the blog's
-["Publish a web service" course](https://blog.stephane-robert.info/docs/services/web/),
+["Publish a web service" course](https://www.stephane-robert.info/docs/services/web/),
 played with [dsoxlab](https://github.com/stephrobert/dsoxlab).
 
 ## What it is

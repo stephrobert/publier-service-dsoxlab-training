@@ -16,7 +16,7 @@ skills:
   - docker-compose
 distros:
   - ubuntu24
-doc_url: https://blog.stephane-robert.info/docs/services/web/certificats-acme/
+doc_url: https://www.stephane-robert.info/docs/services/web/certificats-acme/
 certification_tags: []
 runtime:
   type: vm
