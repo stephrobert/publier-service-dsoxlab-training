@@ -22,8 +22,61 @@ norecursedirs = ["challenge/work", ".git", ".venv"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+exclude = [
+    # Les corriges sont CHIFFRES : ruff ne peut pas les lire.
+    "solution",
+    # Le point de depart livre a l'apprenant, et ce qu'il ecrit ensuite.
+    "labs/*/fixtures",
+    "labs/*/challenge/work",
+]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "S"]
-# S101 : `assert` est l'outil de travail d'un test, pas un défaut.
-per-file-ignores = { "labs/**/tests/*.py" = ["S101"], "tests/*.py" = ["S101"] }
+# Le jeu est repris des catalogues freres plutot qu'invente ici : ces depots se
+# relisent les uns les autres, et un contributeur qui passe de l'un a l'autre
+# ne doit pas reapprendre ce qui est accepte. L'ecrire dans le depot importe
+# aussi parce que les hooks et la CI appellent `uvx ruff`, donc la DERNIERE
+# version publiee : sans jeu declare, ce que ruff juge change le jour ou ruff
+# change d'avis.
+select = [
+    "E4", "E7", "E9", "F",  # les defauts de ruff : erreurs reelles
+    "I",    # imports tries
+    "UP",   # tournures depassees pour la version cible
+    "B",    # bugbear : les pieges qui se paient a l'execution
+    "BLE",  # except nu : une exception avalee se paie plus tard
+    "SIM",  # simplifications lisibles
+    "RUF",  # regles propres a ruff
+    "DTZ",  # dates sans fuseau
+    "PLE", "PLW",
+    "S",    # bandit
+]
+ignore = [
+    # Les messages d'assertion ENSEIGNENT : ce sont eux que l'apprenant lit
+    # quand un test echoue. Les couper a 100 colonnes les rendrait moins
+    # lisibles pour gagner une convention de mise en page.
+    "E501",
+    # `assert` est le verbe de pytest.
+    "S101",
+    # Lancer une commande par son nom depuis le PATH est le metier de ces
+    # scripts et de ces tests. Un chemin absolu les casserait sur une machine
+    # ou l'outil vit ailleurs.
+    "S603", "S607",
+    # S108 : les labs travaillent dans /tmp SUR LA MACHINE DU LAB, qui est
+    # jetable et recreee a chaque `provision`. Un chemin temporaire y est le
+    # geste enseigne, pas une faiblesse.
+    "S108",
+    # S310 : ces tests interrogent le service que le lab vient de monter, par
+    # une URL que le lab a lui-meme ecrite. Il n'y a pas d'entree exterieure.
+    "S310",
+    # S311 : le `random` de ces catalogues fabrique des metriques de
+    # demonstration, jamais un secret.
+    "S311",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Les tests des labs portent les verdicts de `validation-labs.json`, et la
+# regle du projet veut qu'un test modifie se rejoue. On ne les retouche donc
+# pas pour une directive `noqa` devenue inutile, un import place apres un
+# `sys.path.insert`, ou un point-virgule : rejouer une campagne pour cela
+# n'est pas un arbitrage raisonnable. A reprendre lors de la prochaine
+# reattestation de ces labs.
+"labs/**/test_functional.py" = ["RUF100", "E402", "E702"]

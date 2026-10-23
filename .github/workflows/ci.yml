@@ -1,36 +1,36 @@
-# La CI d'un catalogue de labs joue trois contrôles, et aucun ne demande
-# d'infrastructure : ils sont donc tous jouables sur un runner public.
+# Contribution gate for a CONTENT repo (lab catalog), not a Python package.
+# zizmor statically analyzes the workflows first (fast security gate); the
+# heavier jobs only run once it passes. No build, no publish, no artifact upload.
 #
-#   1. le contrat est valide, hors ligne (`validate-structure`) ;
-#   2. les garde-fous propres au dépôt passent (`pytest tests/`) ;
-#   3. le python du catalogue est propre (`ruff`).
-#
-# Ce qu'elle NE fait PAS, et c'est délibéré : jouer les labs. Un lab `vm`
-# demande un hyperviseur, et un lab `shell` demande les outils de son domaine.
-# L'attestation se joue sur une machine de formateur, et son verdict est
-# versionné dans `validation-labs.json`.
-#
-# Les actions sont épinglées par SHA de 40 caractères : un tag est déplaçable,
-# un SHA non.
-
+# Hardening baseline: every action is pinned to a full commit SHA, the default
+# token has no permissions, each job grants only what it needs, checkout never
+# persists credentials, and jobs are time-boxed.
 name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
-  workflow_dispatch:
+    branches: [main]
 
-permissions:
-  contents: read
+# Deny-by-default: jobs opt into the scopes they need, nothing is inherited.
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  contrat:
-    name: Contract, guardrails and lint
+  # Fast security gate — the other jobs depend on it.
+  zizmor:
+    name: Zizmor (workflow static analysis)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -39,22 +39,193 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - name: Zizmor
+        uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
+        with:
+          # Dependabot met à jour le SHA de l'ACTION, jamais cet input, qui
+          # épingle le BINAIRE : il est donc le seul de la chaîne à vieillir en
+          # silence. Mesuré le 2026-09-15 : la 1.26.1 refuse de charger un
+          # workflow qui appelle `uses: $/...`, la forme « self-repository »
+          # que GitHub a publiée en juillet 2026, et échoue sur « malformed
+          # uses ref » sans auditer quoi que ce soit. La 1.30.1 la lit, et la
+          # recommande même contre la forme relative.
+          #
+          # Et 1.30.0, pas 1.30.1 : l'action embarque sa propre table de
+          # versions connues, avec le digest de chaque image. Elle s'arrête à
+          # la dernière publiée avant SA dernière release, et répond « Unknown
+          # version » pour tout ce qui vient après. La 1.30.1 est sortie le
+          # 2026-09-09, après la v0.6.3 de l'action : elle est donc refusée.
+          version: "1.30.0"
+          advanced-security: false
+          # Les workflows DU CATALOGUE, pas ceux des labs. Les fixtures de V5
+          # portent exprès un pr-welcome.yml vulnérable (pull_request_target,
+          # injection de template) : c'est le point de départ que l'apprenant
+          # corrige, et ce sont les tests du lab qui le jugent. Les solutions,
+          # elles, sont chiffrées et illisibles pour zizmor.
+          inputs: .github/workflows
 
-      - name: Install dsoxlab
+  # Workflow syntax gate. actionlint is the only scanner that rejects an
+  # invalid permission scope (e.g. the tempting-but-nonexistent
+  # `administration: read`) and shellchecks every `run:` block.
+  # Installed from the pinned release tarball with a SHA-256 check, so no extra
+  # third-party action enters the trust boundary just to lint.
+  actionlint:
+    name: Actionlint (workflow syntax)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install actionlint (verified release binary)
+        env:
+          ACTIONLINT_VERSION: "1.7.12"
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          base="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}"
+          asset="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl -fsSL -o "${workdir}/${asset}" "${base}/${asset}"
+          curl -fsSL -o "${workdir}/checksums.txt" "${base}/actionlint_${ACTIONLINT_VERSION}_checksums.txt"
+          (cd "${workdir}" && grep " ${asset}$" checksums.txt | sha256sum -c -)
+          tar -xzf "${workdir}/${asset}" -C "${workdir}" actionlint
+          sudo install -m 0755 "${workdir}/actionlint" /usr/local/bin/actionlint
+          actionlint --version
+
+      - name: Run actionlint
+        run: actionlint -color
+
+  # CI/CD exploit-chain analysis: models triggers, permissions and data flow to
+  # surface full attack scenarios (untrusted checkout exec, injection, risky
+  # default permissions). Complements zizmor rather than duplicating it.
+  poutine:
+    name: Poutine (CI/CD exploit chains)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Poutine
+        uses: boostsecurityio/poutine-action@e240ebd3eff8b2db5a8e5f6b28f58739d7db2247 # v1.1.4
+
+  # Parity gate — run EVERY pre-commit hook (commit AND push stages) exactly as
+  # a contributor's local pre-commit would. Nothing enforced locally (hygiene,
+  # ruff, validate-structure, playbooks that load, tests that have all their
+  # names) can then be slipped past with `git commit --no-verify`: any failing
+  # hook refuses the PR. This is
+  # the single source of truth — the CI runs the .pre-commit-config.yaml, not a
+  # hand-maintained copy of its steps.
+  pre-commit:
+    name: Pre-commit parity (all hooks)
+    needs: zizmor
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    # Pas de `DSOXLAB_PROVIDER` ici, bien que les vingt et un labs soient en
+    # `runtime: vm` : `meta.yml` déclare `provider: kvm` en chaîne simple, qui
+    # se résout seule. Seule une LISTE de candidats aurait besoin d'être
+    # tranchée, et seules les commandes d'infra la réclament de toute façon.
+    # Aucune infrastructure n'est montée ici : la CI ne joue pas les labs.
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+
+      # Pas d'installation de trufflehog ici, contrairement aux catalogues
+      # frères : AUCUN hook de ce dépôt ne l'appelle. Installer un binaire
+      # que la parité n'exerce pas ferait croire à un contrôle qui n'existe
+      # pas, et `detect-private-key` reste joué comme chez les autres.
+      - name: Run every hook (commit stage)
+        run: uvx pre-commit@4.6.0 run --all-files --show-diff-on-failure --color always
+
+      - name: Run every hook (push stage)
+        run: uvx pre-commit@4.6.0 run --all-files --hook-stage pre-push --show-diff-on-failure --color always
+
+      # A lock file that has drifted from its pyproject locks nothing: the
+      # vulnerability scanners keep reading uv.lock, which no longer describes
+      # what gets installed. `--check` neither resolves nor writes; it fails if
+      # the lock is stale. This check only became possible once dsoxlab left
+      # the dev group: as a local path source, it made the lock unresolvable
+      # anywhere ../dsoxlab is absent, CI included.
+      - name: The lock still describes the pyproject
+        run: uv lock --check
+
+  # Static analysis of the repo's Python (lab tests, conftest). Findings post to
+  # the Security tab — no artifact is published.
+  # TWO languages, and the second is not a flourish: this repository is made of
+  # Python (lab tests, conftest) and of GitHub Actions workflows — and the
+  # workflows are the half that runs with a token. Analysing only the Python
+  # left that half unwatched.
+  #
+  # `security-extended` rather than the default query set: the default aims for
+  # zero noise on a large application repository, which is not the trade-off
+  # here. It is already what the sibling scankit repository uses.
+  # Le contrat déclaratif, plus les deux contrôles propres à ce catalogue.
+  #
+  # Ce job existe SÉPARÉMENT du hook pre-push parce que `--check-urls` fait du
+  # réseau : une vérification qui interroge les 21 pages du site n'a pas sa
+  # place dans un hook local, qui doit rester rapide et marcher hors ligne.
+  # Repris du catalogue Kubernetes, qui a tranché de la même façon.
+  contrat:
+    name: Contrat du catalogue (2 labs)
+    needs: zizmor
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Durcir le runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+
+      - name: Installer dsoxlab
         # La borne est DÉCLARÉE, et non supposée. `uv tool install dsoxlab`
         # installe « ce que PyPI publie aujourd'hui » : le jour où le contrat
         # gagne un champ, le message accuse le catalogue (« cette clé n'est pas
         # dans le contrat ») au lieu de dire que le moteur est trop ancien.
         # Avec la borne, uv répond « aucune version ne satisfait la
         # contrainte », ce qui nomme le bon coupable.
-        #
-        # La valeur est celle du moteur qui a ÉCRIT ce catalogue : c'est la
-        # seule qu'on puisse affirmer sans analyser son contenu.
-        run: uv tool install 'dsoxlab>=0.5.3'
+        run: uv tool install 'dsoxlab>=0.5.5'
 
-      - name: List the labs
+      - name: Lister les labs
         # D'ABORD : un `lab.yaml` qui lève au parsing disparaît du catalogue
         # sans un mot, et `validate-structure` n'itère que sur ce qui a chargé.
         # Un catalogue vide ici est un défaut, pas un succès.
@@ -63,11 +234,57 @@ jobs:
           test "$(dsoxlab list-labs --json | python3 -c \
             'import json,sys; print(len(json.load(sys.stdin)["labs"]))')" -gt 0
 
-      - name: Validate the contract
-        run: dsoxlab validate-structure
+      - name: Vérifier la structure et les doc_url
+        run: dsoxlab validate-structure --check-urls
 
-      - name: Repository guardrails
+      - name: Les garde-fous du dépôt passent
         run: uv run --with pytest --with pyyaml pytest tests/ -q
 
       - name: Lint
         run: uvx ruff check .
+
+      # Un verrou qui dérive de son pyproject ne verrouille plus rien : les
+      # scanners de vulnérabilités continuent de lire uv.lock, qui ne décrit
+      # plus ce qui s'installe. `--check` ne résout pas et n'écrit pas.
+      - name: Le verrou décrit bien le pyproject
+        run: uv lock --check
+
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    needs: zizmor
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, actions]
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        with:
+          languages: ${{ matrix.language }}
+          # Neither Python nor workflows compile: there is no build to observe,
+          # and saying so spares CodeQL the search for a build command that
+          # does not exist.
+          build-mode: none
+          queries: security-extended
+          # Le fichier dit ce qu'il exclut et pourquoi : les 21 solutions
+          # chiffrées, dont CodeQL ne lirait rien d'exploitable, et rien
+          # d'autre.
+          config-file: ./.github/codeql/config.yml
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0

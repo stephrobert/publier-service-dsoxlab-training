@@ -1,0 +1,30 @@
+# Configuration CodeQL du catalogue Publier un service.
+#
+# POURQUOI CE FICHIER EXISTE
+#
+# Le `ci.yml` de ce depot le REFERENCE. Sans lui, les deux jobs CodeQL
+# echouent sur « The configuration file .github/codeql/config.yml does not
+# exist », et le chemin est le piege : il vit sous `.github/codeql/` et non
+# `.github/codeql-config.yml`.
+#
+# CE QU'IL EXCLUT, MESURE SUR CE DEPOT
+#
+# Les corriges de reference, et eux seuls : les DEUX sont chiffres par
+# ansible-vault.
+#
+# `labs/**/fixtures/` est exclu egalement : ces deux labs livrent un
+# point de depart a l'apprenant, et le linter n'a pas a le corriger.
+#
+# CE QUI RESTE ANALYSE
+#
+#   .github/workflows/        les workflows du catalogue lui-meme
+#   scripts/                  l'outillage de validation
+#   tests/                    les garde-fous du depot
+#   labs/**/challenge/tests/  les tests joues sur le poste de l'apprenant
+name: "Catalogue Publier un service, hors solutions chiffrees"
+
+paths-ignore:
+  # Deux corriges chiffres par ansible-vault, au 2026-10-23.
+  - "solution/**"
+  # Le point de depart de l'apprenant, livre tel quel.
+  - "labs/**/fixtures/**"

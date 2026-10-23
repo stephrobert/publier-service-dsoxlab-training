@@ -1,6 +1,12 @@
-# publier-service-dsoxlab-training
+# Publish a Web Service Training: a reverse proxy, and certificates that renew themselves
 
 **Language:** [English](./README.md) · [Français](./README.fr.md)
+
+[![CI](https://github.com/stephrobert/publier-service-dsoxlab-training/actions/workflows/ci.yml/badge.svg)](https://github.com/stephrobert/publier-service-dsoxlab-training/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/stephrobert/publier-service-dsoxlab-training?label=OpenSSF%20Scorecard)](https://securityscorecards.dev/viewer/?uri=github.com/stephrobert/publier-service-dsoxlab-training)
+[![Plumber compliance](https://score.getplumber.io/github.com/stephrobert/publier-service-dsoxlab-training.svg)](https://score.getplumber.io/github.com/stephrobert/publier-service-dsoxlab-training)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](./LICENSE)
 
 Verifiable labs for the blog's
 ["Publish a web service" course](https://www.stephane-robert.info/docs/services/web/),
@@ -160,9 +166,10 @@ directions.
 
 ### Level 1: publish services behind a reverse proxy
 
-| Lab (id) | Title | Type | Companion guide |
-|---|---|---|---|
-| `pub-01-acme-pebble` | Obtain a certificate automatically with ACME | lab | guide being written (in French) |
+| Lab | What it proves |
+|---|---|
+| `pub-01-acme-pebble` | a certificate is obtained automatically over ACME, and renews | lab, 30 min |
+| `pub-02-traefik-docker` | two containers are published behind Traefik, discovered through the Docker socket | lab, 40 min |
 
 ## Contributing
 
