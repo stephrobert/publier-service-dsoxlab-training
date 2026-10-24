@@ -1,0 +1,52 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-traefik-acme
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter la solution de l'apprenant si elle existe
+      ansible.builtin.command:
+        cmd: docker compose down -v --remove-orphans
+        chdir: /opt/pub-traefik-acme
+      failed_when: false
+      changed_when: true
+
+    - name: Arrêter l'autorité ACME de test
+      ansible.builtin.command:
+        cmd: docker compose -f platform.yaml down -v --remove-orphans
+        chdir: /opt/pub-traefik-acme
+      failed_when: false
+      changed_when: true
+
+    - name: Retirer les conteneurs restants du lab
+      ansible.builtin.shell:
+        cmd: |
+          ids=$(docker ps -aq --filter name=^/pub-renewal-)
+          [ -z "$ids" ] || docker rm -f $ids
+        executable: /bin/bash
+      changed_when: true
+
+    - name: Retirer le réseau du lab
+      ansible.builtin.command: docker network rm acme-renewal
+      failed_when: false
+      changed_when: true
+
+    - name: Retirer le répertoire et la trace de préparation
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-traefik-acme
+        - /var/log/dsoxlab-pub-acme-renewal.log
+        - /var/log/dsoxlab-pub-traefik-acme.log
+
+    - name: Vérifier que les ports publiés par Traefik sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 80
+        - 443

@@ -74,10 +74,10 @@ export LAB_HOME=$PWD
 dsoxlab use --provider kvm       # a list of providers does not resolve on its own
 dsoxlab provision                # creates edge.lab, once
 dsoxlab list-labs                # the catalog, in teaching order
-dsoxlab run       pub-01-acme-pebble
-dsoxlab challenge pub-01-acme-pebble
-dsoxlab check     pub-01-acme-pebble
-dsoxlab clean     pub-01-acme-pebble   # undoes the lab, keeps the machine
+dsoxlab run       pub-acme-pebble
+dsoxlab challenge pub-acme-pebble
+dsoxlab check     pub-acme-pebble
+dsoxlab clean     pub-acme-pebble   # undoes the lab, keeps the machine
 ```
 
 `run` is what prepares the lab. Running `check` on a lab you never started
@@ -148,6 +148,11 @@ Reference solutions live under `solution/<lab>/`, encrypted with
 `ansible-vault`; the password (`.vault-pass` at the root) is never versioned.
 A solution in clear text would spoil the lab, and git keeps it forever.
 
+GitHub CI checks the contract, workflows and repository quality, but does not
+provision VMs or replay labs. Its badge is therefore not pedagogical evidence:
+the runtime 0 → 100 cycle is checked separately with
+`python3 scripts/valider-labs.py --lab <id>` on provisioned infrastructure.
+
 ### Scoring, hints, progress
 
 `check` records a score (tests passed out of total, minus the cost of any hints
@@ -168,8 +173,50 @@ directions.
 
 | Lab | What it proves |
 |---|---|
-| `pub-01-acme-pebble` | a certificate is obtained automatically over ACME, and renews | lab, 30 min |
-| `pub-02-traefik-docker` | two containers are published behind Traefik, discovered through the Docker socket | lab, 40 min |
+| `pub-acme-pebble` | a certificate is issued by a test ACME authority after an HTTP-01 challenge | lab, 30 min |
+| `pub-traefik-docker` | two containers are published behind Traefik, discovered through the Docker socket | lab, 40 min |
+| `pub-traefik-fichier` | Traefik dynamically routes to a systemd-managed host service without restarting | lab, 30 min |
+| `pub-traefik-acme` | Traefik renews and serves an ACME certificate, redirects HTTP, protects storage, and rejects TLS 1.0/1.1 | lab, 40 min |
+| `pub-traefik-restart-recovery` | a containerized web service recovers after the Docker daemon restarts | lab, 30 min |
+| `pub-epreuve-niveau-un` | a timed assessment of two HTTPS services, renewal, external access controls, and Docker recovery | assessment, 60 min |
+
+### Level 2: protect and operate a reverse proxy
+
+| Lab | What it proves |
+|---|---|
+| `pub-traefik-middlewares` | path rewriting, permanent redirects, security headers, compressed responses, and a no-restart update | lab, 40 min |
+| `pub-traefik-protection` | authenticated HTTPS administration, a restricted Docker socket proxy, security headers, and rate limiting | lab, 45 min |
+| `pub-traefik-observabilite` | filtered JSON access logs, an active Prometheus metrics target, and an alert fired by a real 5xx response | lab, 40 min |
+| `pub-traefik-depannage` | diagnose and repair routing, backend, timeout, certificate, and redirect failures | lab, 45 min |
+| `pub-traefik-mise-a-jour` | upgrade Traefik, verify the live configuration, and prove rollback and recovery | lab, 25 min |
+| `pub-epreuve-niveau-deux` | timed assessment of a protected, observable proxy and an unknown incident | assessment, 75 min |
+
+### Optional: HAProxy
+
+| Lab | What it proves |
+|---|---|
+| `pub-haproxy-tls` | native experimental ACME issuance and renewal, TLS termination, SNI, and HTTP-to-HTTPS redirect | lab, 40 min |
+| `pub-haproxy-observabilite` | private HAProxy metrics, a healthy Prometheus scrape, and monitoring ports restricted to loopback | lab, 35 min |
+
+### Optional: Nginx
+
+| Lab | What it proves |
+|---|---|
+| `pub-nginx-publication` | reverse-proxy publication with the request host, path, and forwarding headers preserved | lab, 30 min |
+| `pub-nginx-protection` | security headers, authenticated administration, dotfile denial, and restricted HTTP methods | lab, 35 min |
+
+### Alignment with the course roadmap
+
+The target remains **11 core labs (nine lesson labs and two assessments) plus
+four optional labs**, for 15 curriculum labs. All 11 core labs and all four
+options are implemented and validated. The renewal exercise is integrated into
+the planned ACME lab; the administration exercise now covers HTTPS
+authentication, Docker socket isolation, security headers, and rate limiting.
+The middleware lab also covers path rewriting, redirects, security headers,
+and compression. The restart-recovery exercise is an interim, independently
+playable proof whose outcome is reused in the first assessment rather than
+counted as an additional core slot. All 16 runnable labs, including that
+interim proof, pass the 0-to-100 validation cycle.
 
 ## Contributing
 

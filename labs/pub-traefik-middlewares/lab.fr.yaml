@@ -1,0 +1,4 @@
+title: "Composer et vérifier des middlewares Traefik"
+description: |
+  Réécrivez des chemins, redirigez d'anciennes URL et renvoyez des réponses
+  compressées avec des en-têtes de sécurité par le point d'entrée Traefik.

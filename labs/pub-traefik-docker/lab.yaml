@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/stephrobert/dsoxlab/main/schemas/lab.schema.json
+id: pub-traefik-docker
+title: "Publish two containers behind Traefik, with the Docker provider"
+description: |
+  Put Traefik in front of two instances of a web service, discovered through
+  Docker labels: nothing exposed by default, no backend port published, and one
+  instance that can disappear with measured failover. Graded on what a client
+  sees and on what the machine really publishes.
+section: niveau-1
+level: niveau-1
+lab_type: lab
+difficulty: intermediate
+estimated_time: "40m"
+skills:
+  - traefik
+  - reverse-proxy
+  - docker-compose
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-docker/
+certification_tags: []
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  security: false
+  persistence_after_reboot: false

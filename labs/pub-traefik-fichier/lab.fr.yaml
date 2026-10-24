@@ -1,0 +1,4 @@
+title: "Publier un service systemd avec le fournisseur fichier de Traefik"
+description: |
+  Routez les requêtes vers un service hôte géré par systemd, puis ajoutez ou
+  modifiez la route dynamiquement sans redémarrer Traefik.

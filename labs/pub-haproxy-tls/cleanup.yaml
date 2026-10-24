@@ -1,0 +1,67 @@
+---
+- name: Défaire le lab pub-haproxy-tls
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter et désactiver le backend
+      ansible.builtin.systemd:
+        name: pub-haproxy-tls-backend
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Arrêter et supprimer HAProxy
+      ansible.builtin.command:
+        cmd: docker compose down --remove-orphans
+        chdir: /opt/pub-haproxy-tls
+      failed_when: false
+      changed_when: true
+
+    - name: Arrêter Pebble et le serveur de défis
+      ansible.builtin.command:
+        cmd: docker compose -f platform.yaml down -v --remove-orphans
+        chdir: /opt/pub-traefik-acme
+      failed_when: false
+      changed_when: true
+
+    - name: Retirer les conteneurs ACME restants
+      ansible.builtin.shell:
+        cmd: |
+          ids=$(docker ps -aq --filter name=^/pub-renewal-)
+          [ -z "$ids" ] || docker rm -f $ids
+        executable: /bin/bash
+      changed_when: true
+
+    - name: Retirer le réseau ACME
+      ansible.builtin.command: docker network rm acme-renewal
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer les fichiers et le service du lab
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-haproxy-tls
+        - /opt/pub-traefik-acme
+        - /etc/systemd/system/pub-haproxy-tls-backend.service
+        - /var/log/dsoxlab-pub-haproxy-tls.log
+        - /var/log/dsoxlab-pub-traefik-acme.log
+        - /var/log/dsoxlab-pub-acme-renewal.log
+
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 80
+        - 443
+        - 14000
+        - 15000
+        - 18085

@@ -1,0 +1,28 @@
+---
+id: pub-haproxy-tls
+title: "Publish HTTPS with HAProxy native ACME"
+level: option-haproxy
+description: |
+  Terminate TLS with HAProxy 3.4, issue and renew a Pebble certificate with
+  HAProxy's experimental native ACME client, and keep the service available
+  during renewal.
+skills:
+  - haproxy
+  - acme
+  - tls
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+lab_type: lab
+estimated_time: "40m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

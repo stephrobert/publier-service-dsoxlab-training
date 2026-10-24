@@ -1,0 +1,29 @@
+---
+id: pub-traefik-depannage
+title: "Troubleshoot Traefik routing and TLS failures"
+level: niveau-2
+description: |
+  Diagnose and repair injected 404, 502, 504, certificate, and redirect-loop
+  failures by correlating HTTP responses with Traefik logs.
+skills:
+  - traefik
+  - troubleshooting
+  - http
+  - tls
+distros:
+  - ubuntu24
+doc_url: >-
+  https://www.stephane-robert.info/docs/services/reseau/traefik-observability/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

@@ -170,25 +170,51 @@ def _golden_utilisable(fqdn: str) -> bool:
 
 
 def _attendre_boot(fqdns: list[str], delai: int = 240) -> list[str]:
-    """Attend `systemctl is-system-running` = running/degraded sur chaque VM.
+    """Attend la fin de cloud-init et un SSH utilisable sur chaque VM.
 
-    Le port SSH ne suffit pas : sshd répond bien avant firewalld ou chronyd, et
-    un setup joué trop tôt lève. Rend les FQDN qui ne sont jamais revenus.
+    SSH et systemd peuvent répondre pendant que cloud-init configure encore la
+    machine. Figer son disque à ce moment-là peut interrompre la génération des
+    clés d'hôte et rendre le prochain démarrage inaccessible.
     """
     absents = []
     for fqdn in fqdns:
         echeance = time.monotonic() + delai
         pret = False
         while time.monotonic() < echeance:
-            sonde = subprocess.run(
-                ["ssh", "-i", str(CLE_SSH), "-o", "IdentitiesOnly=yes",
-                 "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null",
-                 "-o", "LogLevel=ERROR", "-o", "ConnectTimeout=6", "-o", "BatchMode=yes",
-                 f"ansible@{_ip(fqdn)}", "systemctl is-system-running 2>/dev/null || true"],
-                # stdin fermé : ssh lit sinon l'entrée de l'appelant, et une
-                # boucle `while read` qui l'appelle perdait la suite de sa liste.
-                stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False,
-            )
+            restant = max(1, int(echeance - time.monotonic()))
+            try:
+                sonde = subprocess.run(
+                    [
+                        "ssh",
+                        "-i",
+                        str(CLE_SSH),
+                        "-o",
+                        "IdentitiesOnly=yes",
+                        "-o",
+                        "StrictHostKeyChecking=no",
+                        "-o",
+                        "UserKnownHostsFile=/dev/null",
+                        "-o",
+                        "LogLevel=ERROR",
+                        "-o",
+                        "ConnectTimeout=6",
+                        "-o",
+                        "BatchMode=yes",
+                        f"ansible@{_ip(fqdn)}",
+                        "cloud-init status --wait >/dev/null 2>&1 && "
+                        "sudo -n sshd -t && "
+                        "{ systemctl is-system-running 2>/dev/null || true; }",
+                    ],
+                    # stdin fermé : ssh lit sinon l'entrée de l'appelant, et une
+                    # boucle `while read` qui l'appelle perdait la suite de sa liste.
+                    stdin=subprocess.DEVNULL,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=restant,
+                )
+            except subprocess.TimeoutExpired:
+                break
             if sonde.stdout.strip() in ("running", "degraded"):
                 pret = True
                 break
@@ -196,6 +222,25 @@ def _attendre_boot(fqdns: list[str], delai: int = 240) -> list[str]:
         if not pret:
             absents.append(fqdn)
     return absents
+
+
+def _arreter_proprement(fqdn: str, delai: int = 60) -> None:
+    """Arrête la VM après son initialisation, sans couper cloud-init en cours."""
+    _run(["sudo", "virsh", "shutdown", fqdn])
+    echeance = time.monotonic() + delai
+    while time.monotonic() < echeance:
+        etat = subprocess.run(
+            ["sudo", "virsh", "domstate", fqdn],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if etat.returncode == 0 and etat.stdout.strip() == "shut off":
+            return
+        time.sleep(2)
+    raise IsolationEteinte(
+        f"{fqdn} ne s'est pas arrêtée proprement après {delai}s. La base n'a pas été remplacée."
+    )
 
 
 def _recaler_horloges(fqdns: list[str]) -> None:
@@ -219,10 +264,30 @@ def snapshot_base(fqdns: list[str]) -> None:
     """Fige la base de chaque VM. À lancer sur des VM FRAÎCHES uniquement.
 
     La base n'est créée qu'une fois (idempotent) ; l'overlay est toujours remis
-    à neuf, pour que l'état figé parte propre.
+    à neuf, pour que l'état figé parte propre. Le provisionnement peut rendre
+    SSH disponible avant la fin de cloud-init : attendre ici évite d'en figer
+    un état partiel.
     """
     for fqdn in fqdns:
-        subprocess.run(["sudo", "virsh", "destroy", fqdn], capture_output=True, check=False)
+        etat = _run(["sudo", "virsh", "domstate", fqdn]).stdout.strip()
+        if etat == "shut off":
+            _run(["sudo", "virsh", "start", fqdn])
+        elif etat != "running":
+            raise IsolationEteinte(
+                f"{fqdn} est dans l'état « {etat} » ; attends une VM démarrée "
+                "avant de figer la base."
+            )
+    absents = _attendre_boot(fqdns)
+    if absents:
+        raise IsolationEteinte(
+            "initialisation inachevée (cloud-init/SSH) avant le gel : "
+            f"{', '.join(absents)}. La base n'a pas été remplacée."
+        )
+
+    for fqdn in fqdns:
+        _arreter_proprement(fqdn)
+
+    for fqdn in fqdns:
         for disque in _disques(fqdn):
             base = _base(disque)
             # On garde la base seulement si le disque actuel en est DÉJÀ

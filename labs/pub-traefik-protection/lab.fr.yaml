@@ -1,0 +1,8 @@
+# Surcharge française du lab pub-traefik-protection. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Protéger le point d'entrée Traefik"
+description: |
+  Protégez l'administration Traefik par HTTPS authentifié, sécurisez son accès
+  à l'API Docker avec un proxy de socket restreint, ajoutez des en-têtes de
+  sécurité et limitez le débit des requêtes.
