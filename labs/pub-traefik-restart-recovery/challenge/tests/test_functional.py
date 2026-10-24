@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-
 from conftest import lab_host, lab_target_host, message
 
 CIBLE = lab_target_host("edge.lab")

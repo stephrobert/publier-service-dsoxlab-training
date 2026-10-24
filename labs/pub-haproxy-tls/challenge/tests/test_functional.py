@@ -62,6 +62,7 @@ def _attendre_certificat_pebble(edge, delai: int = 45) -> bool:
 
 def _requete_tls(ca_pem: str) -> str:
     context = ssl.create_default_context(cadata=ca_pem)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
     with (
         socket.create_connection((IP_CIBLE, 443), timeout=4) as raw,
         context.wrap_socket(raw, server_hostname=HOTE) as tls,

@@ -61,6 +61,8 @@ by learners.
   error during detection, then requires five seconds with no errors or traffic
   to the stopped instance. Replayed on 2026-10-24: 0/100 before, 100/100 after,
   all 6 tests passing.
+- TLS clients in the tests now explicitly require TLS 1.2 as their minimum;
+  the tests still verify that the server rejects TLS 1.0 and 1.1.
 
 ## [0.1.0] - 2026-10-23
 

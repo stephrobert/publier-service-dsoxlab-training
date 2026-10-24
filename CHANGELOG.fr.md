@@ -67,6 +67,9 @@ labs, ce qui casse la progression déjà enregistrée des apprenants.
   erreur transitoire pendant la fenêtre de détection, puis exige cinq secondes
   sans erreur ni trafic vers l'instance arrêtée. Rejoué le 2026-10-24 :
   0/100 avant, 100/100 après, 6/6 tests.
+- Les clients TLS des tests fixent maintenant explicitement TLS 1.2 comme
+  version minimale ; les tests vérifient toujours que le serveur refuse TLS
+  1.0 et 1.1.
 
 ## [0.1.0] - 2026-10-23
 

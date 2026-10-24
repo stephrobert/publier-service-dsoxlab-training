@@ -43,6 +43,7 @@ def _dans_le_delai(edge) -> bool:
 
 def _requete_https(nom: str, autorite: str) -> bytes:
     contexte = ssl.create_default_context(cadata=autorite)
+    contexte.minimum_version = ssl.TLSVersion.TLSv1_2
     connexion = socket.create_connection((IP_CIBLE, 443), timeout=5)
     with contexte.wrap_socket(connexion, server_hostname=nom) as tls:
         tls.sendall(
