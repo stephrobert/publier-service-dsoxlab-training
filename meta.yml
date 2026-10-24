@@ -8,8 +8,8 @@
 #
 # UN LAB ENTRE DANS CETTE LISTE LE JOUR OÙ IL EST ÉCRIT ET JOUÉ, PAS AVANT :
 # `validate-structure` refuse un lab déclaré dont le `lab.yaml` n'existe pas.
-# Ordre de jeu prévu : pub-01 (certificats), pub-02 à pub-04 (Traefik), puis
-# l'épreuve du niveau 1.
+# L'ordre pédagogique est porté par la liste ci-dessous, jamais par les noms
+# de lab : on peut insérer un exercice sans renommer les suivants.
 #
 # `repo.id` sert de clé pour l'état local de ce catalogue : le changer
 # déplace ces emplacements.
@@ -21,10 +21,9 @@ repo:
   title: "Publish a web service: a reverse proxy in front of your services, with automatic certificates"
   blog_url: "https://www.stephane-robert.info/docs/services/web/"
   description: |
-    Labs for the "Publish a web service" course. Learners put a reverse proxy
-    in front of real services on a single virtual machine: they obtain a
-    certificate automatically over ACME from a test certificate authority
-    (Pebble), then publish containers behind Traefik.
+    Labs for the "Publish a web service" course. Learners obtain and renew
+    certificates from a test ACME authority (Pebble), publish containers behind
+    Traefik, protect administration, and verify service recovery.
 
     Every lab is graded on the state of the system, never on the commands
     typed: the tests read the certificate that was actually issued, the
@@ -58,5 +57,32 @@ sections:
     title: "Level 1: publish services behind a reverse proxy"
     description: "Obtain a certificate automatically with ACME, then publish containers behind Traefik. Other labs of the level are added as they are written and proven."
     labs:
-      - pub-01-acme-pebble
-      - pub-02-traefik-docker
+      - pub-acme-pebble
+      - pub-traefik-docker
+      - pub-traefik-fichier
+      - pub-traefik-acme
+      - pub-traefik-restart-recovery
+      - pub-epreuve-niveau-un
+  - id: niveau-2
+    title: "Level 2: protect and operate a reverse proxy"
+    description: >-
+      Secure, observe, diagnose, and upgrade the Traefik entry point.
+    labs:
+      - pub-traefik-middlewares
+      - pub-traefik-protection
+      - pub-traefik-observabilite
+      - pub-traefik-depannage
+      - pub-traefik-mise-a-jour
+      - pub-epreuve-niveau-deux
+  - id: option-haproxy
+    title: "Optional: HAProxy"
+    description: "Publish and operate web services with HAProxy."
+    labs:
+      - pub-haproxy-tls
+      - pub-haproxy-observabilite
+  - id: option-nginx
+    title: "Optional: Nginx"
+    description: "Publish and protect web services with Nginx."
+    labs:
+      - pub-nginx-publication
+      - pub-nginx-protection

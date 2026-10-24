@@ -1,0 +1,8 @@
+# Surcharge française du lab pub-traefik-acme. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Configurer HTTPS, le renouvellement ACME et TLS moderne dans Traefik"
+description: |
+  Configurez les certificats ACME automatiques dans Traefik, protégez le
+  stockage ACME, redirigez HTTP vers HTTPS, refusez les anciennes versions TLS
+  et prouvez le renouvellement par le certificat servi à un client.

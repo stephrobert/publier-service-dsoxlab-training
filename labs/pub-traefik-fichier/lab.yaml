@@ -1,0 +1,26 @@
+id: pub-traefik-fichier
+title: "Publish a systemd service with Traefik's file provider"
+level: niveau-1
+description: |
+  Route requests through Traefik to a host service managed by systemd, then
+  add or change the route dynamically without restarting Traefik.
+skills:
+  - traefik
+  - reverse-proxy
+  - systemd
+distros:
+  - ubuntu24
+doc_url: https://doc.traefik.io/traefik/providers/file/
+lab_type: lab
+estimated_time: "30m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

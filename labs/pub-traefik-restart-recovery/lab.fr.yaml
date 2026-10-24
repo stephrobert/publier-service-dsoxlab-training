@@ -1,0 +1,5 @@
+title: "Maintenir un service web conteneurisé disponible après un redémarrage de Docker"
+description: |
+  Configurez un service web conteneurisé pour qu'il redémarre automatiquement
+  avec Docker, puis vérifiez que son véritable endpoint HTTP répond après le
+  redémarrage du moteur.

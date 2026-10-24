@@ -1,0 +1,42 @@
+---
+- name: Défaire le lab pub-traefik-depannage
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter et désactiver le backend
+      ansible.builtin.systemd:
+        name: pub-depannage-backend
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Arrêter et supprimer Traefik
+      ansible.builtin.command:
+        cmd: docker compose down --remove-orphans
+        chdir: /opt/pub-depannage
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer les fichiers du lab et la trace
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-depannage
+        - /etc/systemd/system/pub-depannage-backend.service
+        - /var/log/dsoxlab-pub-depannage.log
+
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports du lab sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 30
+      loop:
+        - 80
+        - 443
+        - 18085

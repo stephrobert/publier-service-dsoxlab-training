@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/stephrobert/dsoxlab/main/schemas/lab.schema.json
+id: pub-acme-pebble
+title: "Obtain a certificate automatically with ACME"
+description: |
+  Run Pebble, a test ACME server, and obtain a certificate from it with lego
+  through the HTTP-01 challenge. Graded on the certificate itself: who issued
+  it, for which name, and whether the validation really took place.
+section: niveau-1
+level: niveau-1
+lab_type: lab
+difficulty: intermediate
+estimated_time: "30m"
+skills:
+  - acme
+  - tls
+  - docker-compose
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/
+certification_tags: []
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  security: false
+  persistence_after_reboot: false

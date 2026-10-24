@@ -1,0 +1,37 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-traefik-protection
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter la pile de l'apprenant
+      ansible.builtin.command:
+        cmd: docker compose down -v --remove-orphans
+        chdir: /opt/pub-admin
+      failed_when: false
+      changed_when: true
+
+    - name: Retirer le conteneur de démonstration
+      ansible.builtin.command: docker rm -f pub-admin-baseline
+      failed_when: false
+      changed_when: true
+
+    - name: Retirer le répertoire de travail et la trace
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-admin
+        - /var/log/dsoxlab-pub-admin.log
+        - /var/log/dsoxlab-pub-protection.log
+
+    - name: Vérifier que les ports d'administration et HTTPS sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 443
+        - 8080

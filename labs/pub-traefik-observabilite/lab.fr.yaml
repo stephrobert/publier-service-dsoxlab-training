@@ -1,0 +1,6 @@
+---
+title: "Observer Traefik avec des journaux JSON et Prometheus"
+description: |
+  Filtrez les journaux d'accès Traefik en JSON, exposez localement les
+  métriques Prometheus et configurez une alerte déclenchée par de vraies
+  réponses HTTP 5xx.

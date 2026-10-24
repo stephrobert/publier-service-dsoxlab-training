@@ -1,9 +1,0 @@
-# pub-01-acme-pebble
-
-Obtain a certificate from a test ACME server (Pebble) with lego, through the
-HTTP-01 challenge. Guide: https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/
-
-```bash
-dsoxlab run pub-01-acme-pebble
-dsoxlab check pub-01-acme-pebble
-```

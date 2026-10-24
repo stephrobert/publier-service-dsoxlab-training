@@ -1,0 +1,24 @@
+---
+# Indices encodés en base64.
+hints:
+  - cost: 10
+    text_fr: >-
+      Q29tcGFyZXogbGEgdmVyc2lvbiBhY3RpdmUsIGzigJlpbWFnZSBldCBjZSBxdWUgc2VydCBy
+      w6llbGxlbWVudCBsYSBjb25maWd1cmF0aW9uLg==
+    text_en: >-
+      Q29tcGFyZSB0aGUgcnVubmluZyB2ZXJzaW9uLCBpbWFnZSByZWZlcmVuY2UsIGFuZCB0aGUg
+      c2VydmljZSB0aGUgcHJveHkgYWN0dWFsbHkgc2VydmVzLg==
+  - cost: 15
+    text_fr: >-
+      Q29uc2VydmV6IHVuZSBkw6lmaW5pdGlvbiBkZSByZXRvdXIgdmVycyBs4oCZYW5jaWVubmUg
+      aW1hZ2UgZXQgc29uIGRpZ2VzdCBpbW11YWJsZS4=
+    text_en: >-
+      S2VlcCBhIHJvbGxiYWNrIGRlZmluaXRpb24gd2l0aCB0aGUgcHJldmlvdXMgaW1hZ2UgYW5k
+      IGl0cyBpbW11dGFibGUgZGlnZXN0Lg==
+  - cost: 20
+    text_fr: >-
+      UHJvdXZleiBsZSBjaGVtaW4gZGUgcmV0b3VyIGFycmnDqHJlIGV0IHbDqXJpZmlleiBxdWUg
+      bGEgdmVyc2lvbiBjaWJsZSBzZXJ0IGRlIG5vdXZlYXUgYXByw6hzIGxlIHRlc3Qu
+    text_en: >-
+      VGVzdCBhbiBhY3R1YWwgcm9sbGJhY2sgYW5kIHZlcmlmeSB0aGUgdGFyZ2V0IHZlcnNpb24g
+      cmVzdW1lcyBzZXJ2aW5nIGFmdGVyd2FyZC4=

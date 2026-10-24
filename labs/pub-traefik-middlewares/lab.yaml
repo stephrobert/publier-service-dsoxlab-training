@@ -1,0 +1,26 @@
+id: pub-traefik-middlewares
+title: "Compose and verify Traefik middlewares"
+level: niveau-2
+description: |
+  Transform paths, redirect legacy URLs, and return compressed responses with
+  security headers through the Traefik entry point.
+skills:
+  - traefik
+  - middleware
+  - http
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-middlewares/
+lab_type: lab
+estimated_time: "40m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

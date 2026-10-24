@@ -1,0 +1,24 @@
+---
+- name: Préparer l'épreuve pub-epreuve-niveau-deux
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer Docker, Compose et les outils du lab
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les images épinglées
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    - name: Poser l'incident inconnu et la pile de supervision
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_TRAEFIK: >-
+          {{ socle_images.traefik.image }}:{{ socle_images.traefik.version
+          }}@{{ socle_images.traefik.digest }}
+        IMG_PROMETHEUS: >-
+          {{ socle_images.prometheus.image }}:{{ socle_images.prometheus.version
+          }}@{{ socle_images.prometheus.digest }}

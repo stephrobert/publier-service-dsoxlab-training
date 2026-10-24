@@ -1,0 +1,40 @@
+---
+- name: Préparer le lab pub-haproxy-tls
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer Docker, Compose et les outils du lab
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les images épinglées
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    - name: Préparer Pebble et son répondeur HTTP-01
+      ansible.builtin.script: ../pub-traefik-acme/fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_TRAEFIK: >-
+          {{ socle_images.traefik.image }}:{{ socle_images.traefik.version
+          }}@{{ socle_images.traefik.digest }}
+        IMG_WHOAMI: >-
+          {{ socle_images.whoami.image }}:{{ socle_images.whoami.version
+          }}@{{ socle_images.whoami.digest }}
+        IMG_PEBBLE: >-
+          {{ socle_images.pebble.image }}:{{ socle_images.pebble.version
+          }}@{{ socle_images.pebble.digest }}
+        IMG_CHALLTESTSRV: >-
+          {{ socle_images.challtestsrv.image
+          }}:{{ socle_images.challtestsrv.version
+          }}@{{ socle_images.challtestsrv.digest }}
+
+    - name: Poser le backend et le HAProxy initial
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_HAPROXY: >-
+          {{ socle_images.haproxy.image }}:{{ socle_images.haproxy.version
+          }}@{{ socle_images.haproxy.digest }}
