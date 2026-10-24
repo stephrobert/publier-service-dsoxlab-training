@@ -1,0 +1,27 @@
+---
+id: pub-haproxy-protection
+title: "Protect an application with HAProxy"
+level: option-haproxy
+description: |
+  Restrict an admin path with an ACL, limit the request rate of each client
+  with a stick-table, and add security headers to the responses.
+skills:
+  - haproxy
+  - http-security
+  - rate-limiting
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy-proteger-observer/
+lab_type: lab
+estimated_time: "35m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

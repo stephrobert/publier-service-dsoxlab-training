@@ -199,6 +199,7 @@ prouvés dans les deux sens.
 | Lab | Ce qu'il prouve |
 |---|---|
 | `pub-haproxy-tls` | émission et renouvellement ACME natifs (fonction expérimentale), terminaison TLS, SNI et redirection HTTP vers HTTPS | lab, 40 min |
+| `pub-haproxy-protection` | ACL limitant la route d'administration, limite de débit par client avec une stick-table et en-têtes de sécurité | lab, 35 min |
 | `pub-haproxy-observabilite` | métriques HAProxy privées, collecte Prometheus active et ports de supervision limités à la boucle locale | lab, 35 min |
 
 ### Option : Nginx
@@ -207,6 +208,7 @@ prouvés dans les deux sens.
 |---|---|
 | `pub-nginx-publication` | publication en reverse proxy avec préservation de l'hôte, du chemin et des en-têtes de transfert | lab, 30 min |
 | `pub-nginx-protection` | en-têtes de sécurité, administration authentifiée, refus des fichiers cachés et limitation des méthodes HTTP | lab, 35 min |
+| `pub-nginx-observation` | limite de débit par client, journaux d'accès JSON et `stub_status` limité à la boucle locale | lab, 35 min |
 
 ### Alignement sur la feuille de route
 

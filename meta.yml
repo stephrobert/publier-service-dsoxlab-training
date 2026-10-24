@@ -79,6 +79,7 @@ sections:
     description: "Publish and operate web services with HAProxy."
     labs:
       - pub-haproxy-tls
+      - pub-haproxy-protection
       - pub-haproxy-observabilite
   - id: option-nginx
     title: "Optional: Nginx"
@@ -86,3 +87,4 @@ sections:
     labs:
       - pub-nginx-publication
       - pub-nginx-protection
+      - pub-nginx-observation

@@ -196,6 +196,7 @@ directions.
 | Lab | What it proves |
 |---|---|
 | `pub-haproxy-tls` | native experimental ACME issuance and renewal, TLS termination, SNI, and HTTP-to-HTTPS redirect | lab, 40 min |
+| `pub-haproxy-protection` | ACL restricting the admin path, per-client rate limit with a stick-table, and security headers | lab, 35 min |
 | `pub-haproxy-observabilite` | private HAProxy metrics, a healthy Prometheus scrape, and monitoring ports restricted to loopback | lab, 35 min |
 
 ### Optional: Nginx
@@ -204,6 +205,7 @@ directions.
 |---|---|
 | `pub-nginx-publication` | reverse-proxy publication with the request host, path, and forwarding headers preserved | lab, 30 min |
 | `pub-nginx-protection` | security headers, authenticated administration, dotfile denial, and restricted HTTP methods | lab, 35 min |
+| `pub-nginx-observation` | per-client rate limit, JSON access logs, and a loopback-only `stub_status` | lab, 35 min |
 
 ### Alignment with the course roadmap
 
