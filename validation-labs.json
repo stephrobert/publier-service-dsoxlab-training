@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-24 16:33:28",
+  "genere_le": "2026-10-24 20:08:44",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -10,7 +10,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "8/8",
-      "duree_s": 77.2,
+      "duree_s": 72.6,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -22,7 +22,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "6/6",
-      "duree_s": 115.4,
+      "duree_s": 142.5,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -34,7 +34,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "3/3",
-      "duree_s": 139.5,
+      "duree_s": 146.0,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -46,7 +46,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "4/4",
-      "duree_s": 115.7,
+      "duree_s": 113.2,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -58,7 +58,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "4/4",
-      "duree_s": 124.0,
+      "duree_s": 115.1,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -70,7 +70,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "4/4",
-      "duree_s": 85.0,
+      "duree_s": 63.4,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -82,7 +82,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "1/1",
-      "duree_s": 67.7,
+      "duree_s": 62.7,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -94,7 +94,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "4/4",
-      "duree_s": 194.3,
+      "duree_s": 181.5,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -106,7 +106,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "6/6",
-      "duree_s": 80.8,
+      "duree_s": 76.0,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -118,7 +118,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "6/6",
-      "duree_s": 131.7,
+      "duree_s": 138.1,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -130,7 +130,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "3/3",
-      "duree_s": 100.2,
+      "duree_s": 100.6,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -142,7 +142,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "5/5",
-      "duree_s": 58.5,
+      "duree_s": 61.7,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -154,7 +154,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "3/3",
-      "duree_s": 109.5,
+      "duree_s": 105.0,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -166,7 +166,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "4/4",
-      "duree_s": 146.6,
+      "duree_s": 148.2,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -178,7 +178,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "8/8",
-      "duree_s": 77.1,
+      "duree_s": 82.4,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
@@ -190,7 +190,7 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "3/3",
-      "duree_s": 57.6,
+      "duree_s": 55.0,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
