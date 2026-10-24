@@ -18,6 +18,12 @@ def _labs() -> list[pathlib.Path]:
     return sorted(RACINE.glob("labs/**/lab.yaml"))
 
 
+def test_kvm_est_le_provider_par_defaut() -> None:
+    meta = yaml.safe_load((RACINE / "meta.yml").read_text(encoding="utf-8"))
+
+    assert meta["infra"]["provider"] == "kvm"
+
+
 def test_aucun_lab_na_disparu_en_silence() -> None:
     """Un répertoire de lab sans `lab.yaml` lisible est un défaut muet.
 

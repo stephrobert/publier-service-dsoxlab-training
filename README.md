@@ -32,11 +32,11 @@ Learners reach the result by whatever path they choose.
 - **Python 3.11+ and [`uv`](https://docs.astral.sh/uv/)**
 - **`git`**
 - **`dsoxlab`**, the engine, installed as a standalone tool (see below).
-- **A hypervisor**, because every lab here is `runtime: vm`: either
-  **libvirt/KVM** (with `terraform` and the `dmacvicar/libvirt` provider) or
-  **Incus**. The provider is declared as a list in [`meta.yml`](./meta.yml),
-  and **a list does not resolve on its own**: pick one with
-  `dsoxlab use --provider kvm`.
+- **A hypervisor**, because every lab here is `runtime: vm`:
+  **libvirt/KVM** (with `terraform` and the `dmacvicar/libvirt` provider) is
+  the default provider declared in [`meta.yml`](./meta.yml). To use Incus
+  instead, change `infra.provider: kvm` to `infra.provider: incus` before
+  provisioning.
 - **4 GB of free RAM and 20 GB of disk** for the single machine, `edge.lab`.
 - **Outbound network access** on first provision, to pull the base image and
   the container images.
@@ -71,7 +71,6 @@ dsoxlab doctor
 
 ```bash
 export LAB_HOME=$PWD
-dsoxlab use --provider kvm       # a list of providers does not resolve on its own
 dsoxlab provision                # creates edge.lab, once
 dsoxlab list-labs                # the catalog, in teaching order
 dsoxlab run       pub-acme-pebble

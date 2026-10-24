@@ -37,9 +37,7 @@ repo:
 #   portal_url: https://formation.example.org/mon-apprentissage/
 
 infra:
-  provider:
-    - kvm
-    - incus
+  provider: kvm
   # `lab-pub` donne le pont `virbr-pub`. CIDR pris : 10.10.20 a 90 ; 100 est
   # reserve a la future formation Base de donnees.
   network: lab-pub
