@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-25 15:50:40",
+  "genere_le": "2026-10-25 16:18:24",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -347,6 +347,18 @@
       "score_apres": 100,
       "tests": "3/3",
       "duree_s": 53.4,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
+    },
+    "pub-traefik-mtls": {
+      "id": "pub-traefik-mtls",
+      "chemin": "pub-traefik-mtls",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 91.4,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-25"

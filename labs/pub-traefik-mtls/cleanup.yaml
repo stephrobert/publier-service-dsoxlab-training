@@ -1,0 +1,36 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-traefik-mtls
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Supprimer les conteneurs du lab
+      ansible.builtin.command:
+        cmd: >
+          docker rm -f pub-mtls-traefik pub-mtls-backend-bon
+          pub-mtls-backend-mauvais pub-mtls-nginx-amont
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer le réseau Docker du lab
+      ansible.builtin.command:
+        cmd: docker network rm pub-mtls
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer les fichiers du lab
+      ansible.builtin.file:
+        path: /opt/pub-mtls
+        state: absent
+
+    - name: Vérifier que les ports du lab sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 30
+      loop:
+        - 8443
+        - 8080
+

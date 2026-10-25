@@ -1,0 +1,9 @@
+# Surcharge française du lab pub-traefik-mtls. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Vérifier TLS backend et certificats clients"
+description: |
+  Protégez une route avec authentification par certificat client, vérifiez
+  le certificat du backend lui-même au lieu de désactiver la vérification,
+  résistez aux en-têtes de transfert forgés, et survivez à une rotation
+  contrôlée des certificats.
