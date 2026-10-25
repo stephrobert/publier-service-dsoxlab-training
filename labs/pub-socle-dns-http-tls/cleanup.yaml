@@ -1,0 +1,66 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. Les paquets restent installés ;
+# partent les services, l'autorité, les certificats, la configuration du
+# routeur, le résolveur et les livrables de l'apprenant.
+- name: Défaire le lab pub-socle-dns-http-tls sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-dht-router.service
+        - pub-dht-boutique.service
+        - pub-dht-compte.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-dht-router.service
+        - /etc/systemd/system/pub-dht-boutique.service
+        - /etc/systemd/system/pub-dht-compte.service
+        - /opt/pub-dht
+        - /etc/pub-dht
+        - /var/lib/pub-dht
+        - /etc/unbound/unbound.conf.d/pub-dht.conf
+        - /home/student/README-dht
+        - /home/student/diagnostic.yaml
+        - /tmp/pub-dht-app.py
+        - /tmp/pub-dht-router.py
+        - /var/log/dsoxlab-pub-socle-dns-http-tls.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Redémarrer unbound avec sa configuration restante
+      ansible.builtin.systemd:
+        name: unbound
+        state: restarted
+      failed_when: false
+
+- name: Défaire le lab pub-socle-dns-http-tls sur le client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Retirer l'autorité de test fournie au client
+      ansible.builtin.file:
+        path: /home/student/ca.pem
+        state: absent
+
+    - name: Retirer la configuration du résolveur
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d/pub-socle-dns-http-tls.conf
+        state: absent
+      notify: Redémarrer resolved
+
+  handlers:
+    - name: Redémarrer resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted

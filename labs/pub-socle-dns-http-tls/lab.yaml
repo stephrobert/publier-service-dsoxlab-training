@@ -1,0 +1,32 @@
+id: pub-socle-dns-http-tls
+title: "Separate the resolved name, the certificate and the HTTP route"
+section: socle
+level: niveau-1
+description: |
+  Observe two names published over TLS on the same address: TLS picks a
+  certificate from the SNI, HTTP then picks the application from the Host
+  header, and the two decisions do not have to agree. Write down what you
+  find, then close the path that lets an unknown name reach an application
+  by accident.
+skills:
+  - dns
+  - tls-sni
+  - http-routing
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/publier-un-service/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

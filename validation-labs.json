@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-25 12:30:32",
+  "genere_le": "2026-10-25 12:50:57",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -95,6 +95,18 @@
       "score_apres": 100,
       "tests": "3/3",
       "duree_s": 65.5,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
+    },
+    "pub-socle-dns-http-tls": {
+      "id": "pub-socle-dns-http-tls",
+      "chemin": "pub-socle-dns-http-tls",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 53.8,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-25"

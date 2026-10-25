@@ -1,0 +1,9 @@
+# Surcharge française du lab pub-socle-dns-http-tls. Elle ne porte QUE
+# `title` et `description`.
+title: "Dissocier nom résolu, certificat et route HTTP"
+description: |
+  Observez deux noms publiés en TLS sur la même adresse : TLS choisit un
+  certificat à partir du SNI, puis HTTP choisit l'application à partir de
+  l'en-tête Host, et les deux décisions n'ont pas à être d'accord. Notez ce
+  que vous observez, puis fermez le chemin qui laisse un nom inconnu
+  atteindre une application par accident.
