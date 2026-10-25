@@ -1,5 +1,6 @@
 id: pub-traefik-protection
 title: "Protect the Traefik entry point"
+section: traefik
 level: niveau-2
 description: |
   Protect Traefik administration with authenticated HTTPS, secure its Docker

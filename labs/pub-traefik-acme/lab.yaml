@@ -1,5 +1,6 @@
 id: pub-traefik-acme
 title: "Configure HTTPS, ACME renewal, and modern TLS in Traefik"
+section: traefik
 level: niveau-1
 description: |
   Configure automatic ACME certificates through Traefik, protect the ACME

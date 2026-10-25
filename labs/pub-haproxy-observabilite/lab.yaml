@@ -1,6 +1,7 @@
 ---
 id: pub-haproxy-observabilite
 title: "Observe HAProxy with Prometheus"
+section: haproxy
 level: option-haproxy
 description: |
   Publish HAProxy metrics on a loopback-only endpoint, scrape them with

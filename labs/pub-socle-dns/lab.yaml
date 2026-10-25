@@ -1,5 +1,6 @@
 id: pub-socle-dns
 title: "Diagnose and switch a DNS record safely"
+section: socle
 level: niveau-1
 description: |
   Move a site from one version to another by changing its DNS records: find

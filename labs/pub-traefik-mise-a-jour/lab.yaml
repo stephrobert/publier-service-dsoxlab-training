@@ -1,6 +1,7 @@
 ---
 id: pub-traefik-mise-a-jour
 title: "Upgrade Traefik and prove a rollback"
+section: traefik
 level: niveau-2
 description: |
   Upgrade the running Traefik proxy from v3.7.6 to v3.7.15, verify its live

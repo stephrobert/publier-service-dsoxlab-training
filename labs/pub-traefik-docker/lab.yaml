@@ -6,7 +6,7 @@ description: |
   Docker labels: nothing exposed by default, no backend port published, and one
   instance that can disappear with measured failover. Graded on what a client
   sees and on what the machine really publishes.
-section: niveau-1
+section: traefik
 level: niveau-1
 lab_type: lab
 difficulty: intermediate

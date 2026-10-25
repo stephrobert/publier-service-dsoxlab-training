@@ -1,6 +1,7 @@
 ---
 id: pub-epreuve-niveau-un
 title: "Level 1 assessment: publish and recover services"
+section: traefik
 level: niveau-1
 description: |
   Publish two HTTPS services with automatically renewed certificates, deny

@@ -5,7 +5,7 @@ description: |
   Run Pebble, a test ACME server, and obtain a certificate from it with lego
   through the HTTP-01 challenge. Graded on the certificate itself: who issued
   it, for which name, and whether the validation really took place.
-section: niveau-1
+section: socle
 level: niveau-1
 lab_type: lab
 difficulty: intermediate

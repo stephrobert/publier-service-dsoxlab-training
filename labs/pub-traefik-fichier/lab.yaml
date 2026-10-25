@@ -1,5 +1,6 @@
 id: pub-traefik-fichier
 title: "Publish a systemd service with Traefik's file provider"
+section: traefik
 level: niveau-1
 description: |
   Route requests through Traefik to a host service managed by systemd, then

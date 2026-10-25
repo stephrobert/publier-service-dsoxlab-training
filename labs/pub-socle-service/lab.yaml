@@ -1,5 +1,6 @@
 id: pub-socle-service
 title: "Identify the service behind a web response"
+section: socle
 level: niveau-1
 description: |
   Receive a small catalogue application and write its service sheet: process,

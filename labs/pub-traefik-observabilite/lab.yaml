@@ -1,6 +1,7 @@
 ---
 id: pub-traefik-observabilite
 title: "Observe Traefik with JSON access logs and Prometheus"
+section: traefik
 level: niveau-2
 description: |
   Filter Traefik access logs as JSON, expose Prometheus metrics locally, and

@@ -1,6 +1,7 @@
 ---
 id: pub-nginx-publication
 title: "Publish an application with Nginx"
+section: nginx
 level: option-nginx
 description: |
   Configure Nginx as a reverse proxy for a local application and preserve the

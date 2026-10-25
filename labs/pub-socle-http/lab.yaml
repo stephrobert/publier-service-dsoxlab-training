@@ -1,5 +1,6 @@
 id: pub-socle-http
 title: "Read and explain an HTTP exchange"
+section: socle
 level: niveau-1
 description: |
   Run an acceptance test of a small order API: check what the backend really

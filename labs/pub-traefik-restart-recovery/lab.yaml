@@ -1,5 +1,6 @@
 id: pub-traefik-restart-recovery
 title: "Keep a containerized web service available after a Docker restart"
+section: traefik
 level: niveau-1
 description: |
   Configure a containerized web service to restart automatically with Docker

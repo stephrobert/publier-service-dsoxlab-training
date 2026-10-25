@@ -1,6 +1,7 @@
 ---
 id: pub-haproxy-tls
 title: "Publish HTTPS with HAProxy native ACME"
+section: haproxy
 level: option-haproxy
 description: |
   Terminate TLS with HAProxy 3.4, issue and renew a Pebble certificate with

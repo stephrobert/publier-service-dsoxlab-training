@@ -1,5 +1,6 @@
 id: pub-traefik-middlewares
 title: "Compose and verify Traefik middlewares"
+section: traefik
 level: niveau-2
 description: |
   Transform paths, redirect legacy URLs, and return compressed responses with
