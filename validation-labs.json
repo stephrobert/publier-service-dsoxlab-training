@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-25 13:39:27",
+  "genere_le": "2026-10-25 13:56:29",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -131,6 +131,18 @@
       "score_apres": 100,
       "tests": "4/4",
       "duree_s": 41.9,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
+    },
+    "pub-socle-flux-longs": {
+      "id": "pub-socle-flux-longs",
+      "chemin": "pub-socle-flux-longs",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 90.4,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-25"

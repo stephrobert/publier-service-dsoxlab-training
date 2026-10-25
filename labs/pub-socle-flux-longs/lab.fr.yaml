@@ -1,0 +1,13 @@
+# Surcharge française du lab pub-socle-flux-longs. Elle ne porte QUE
+# `title` et `description`.
+title: "Observer un WebSocket et un flux d'événements"
+description: |
+  Un service de notifications expose un WebSocket et un flux SSE
+  (Server-Sent Events), tous deux pilotés par une seule configuration qui
+  porte quatre erreurs injectées : un délai d'écho qui fait paraître
+  cassé chaque aller-retour WebSocket, un tampon SSE qui retient chaque
+  événement jusqu'à la fin du flux lui-même, un intervalle de heartbeat
+  qui ne se déclenche en réalité jamais, et une panne backend que le flux
+  ne ferme ni n'explique. Un client de mesure qui comprend les deux
+  protocoles est fourni pour observer chacun de ces points là où il se
+  produit réellement : en chronométrant, pas en lisant un corps final.
