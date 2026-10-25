@@ -67,6 +67,7 @@ sections:
       - pub-socle-http
       - pub-socle-dns
       - pub-acme-pebble
+      - pub-socle-exposition
   - id: traefik
     title: "Traefik: publish, protect and operate a reverse proxy"
     description: "Publish containers and host services behind Traefik, secure, observe, diagnose and upgrade the entry point, then prove it in the two level assessments."

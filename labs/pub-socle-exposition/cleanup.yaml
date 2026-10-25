@@ -1,0 +1,39 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-socle-exposition
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop: [pub-expo-public.service, pub-expo-backend.service, pub-expo-admin.service]
+      failed_when: false
+
+    - name: Retirer les règles de pare-feu posées par l'apprenant
+      ansible.builtin.shell: |
+        nft delete table inet pub_expo 2>/dev/null || true
+        iptables -F INPUT 2>/dev/null || true
+        ip6tables -F INPUT 2>/dev/null || true
+      changed_when: false
+
+    - name: Supprimer unités, fichiers et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-expo-public.service
+        - /etc/systemd/system/pub-expo-backend.service
+        - /etc/systemd/system/pub-expo-admin.service
+        - /opt/pub-expo
+        - /etc/pub-expo
+        - /home/student/README-exposition
+        - /home/student/flux.yaml
+        - /tmp/pub-socle-exposition-app.py
+        - /var/log/dsoxlab-pub-socle-exposition.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true

@@ -1,0 +1,30 @@
+id: pub-socle-exposition
+title: "Close the paths that bypass the entry point"
+section: socle
+level: niveau-1
+description: |
+  Receive a publication that answers but exposes too many ports: write its flow
+  matrix, then close every path to the backend and the administration so that
+  only the entry point stays reachable from the client.
+skills:
+  - network-exposure
+  - listening-ports
+  - flow-matrix
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false
