@@ -86,6 +86,7 @@ sections:
       - pub-traefik-installation
       - pub-traefik-docker
       - pub-traefik-fichier
+      - pub-traefik-routage
       - pub-traefik-acme
       - pub-traefik-restart-recovery
       - pub-epreuve-niveau-un

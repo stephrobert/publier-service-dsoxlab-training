@@ -1,0 +1,28 @@
+id: pub-traefik-routage
+title: "Resolve routing priorities and collisions"
+section: traefik
+level: niveau-1
+description: |
+  Fix explicit priority conflicts between host and path routers, scope a
+  sensitive application correctly, qualify a cross-provider service and
+  middleware, and prove a later dynamic change does not break existing
+  routes.
+skills:
+  - traefik
+  - reverse-proxy
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik/
+lab_type: lab
+estimated_time: "40m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

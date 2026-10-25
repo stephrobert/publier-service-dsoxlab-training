@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-25 15:44:44",
+  "genere_le": "2026-10-25 15:50:40",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -386,6 +386,18 @@
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
+    },
+    "pub-traefik-routage": {
+      "id": "pub-traefik-routage",
+      "chemin": "pub-traefik-routage",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 67.6,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
     }
   }
 }
