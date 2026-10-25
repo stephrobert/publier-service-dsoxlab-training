@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-25 15:27:55",
+  "genere_le": "2026-10-25 15:36:58",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -38,6 +38,18 @@
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
+    },
+    "pub-epreuve-socle": {
+      "id": "pub-epreuve-socle",
+      "chemin": "pub-epreuve-socle",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 63.4,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
     },
     "pub-haproxy-observabilite": {
       "id": "pub-haproxy-observabilite",
@@ -315,6 +327,18 @@
       "pourquoi": "",
       "date": "2026-10-24"
     },
+    "pub-traefik-modele": {
+      "id": "pub-traefik-modele",
+      "chemin": "pub-traefik-modele",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "3/3",
+      "duree_s": 53.4,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
+    },
     "pub-traefik-observabilite": {
       "id": "pub-traefik-observabilite",
       "chemin": "pub-traefik-observabilite",
@@ -350,18 +374,6 @@
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
-    },
-    "pub-epreuve-socle": {
-      "id": "pub-epreuve-socle",
-      "chemin": "pub-epreuve-socle",
-      "verdict": "VALIDE",
-      "score_avant": 0,
-      "score_apres": 100,
-      "tests": "4/4",
-      "duree_s": 63.4,
-      "traces": [],
-      "pourquoi": "",
-      "date": "2026-10-25"
     }
   }
 }
