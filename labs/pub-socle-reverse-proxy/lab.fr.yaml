@@ -1,0 +1,9 @@
+# Surcharge française du lab pub-socle-reverse-proxy. Elle ne porte QUE
+# `title` et `description`.
+title: "Définir les responsabilités et la confiance d'une chaîne de proxys"
+description: |
+  Suivez une requête à travers deux proxys inverses chaînés jusqu'à une
+  application backend : déterminez quel maillon termine TLS et lequel relaie
+  en HTTP clair, conservez intacts l'origine et l'identité d'un client
+  légitime, puis fermez tout chemin qui laisserait un en-tête forgé ou une
+  connexion directe accorder un privilège qu'il n'a jamais reçu.

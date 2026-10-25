@@ -1,0 +1,46 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. Les paquets restent installés ;
+# partent les services, l'autorité, les certificats, la politique de
+# confiance, les écoutes et les livrables de l'apprenant.
+- name: Défaire le lab pub-socle-reverse-proxy sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-rp-perimetre.service
+        - pub-rp-interne.service
+        - pub-rp-backend.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-rp-perimetre.service
+        - /etc/systemd/system/pub-rp-interne.service
+        - /etc/systemd/system/pub-rp-backend.service
+        - /opt/pub-rp
+        - /etc/pub-rp
+        - /var/lib/pub-rp
+        - /home/student/README-rp
+        - /home/student/diagnostic.yaml
+        - /tmp/pub-rp-app.py
+        - /var/log/dsoxlab-pub-socle-reverse-proxy.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+- name: Défaire le lab pub-socle-reverse-proxy sur le client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Retirer l'autorité de test fournie au client
+      ansible.builtin.file:
+        path: /home/student/ca.pem
+        state: absent
