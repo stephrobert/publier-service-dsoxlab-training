@@ -19,6 +19,15 @@ repo:
     le proxy sert vraiment et les ports qui écoutent vraiment.
 
 sections:
-  - id: niveau-1
-    title: "Niveau 1 : publier des services derrière un reverse proxy"
-    description: "Obtenir un certificat automatiquement avec ACME, puis publier des conteneurs derrière Traefik. Les autres labs du niveau s'ajoutent à mesure qu'ils sont écrits et prouvés."
+  - id: socle
+    title: "Socle : comprendre et diagnostiquer un service publié"
+    description: "Identifier le service derrière une réponse web, lire un échange HTTP, basculer un enregistrement DNS sans risque, puis obtenir un certificat automatiquement avec ACME."
+  - id: traefik
+    title: "Traefik : publier, protéger et exploiter un reverse proxy"
+    description: "Publier des conteneurs et des services hôte derrière Traefik, sécuriser, observer, diagnostiquer et mettre à jour le point d'entrée, puis le prouver dans les deux épreuves de niveau."
+  - id: haproxy
+    title: "HAProxy : publier et exploiter des services web"
+    description: "Publier en HTTPS avec l'ACME natif de HAProxy et l'observer avec Prometheus."
+  - id: nginx
+    title: "Nginx : publier et protéger des services web"
+    description: "Publier une application avec Nginx et la protéger."

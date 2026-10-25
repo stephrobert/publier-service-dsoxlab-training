@@ -59,39 +59,38 @@ infra:
       disk_gb: 10
 
 sections:
-  - id: niveau-1
-    title: "Level 1: publish services behind a reverse proxy"
-    description: "Obtain a certificate automatically with ACME, then publish containers behind Traefik. Other labs of the level are added as they are written and proven."
+  - id: socle
+    title: "Foundations: understand and diagnose a published service"
+    description: "Identify the service behind a web response, read an HTTP exchange, switch a DNS record safely, and obtain a certificate automatically with ACME."
     labs:
       - pub-socle-service
       - pub-socle-http
       - pub-socle-dns
       - pub-acme-pebble
+  - id: traefik
+    title: "Traefik: publish, protect and operate a reverse proxy"
+    description: "Publish containers and host services behind Traefik, secure, observe, diagnose and upgrade the entry point, then prove it in the two level assessments."
+    labs:
       - pub-traefik-docker
       - pub-traefik-fichier
       - pub-traefik-acme
       - pub-traefik-restart-recovery
       - pub-epreuve-niveau-un
-  - id: niveau-2
-    title: "Level 2: protect and operate a reverse proxy"
-    description: >-
-      Secure, observe, diagnose, and upgrade the Traefik entry point.
-    labs:
       - pub-traefik-middlewares
       - pub-traefik-protection
       - pub-traefik-observabilite
       - pub-traefik-depannage
       - pub-traefik-mise-a-jour
       - pub-epreuve-niveau-deux
-  - id: option-haproxy
-    title: "Optional: HAProxy"
-    description: "Publish and operate web services with HAProxy."
+  - id: haproxy
+    title: "HAProxy: publish and operate web services"
+    description: "Publish HTTPS with HAProxy native ACME and observe it with Prometheus."
     labs:
       - pub-haproxy-tls
       - pub-haproxy-observabilite
-  - id: option-nginx
-    title: "Optional: Nginx"
-    description: "Publish and protect web services with Nginx."
+  - id: nginx
+    title: "Nginx: publish and protect web services"
+    description: "Publish an application with Nginx and protect it."
     labs:
       - pub-nginx-publication
       - pub-nginx-protection
