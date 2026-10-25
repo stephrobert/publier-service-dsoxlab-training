@@ -1,0 +1,29 @@
+id: pub-socle-tls
+title: "Check a TLS identity and its chain of trust"
+section: socle
+level: niveau-1
+description: |
+  Receive several TLS endpoints and decide, with an explicitly given trust
+  store, which ones really prove their identity: a wrong name, a broken
+  chain, and an expired certificate must all be refused and their cause
+  correctly identified.
+skills:
+  - tls
+  - certificate-chain
+  - hostname-verification
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

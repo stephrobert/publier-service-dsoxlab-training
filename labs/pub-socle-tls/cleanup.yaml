@@ -1,0 +1,38 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-socle-tls
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les points d'accès TLS
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-tls-positif.service
+        - pub-tls-nom.service
+        - pub-tls-chaine.service
+        - pub-tls-date.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-tls-positif.service
+        - /etc/systemd/system/pub-tls-nom.service
+        - /etc/systemd/system/pub-tls-chaine.service
+        - /etc/systemd/system/pub-tls-date.service
+        - /opt/pub-tls
+        - /etc/pub-tls
+        - /home/student/README-tls
+        - /home/student/ca.pem
+        - /home/student/verdict.yaml
+        - /tmp/pub-socle-tls-app.py
+        - /var/log/dsoxlab-pub-socle-tls.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
