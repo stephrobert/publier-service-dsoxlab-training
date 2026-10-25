@@ -1,0 +1,25 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# Tout tourne sur edge.lab, en boucle locale : le navigateur automatisable
+# fourni tourne sur ce même hôte, aucun client distinct n'est nécessaire.
+- name: Préparer l'hôte edge du lab pub-socle-application
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Déposer l'application du lab
+      ansible.builtin.copy:
+        src: fixtures/app.py
+        dest: /tmp/pub-app-app.py
+        mode: "0644"
+
+    - name: Déposer le navigateur automatisable fourni
+      ansible.builtin.copy:
+        src: fixtures/verifier_navigateur.py
+        dest: /tmp/pub-app-verifier.py
+        mode: "0755"
+
+    - name: Poser la situation initiale
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash

@@ -1,0 +1,40 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. Les paquets et le navigateur
+# automatisable (Playwright + Chromium, dans /opt/ms-playwright) restent
+# installés : seuls les services, la politique, l'état et les livrables du
+# lab partent.
+- name: Défaire le lab pub-socle-application sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-app-entree.service
+        - pub-app-backend.service
+        - pub-app-partenaire.service
+        - pub-app-intrus.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-app-entree.service
+        - /etc/systemd/system/pub-app-backend.service
+        - /etc/systemd/system/pub-app-partenaire.service
+        - /etc/systemd/system/pub-app-intrus.service
+        - /opt/pub-app
+        - /etc/pub-app
+        - /var/lib/pub-app
+        - /home/student/README-app
+        - /tmp/pub-app-app.py
+        - /tmp/pub-app-verifier.py
+        - /var/log/dsoxlab-pub-socle-application.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
