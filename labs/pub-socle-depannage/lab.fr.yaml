@@ -1,0 +1,10 @@
+# Surcharge française du lab pub-socle-depannage. Elle ne porte QUE `title`
+# et `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Diagnostiquer une publication par couches"
+description: |
+  Hériter d'un service publié portant une panne tirée au sort parmi DNS,
+  transport, TLS, route et backend, avec en plus un bruit de fond sans
+  rapport avec elle. Formuler une hypothèse, la confirmer par un test
+  ciblé, nommer la couche et le composant réellement fautifs, réparer, et
+  prouver qu'aucune protection n'a été retirée au passage.

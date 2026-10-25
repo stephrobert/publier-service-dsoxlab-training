@@ -1,0 +1,69 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. Les paquets restent installés ;
+# partent les services, l'autorité, les certificats, la configuration du
+# routeur, le résolveur, la panne tirée au sort et les livrables de
+# l'apprenant.
+- name: Défaire le lab pub-socle-depannage sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-dep-router.service
+        - pub-dep-backend.service
+        - pub-dep-bruit.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-dep-router.service
+        - /etc/systemd/system/pub-dep-backend.service
+        - /etc/systemd/system/pub-dep-bruit.service
+        - /opt/pub-dep
+        - /etc/pub-dep
+        - /var/lib/pub-dep
+        - /root/.pub-dep-secret.yaml
+        - /etc/unbound/unbound.conf.d/pub-dep.conf
+        - /home/student/README-depannage
+        - /home/student/journal.md
+        - /home/student/diagnostic.yaml
+        - /tmp/pub-dep-app.py
+        - /tmp/pub-dep-router.py
+        - /var/log/dsoxlab-pub-socle-depannage.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Redémarrer unbound avec sa configuration restante
+      ansible.builtin.systemd:
+        name: unbound
+        state: restarted
+      failed_when: false
+
+- name: Défaire le lab pub-socle-depannage sur le client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Retirer l'autorité de test fournie au client
+      ansible.builtin.file:
+        path: /home/student/ca.pem
+        state: absent
+
+    - name: Retirer la configuration du résolveur
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d/pub-socle-depannage.conf
+        state: absent
+      notify: Redémarrer resolved
+
+  handlers:
+    - name: Redémarrer resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted
