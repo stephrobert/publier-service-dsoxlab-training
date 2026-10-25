@@ -1,0 +1,40 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-socle-observabilite
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-obs-metier.service
+        - pub-obs-generateur.service
+        - pub-obs-exportateur.service
+        - pub-obs-evaluateur.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-obs-metier.service
+        - /etc/systemd/system/pub-obs-generateur.service
+        - /etc/systemd/system/pub-obs-exportateur.service
+        - /etc/systemd/system/pub-obs-evaluateur.service
+        - /opt/pub-obs
+        - /etc/pub-obs
+        - /var/lib/pub-obs
+        - /var/log/pub-obs
+        - /home/student/README-obs
+        - /home/student/sli.yaml
+        - /home/student/correlation.yaml
+        - /tmp/pub-obs-app.py
+        - /var/log/dsoxlab-pub-socle-observabilite.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true

@@ -1,0 +1,32 @@
+id: pub-socle-observabilite
+title: "Define an SLI and an alert seen from the client"
+section: socle
+level: niveau-1
+description: |
+  A business route answers through a log pipeline and a metrics exporter that
+  are themselves healthy, yet the route is failing. Define what counts as a
+  valid event and a success, tune an alert so it fires on the real outage and
+  recovers after the fix, correlate one request to its backend and duration,
+  and teach the system to tell apart no traffic, lost collection, and a real
+  failure.
+skills:
+  - sli-slo
+  - alerting
+  - log-correlation
+  - observability-failure-modes
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false
