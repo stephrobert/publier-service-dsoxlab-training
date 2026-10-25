@@ -55,12 +55,15 @@ sections:
     title: "Level 1: publish services behind a reverse proxy"
     description: "Obtain a certificate automatically with ACME, then publish containers behind Traefik. Other labs of the level are added as they are written and proven."
     labs:
+      - pub-socle-service
+      - pub-socle-http
       - pub-acme-pebble
       - pub-traefik-docker
       - pub-traefik-fichier
       - pub-traefik-acme
       - pub-traefik-restart-recovery
       - pub-epreuve-niveau-un
+      - pub-socle-http
   - id: niveau-2
     title: "Level 2: protect and operate a reverse proxy"
     description: >-

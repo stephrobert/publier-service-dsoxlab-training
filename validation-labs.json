@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-24 20:08:44",
+  "genere_le": "2026-10-25 10:25:26",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -86,6 +86,30 @@
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
+    },
+    "pub-socle-http": {
+      "id": "pub-socle-http",
+      "chemin": "pub-socle-http",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "5/5",
+      "duree_s": 48.7,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
+    },
+    "pub-socle-service": {
+      "id": "pub-socle-service",
+      "chemin": "pub-socle-service",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "5/5",
+      "duree_s": 50.8,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
     },
     "pub-traefik-acme": {
       "id": "pub-traefik-acme",
