@@ -171,55 +171,82 @@ Un 0 accuserait le lab de ce qui manque au poste.
 À jouer dans l'ordre. D'autres labs s'ajoutent à mesure qu'ils sont écrits et
 prouvés dans les deux sens.
 
-### Niveau 1 : publier des services derrière un reverse proxy
+<!-- LABS:START -->
+### Socle : comprendre et diagnostiquer un service publié
 
-| Lab | Ce qu'il prouve |
-|---|---|
-| `pub-acme-pebble` | un certificat est émis par une autorité ACME de test après un défi HTTP-01 | lab, 30 min |
-| `pub-traefik-docker` | deux conteneurs sont publiés derrière Traefik, découverts par la socket Docker | lab, 40 min |
-| `pub-traefik-fichier` | Traefik route dynamiquement vers un service systemd de l'hôte sans redémarrage | lab, 30 min |
-| `pub-traefik-acme` | Traefik renouvelle et sert un certificat ACME, redirige HTTP, protège le stockage et refuse TLS 1.0/1.1 | lab, 40 min |
-| `pub-traefik-restart-recovery` | un service web conteneurisé revient après le redémarrage du moteur Docker | lab, 30 min |
-| `pub-epreuve-niveau-un` | épreuve chronométrée : deux services HTTPS, renouvellement, filtrage externe et reprise de Docker | épreuve, 60 min |
+Identifier le service derrière une réponse web, lire un échange HTTP, basculer un enregistrement DNS sans risque, puis obtenir un certificat automatiquement avec ACME.
 
-### Niveau 2 : protéger et exploiter un reverse proxy
+| Lab (id) | Titre | Niveau | Runtime | Guide compagnon |
+|---|---|---|---|---|
+| `pub-socle-service` | Identifier le service derrière une réponse web | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
+| `pub-socle-http` | Lire et expliquer un échange HTTP | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
+| `pub-socle-dns` | Diagnostiquer et basculer un enregistrement DNS | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
+| `pub-acme-pebble` | Obtenir un certificat automatiquement avec ACME | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
+| `pub-socle-exposition` | Fermer les chemins qui contournent le point d'entrée | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
+| `pub-socle-dns-http-tls` | Dissocier nom résolu, certificat et route HTTP | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
+| `pub-socle-reverse-proxy` | Définir les responsabilités et la confiance d'une chaîne de proxys | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
+| `pub-socle-tls` | Vérifier une identité TLS et sa chaîne de confiance | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
+| `pub-socle-application` | Réparer une session, son cookie et ses origines derrière un proxy | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
+| `pub-socle-flux-longs` | Observer un WebSocket et un flux d'événements | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
+| `pub-socle-disponibilite` | Mesurer panne, retrait et reprise d'un backend | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
+| `pub-socle-observabilite` | Définir un SLI et une alerte vus du client | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
+| `pub-socle-mise-en-service` | Réceptionner une publication et la restaurer | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
+| `pub-socle-depannage` | Diagnostiquer une publication par couches | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
+| `pub-epreuve-socle` | Épreuve du socle : concevoir et réceptionner un service | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
 
-| Lab | Ce qu'il prouve |
-|---|---|
-| `pub-traefik-middlewares` | réécriture de chemin, redirections permanentes, en-têtes de sécurité, réponses compressées et mise à jour sans redémarrage | lab, 40 min |
-| `pub-traefik-protection` | administration HTTPS authentifiée, proxy de socket Docker restreint, en-têtes de sécurité et limitation de débit | lab, 45 min |
-| `pub-traefik-observabilite` | journaux JSON filtrés, cible de métriques Prometheus active et alerte déclenchée par une réponse 5xx réelle | lab, 40 min |
-| `pub-traefik-depannage` | diagnostiquer et réparer le routage, le backend, le délai, le certificat et les redirections | lab, 45 min |
-| `pub-traefik-mise-a-jour` | mettre Traefik à niveau, vérifier la configuration servie et prouver le retour arrière | lab, 25 min |
-| `pub-epreuve-niveau-deux` | épreuve chronométrée : protéger et observer un proxy, puis résoudre un incident inconnu | épreuve, 75 min |
+### Traefik : publier, protéger et exploiter un reverse proxy
 
-### Option : HAProxy
+Publier des conteneurs et des services hôte derrière Traefik, sécuriser, observer, diagnostiquer et mettre à jour le point d'entrée, puis le prouver dans les deux épreuves de niveau.
 
-| Lab | Ce qu'il prouve |
-|---|---|
-| `pub-haproxy-tls` | émission et renouvellement ACME natifs (fonction expérimentale), terminaison TLS, SNI et redirection HTTP vers HTTPS | lab, 40 min |
-| `pub-haproxy-observabilite` | métriques HAProxy privées, collecte Prometheus active et ports de supervision limités à la boucle locale | lab, 35 min |
+| Lab (id) | Titre | Niveau | Runtime | Guide compagnon |
+|---|---|---|---|---|
+| `pub-traefik-modele` | Tracer une requête dans le modèle de routage de Traefik | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
+| `pub-traefik-installation` | Installer Traefik et maîtriser le cycle de vie du point d'entrée | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-installation/) |
+| `pub-traefik-docker` | Publier deux conteneurs derrière Traefik, avec le fournisseur Docker | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-docker/) |
+| `pub-traefik-fichier` | Publier un service systemd avec le fournisseur fichier de Traefik | niveau-1 | vm | [guide](https://doc.traefik.io/traefik/providers/file/) |
+| `pub-traefik-routage` | Résoudre les priorités et collisions de routage | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
+| `pub-traefik-acme` | Configurer HTTPS, le renouvellement ACME et TLS moderne dans Traefik | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
+| `pub-traefik-restart-recovery` | Maintenir un service web conteneurisé disponible après un redémarrage de Docker | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-docker/) |
+| `pub-epreuve-niveau-un` | Level 1 assessment: publish and recover services | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
+| `pub-traefik-middlewares` | Composer et vérifier des middlewares Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-middlewares/) |
+| `pub-traefik-protection` | Protéger le point d'entrée Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-securite/) |
+| `pub-traefik-mtls` | Vérifier TLS backend et certificats clients | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
+| `pub-traefik-flux-delais` | Borner les délais et conserver les flux applicatifs | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
+| `pub-traefik-observabilite` | Observer Traefik avec des journaux JSON et Prometheus | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-observability/) |
+| `pub-traefik-depannage` | Dépanner le routage et TLS dans Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-observability/) |
+| `pub-traefik-mise-a-jour` | Upgrade Traefik and prove a rollback | niveau-2 | vm | [guide](https://doc.traefik.io/traefik/migrate/v2-to-v3/) |
+| `pub-epreuve-niveau-deux` | Level 2 assessment: protect, observe, and diagnose | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-securite/) |
+| `pub-traefik-zero-downtime` | Basculer une version de backend, prouver le retour arrière et nommer le vrai domaine de panne | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/) |
 
-### Option : Nginx
+### HAProxy : publier et exploiter des services web
 
-| Lab | Ce qu'il prouve |
-|---|---|
-| `pub-nginx-publication` | publication en reverse proxy avec préservation de l'hôte, du chemin et des en-têtes de transfert | lab, 30 min |
-| `pub-nginx-protection` | en-têtes de sécurité, administration authentifiée, refus des fichiers cachés et limitation des méthodes HTTP | lab, 35 min |
+Publier en HTTPS avec l'ACME natif de HAProxy et l'observer avec Prometheus.
+
+| Lab (id) | Titre | Niveau | Runtime | Guide compagnon |
+|---|---|---|---|---|
+| `pub-haproxy-tls` | Publish HTTPS with HAProxy native ACME | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
+| `pub-haproxy-observabilite` | Observe HAProxy with Prometheus | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
+
+### Nginx : publier et protéger des services web
+
+Publier une application avec Nginx et la protéger.
+
+| Lab (id) | Titre | Niveau | Runtime | Guide compagnon |
+|---|---|---|---|---|
+| `pub-nginx-publication` | Publish an application with Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
+| `pub-nginx-protection` | Protect an application with Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
+
+_36 labs, table générée par `scripts/gen_catalog.py`._
+<!-- LABS:END -->
 
 ### Alignement sur la feuille de route
 
-La cible reste **11 labs de cœur (neuf labs de leçon et deux épreuves), plus
-quatre labs facultatifs**, soit 15 labs dans le parcours. Les 11 labs de cœur
-et les quatre options sont implémentés et validés. L'exercice de renouvellement
-est intégré au lab ACME prévu ; l'exercice d'administration couvre désormais
-l'authentification HTTPS, l'isolation du socket Docker, les en-têtes de
-sécurité et la limitation de débit. Le lab sur les middlewares couvre aussi la
-réécriture des chemins, les redirections, les en-têtes et la compression.
-L'exercice de reprise après redémarrage est une preuve intermédiaire, jouable
-séparément, dont le résultat est réutilisé dans la première épreuve plutôt que
-compté comme un lab de cœur supplémentaire. Les 16 labs jouables, y compris
-cette preuve intermédiaire, passent le cycle de validation de 0 à 100.
+La cible d'origine était de **11 labs de cœur plus quatre labs facultatifs**,
+soit 15 labs, tous implémentés et validés. Le contrat de la formation
+(`publier-service`, v2) en prévoit désormais 67 : le catalogue ci-dessus
+contient les 36 écrits à ce jour, chacun validé de 0 à 100
+(`validation-labs.json`). Les sections Nginx et HAProxy sont encore courtes et
+continuent de grandir.
 
 ## Contribuer
 
