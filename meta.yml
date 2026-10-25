@@ -83,6 +83,7 @@ sections:
     description: "Publish containers and host services behind Traefik, secure, observe, diagnose and upgrade the entry point, then prove it in the two level assessments."
     labs:
       - pub-traefik-modele
+      - pub-traefik-installation
       - pub-traefik-docker
       - pub-traefik-fichier
       - pub-traefik-acme
