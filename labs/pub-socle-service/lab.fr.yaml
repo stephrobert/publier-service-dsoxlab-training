@@ -1,0 +1,9 @@
+# Surcharge française du lab pub-socle-service. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Identifier le service derrière une réponse web"
+description: |
+  Recevez une petite application de catalogue et rédigez sa fiche de service :
+  processus, utilisateur, port d'écoute et dépendance, chacun vérifié contre le
+  système en marche. Distinguez un HTTP 200 technique d'une fonction métier
+  indisponible.

@@ -1,0 +1,33 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-traefik-routage
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Supprimer les conteneurs du lab
+      ansible.builtin.command:
+        cmd: >
+          docker rm -f pub-routage-traefik pub-routage-api-v1
+          pub-routage-api-v2 pub-routage-admin pub-routage-catalogue
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer le réseau Docker du lab
+      ansible.builtin.command:
+        cmd: docker network rm pub-routage
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer les fichiers du lab
+      ansible.builtin.file:
+        path: /opt/pub-routage
+        state: absent
+
+    - name: Vérifier que le port du proxy est libéré
+      ansible.builtin.wait_for:
+        port: 80
+        host: 127.0.0.1
+        state: stopped
+        timeout: 30
+

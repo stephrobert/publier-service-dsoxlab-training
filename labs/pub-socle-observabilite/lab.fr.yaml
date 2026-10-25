@@ -1,0 +1,12 @@
+# Surcharge française du lab pub-socle-observabilite. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Définir un SLI et une alerte vus du client"
+description: |
+  Une route métier répond à travers un pipeline de journaux et un exportateur
+  de métriques eux-mêmes sains, pourtant la route est en échec. Définissez ce
+  qui compte comme événement valide et comme succès, réglez une alerte pour
+  qu'elle se déclenche sur la vraie panne et revienne à la normale après la
+  réparation, reliez une requête à son backend et sa durée, et apprenez au
+  système à distinguer l'absence de trafic, la perte de collecte et une
+  panne réelle.

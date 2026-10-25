@@ -1,0 +1,37 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-socle-service
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les deux services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop: [pub-catalogue.service, pub-stock.service]
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et fiche
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-catalogue.service
+        - /etc/systemd/system/pub-stock.service
+        - /opt/pub-socle
+        - /var/lib/pub-catalogue
+        - /home/student/fiche-service.yaml
+        - /tmp/pub-socle-app.py
+        - /tmp/pub-socle-stock.py
+        - /var/log/dsoxlab-pub-socle-service.log
+
+    - name: Retirer les comptes de service du lab
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop: [catalogue, stock]
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true

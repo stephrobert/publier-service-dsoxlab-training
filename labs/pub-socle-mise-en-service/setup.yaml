@@ -1,0 +1,81 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# L'hôte edge porte l'autorité de test, le certificat, les deux origines et
+# le routeur TLS. Le client reçoit l'autorité de test et son résolveur
+# pointe vers celui de l'edge pour la zone mes.test, exactement comme dans
+# la situation réelle qu'il observe.
+- name: Préparer l'hôte edge du lab pub-socle-mise-en-service
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Déposer les origines
+      ansible.builtin.copy:
+        src: fixtures/app.py
+        dest: /tmp/pub-mes-app.py
+        mode: "0644"
+
+    - name: Déposer le routeur TLS
+      ansible.builtin.copy:
+        src: fixtures/router.py
+        dest: /tmp/pub-mes-router.py
+        mode: "0644"
+
+    - name: Poser la situation initiale
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+    - name: Lire l'autorité de test à redistribuer au client
+      ansible.builtin.slurp:
+        src: /etc/pub-mes/certs/ca.pem
+      register: autorite_brute
+
+    - name: Retenir l'autorité en clair pour la deuxième passe
+      ansible.builtin.set_fact:
+        autorite_pem: "{{ autorite_brute.content | b64decode }}"
+
+- name: Préparer le client du lab pub-socle-mise-en-service
+  hosts: lab_client
+  become: true
+  vars:
+    resolveur: "{{ hostvars[groups['lab_target'][0]]['ansible_default_ipv4']['address'] }}"
+  tasks:
+    - name: Installer curl, dig et openssl
+      ansible.builtin.apt:
+        name: [curl, dnsutils, openssl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Déposer l'autorité de test fournie au client
+      ansible.builtin.copy:
+        dest: /home/student/ca.pem
+        content: "{{ hostvars[groups['lab_target'][0]]['autorite_pem'] }}"
+        owner: student
+        group: student
+        mode: "0644"
+
+    - name: Répertoire des réglages de resolved
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d
+        state: directory
+        mode: "0755"
+
+    - name: Interroger le résolveur de l'edge pour mes.test
+      ansible.builtin.copy:
+        dest: /etc/systemd/resolved.conf.d/pub-socle-mise-en-service.conf
+        mode: "0644"
+        content: |
+          [Resolve]
+          DNS={{ resolveur }}
+          Domains=~mes.test
+          Cache=no
+      notify: Redémarrer resolved
+
+  handlers:
+    - name: Redémarrer resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted
+

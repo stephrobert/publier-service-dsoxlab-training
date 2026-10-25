@@ -1,0 +1,17 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session : il pose la situation que
+# le scénario décrit.
+- name: Préparer le lab pub-socle-tls sur edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Déposer le serveur TLS
+      ansible.builtin.copy:
+        src: fixtures/app.py
+        dest: /tmp/pub-socle-tls-app.py
+        mode: "0644"
+
+    - name: Poser la situation initiale
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash

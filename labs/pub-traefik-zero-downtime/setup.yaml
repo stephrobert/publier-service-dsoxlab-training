@@ -1,0 +1,47 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session : il pose la situation que
+# le scénario décrit.
+- name: Préparer le lab pub-traefik-zero-downtime
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer la couche machine (Docker, Compose, outils)
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les images épinglées
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    - name: Déposer l'application versionnée des backends
+      ansible.builtin.copy:
+        src: fixtures/backend_version.py
+        dest: /tmp/pub-zds-backend_version.py
+        mode: "0644"
+
+    - name: Poser les deux points d'entrée et les deux versions du backend
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_TRAEFIK: "{{ socle_images.traefik.image }}:{{ socle_images.traefik.version }}@{{ socle_images.traefik.digest }}"
+        IMG_PYTHON: "{{ socle_images.python.image }}:{{ socle_images.python.version }}@{{ socle_images.python.digest }}"
+
+- name: Préparer le client du lab pub-traefik-zero-downtime
+  hosts: lab_client
+  become: true
+  vars:
+    resolveur: "{{ hostvars[groups['lab_target'][0]]['ansible_default_ipv4']['address'] }}"
+  tasks:
+    - name: Installer curl et openssl
+      ansible.builtin.apt:
+        name: [curl, openssl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Résoudre zds.lab.test vers l'adresse de edge.lab
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ resolveur }} zds.lab.test"
+        create: true

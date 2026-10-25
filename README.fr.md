@@ -32,11 +32,11 @@ L'apprenant atteint le résultat par le chemin qu'il choisit.
 - **Python 3.11+ et [`uv`](https://docs.astral.sh/uv/)**
 - **`git`**
 - **`dsoxlab`**, le moteur, installé en outil autonome (voir plus bas).
-- **Un hyperviseur**, parce que tous les labs sont en `runtime: vm` : soit
-  **libvirt/KVM** (avec `terraform` et le provider `dmacvicar/libvirt`), soit
-  **Incus**. Le provider est déclaré en liste dans [`meta.yml`](./meta.yml),
-  et **une liste ne se résout pas seule** : choisissez avec
-  `dsoxlab use --provider kvm`.
+- **Un hyperviseur**, parce que tous les labs sont en `runtime: vm` :
+  **libvirt/KVM** (avec `terraform` et le provider `dmacvicar/libvirt`) est le
+  provider par défaut, déclaré dans [`meta.yml`](./meta.yml). Pour utiliser
+  Incus à la place, remplacez `infra.provider: kvm` par `infra.provider: incus`
+  avant de provisionner.
 - **4 Go de RAM libre et 20 Go de disque** pour l'unique machine, `edge.lab`.
 - **Un accès réseau sortant** au premier `provision`, pour tirer l'image de
   base et les images de conteneurs.
@@ -71,13 +71,12 @@ dsoxlab doctor
 
 ```bash
 export LAB_HOME=$PWD
-dsoxlab use --provider kvm       # une liste de providers ne se résout pas seule
 dsoxlab provision                # crée edge.lab, une fois
 dsoxlab list-labs                # le catalogue, dans l'ordre pédagogique
-dsoxlab run       pub-01-acme-pebble
-dsoxlab challenge pub-01-acme-pebble
-dsoxlab check     pub-01-acme-pebble
-dsoxlab clean     pub-01-acme-pebble   # défait le lab, garde la machine
+dsoxlab run       pub-acme-pebble
+dsoxlab challenge pub-acme-pebble
+dsoxlab check     pub-acme-pebble
+dsoxlab clean     pub-acme-pebble   # défait le lab, garde la machine
 ```
 
 C'est `run` qui prépare le lab. Un `check` joué sur un lab jamais démarré ne
@@ -151,6 +150,11 @@ Les solutions de référence vivent sous `solution/<lab>/`, chiffrées avec
 versionné. Une solution en clair gâcherait le lab, et git la garde pour
 toujours.
 
+La CI GitHub vérifie le contrat, les workflows et la qualité du dépôt, mais ne
+provisionne aucune VM et ne rejoue pas les labs. Son badge ne vaut donc pas
+attestation pédagogique : le cycle runtime 0 → 100 est vérifié séparément avec
+`python3 scripts/valider-labs.py --lab <id>` sur une infrastructure provisionnée.
+
 ### Score, indices, avancement
 
 `check` enregistre un score (tests réussis sur total, moins le coût des indices
@@ -171,8 +175,51 @@ prouvés dans les deux sens.
 
 | Lab | Ce qu'il prouve |
 |---|---|
-| `pub-01-acme-pebble` | un certificat est obtenu automatiquement par ACME, et se renouvelle | lab, 30 min |
-| `pub-02-traefik-docker` | deux conteneurs sont publiés derrière Traefik, découverts par la socket Docker | lab, 40 min |
+| `pub-acme-pebble` | un certificat est émis par une autorité ACME de test après un défi HTTP-01 | lab, 30 min |
+| `pub-traefik-docker` | deux conteneurs sont publiés derrière Traefik, découverts par la socket Docker | lab, 40 min |
+| `pub-traefik-fichier` | Traefik route dynamiquement vers un service systemd de l'hôte sans redémarrage | lab, 30 min |
+| `pub-traefik-acme` | Traefik renouvelle et sert un certificat ACME, redirige HTTP, protège le stockage et refuse TLS 1.0/1.1 | lab, 40 min |
+| `pub-traefik-restart-recovery` | un service web conteneurisé revient après le redémarrage du moteur Docker | lab, 30 min |
+| `pub-epreuve-niveau-un` | épreuve chronométrée : deux services HTTPS, renouvellement, filtrage externe et reprise de Docker | épreuve, 60 min |
+
+### Niveau 2 : protéger et exploiter un reverse proxy
+
+| Lab | Ce qu'il prouve |
+|---|---|
+| `pub-traefik-middlewares` | réécriture de chemin, redirections permanentes, en-têtes de sécurité, réponses compressées et mise à jour sans redémarrage | lab, 40 min |
+| `pub-traefik-protection` | administration HTTPS authentifiée, proxy de socket Docker restreint, en-têtes de sécurité et limitation de débit | lab, 45 min |
+| `pub-traefik-observabilite` | journaux JSON filtrés, cible de métriques Prometheus active et alerte déclenchée par une réponse 5xx réelle | lab, 40 min |
+| `pub-traefik-depannage` | diagnostiquer et réparer le routage, le backend, le délai, le certificat et les redirections | lab, 45 min |
+| `pub-traefik-mise-a-jour` | mettre Traefik à niveau, vérifier la configuration servie et prouver le retour arrière | lab, 25 min |
+| `pub-epreuve-niveau-deux` | épreuve chronométrée : protéger et observer un proxy, puis résoudre un incident inconnu | épreuve, 75 min |
+
+### Option : HAProxy
+
+| Lab | Ce qu'il prouve |
+|---|---|
+| `pub-haproxy-tls` | émission et renouvellement ACME natifs (fonction expérimentale), terminaison TLS, SNI et redirection HTTP vers HTTPS | lab, 40 min |
+| `pub-haproxy-observabilite` | métriques HAProxy privées, collecte Prometheus active et ports de supervision limités à la boucle locale | lab, 35 min |
+
+### Option : Nginx
+
+| Lab | Ce qu'il prouve |
+|---|---|
+| `pub-nginx-publication` | publication en reverse proxy avec préservation de l'hôte, du chemin et des en-têtes de transfert | lab, 30 min |
+| `pub-nginx-protection` | en-têtes de sécurité, administration authentifiée, refus des fichiers cachés et limitation des méthodes HTTP | lab, 35 min |
+
+### Alignement sur la feuille de route
+
+La cible reste **11 labs de cœur (neuf labs de leçon et deux épreuves), plus
+quatre labs facultatifs**, soit 15 labs dans le parcours. Les 11 labs de cœur
+et les quatre options sont implémentés et validés. L'exercice de renouvellement
+est intégré au lab ACME prévu ; l'exercice d'administration couvre désormais
+l'authentification HTTPS, l'isolation du socket Docker, les en-têtes de
+sécurité et la limitation de débit. Le lab sur les middlewares couvre aussi la
+réécriture des chemins, les redirections, les en-têtes et la compression.
+L'exercice de reprise après redémarrage est une preuve intermédiaire, jouable
+séparément, dont le résultat est réutilisé dans la première épreuve plutôt que
+compté comme un lab de cœur supplémentaire. Les 16 labs jouables, y compris
+cette preuve intermédiaire, passent le cycle de validation de 0 à 100.
 
 ## Contribuer
 

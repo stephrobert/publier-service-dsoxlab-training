@@ -1,0 +1,28 @@
+id: pub-socle-service
+title: "Identify the service behind a web response"
+section: socle
+level: niveau-1
+description: |
+  Receive a small catalogue application and write its service sheet: process,
+  user, listening port and dependency, each one checked against the running
+  system. Tell a technical HTTP 200 from a business function that is down.
+skills:
+  - service-identification
+  - process-inspection
+  - dependency-diagnosis
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/
+lab_type: lab
+estimated_time: "35m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

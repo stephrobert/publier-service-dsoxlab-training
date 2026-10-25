@@ -1,0 +1,34 @@
+id: pub-socle-application
+title: "Fix a session, its cookie, and its origins behind a proxy"
+section: socle
+level: niveau-1
+description: |
+  Fix the configuration of a small application running behind a TLS
+  entry point: a login that redirects forever instead of landing on the
+  account page, a session cookie scoped to a domain that no browser will
+  ever accept, a cross-origin policy that answers yes to every origin,
+  and an identity header the entry point still repeats from the client
+  instead of deciding it from a validated session. An automated browser
+  is provided to observe every one of these from where it actually
+  matters: inside a real browser, not just a curl header.
+skills:
+  - reverse-proxy-headers
+  - cookie-scope
+  - cors-policy
+  - trusted-identity-header
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

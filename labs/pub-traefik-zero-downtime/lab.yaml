@@ -1,0 +1,36 @@
+# Lab pub-traefik-zero-downtime. Les champs marqués REQUIS sont exigés par le validator : sans eux,
+# le lab est refusé, ou pire, disparaît du catalogue sans un mot.
+id: pub-traefik-zero-downtime
+title: "Roll out a backend version, prove rollback, and name the real failure domain"
+section: traefik
+level: niveau-2
+description: |
+  Move live traffic from one backend version to a candidate with bounded
+  errors, remove an unhealthy candidate from rotation and roll back, prove
+  which failure a redundant entry point actually survives and which it
+  does not, and fix a certificate rotation tool so two entry points sharing
+  the same certificate storage never serve a corrupted or mismatched pair.
+skills:
+  - traefik
+  - rolling-deployment
+  - health-checks
+  - tls
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/
+lab_type: lab
+estimated_time: "60m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+      roles:
+        client: poste.lab
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false
+

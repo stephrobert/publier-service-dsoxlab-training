@@ -1,0 +1,28 @@
+id: pub-traefik-acme
+title: "Configure HTTPS, ACME renewal, and modern TLS in Traefik"
+section: traefik
+level: niveau-1
+description: |
+  Configure automatic ACME certificates through Traefik, protect the ACME
+  storage, redirect HTTP to HTTPS, reject obsolete TLS versions, and prove
+  automatic renewal using the certificate served to a client.
+skills:
+  - traefik
+  - acme
+  - tls
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/
+lab_type: lab
+estimated_time: "40m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

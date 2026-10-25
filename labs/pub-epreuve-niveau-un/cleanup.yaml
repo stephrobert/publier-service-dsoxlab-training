@@ -1,0 +1,51 @@
+---
+- name: Défaire l'épreuve pub-epreuve-niveau-un
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services de l'épreuve
+      ansible.builtin.command:
+        cmd: docker compose -f compose.yaml down -v --remove-orphans
+        chdir: /opt/pub-traefik-acme
+      failed_when: false
+      changed_when: true
+
+    - name: Arrêter Pebble et le serveur de défis
+      ansible.builtin.command:
+        cmd: docker compose -f platform.yaml down -v --remove-orphans
+        chdir: /opt/pub-traefik-acme
+      failed_when: false
+      changed_when: true
+
+    - name: Retirer les conteneurs restants de l'épreuve
+      ansible.builtin.shell:
+        cmd: |
+          ids=$(docker ps -aq --filter name=^/pub-renewal-)
+          [ -z "$ids" ] || docker rm -f $ids
+        executable: /bin/bash
+      changed_when: true
+
+    - name: Supprimer le réseau ACME de l'épreuve
+      ansible.builtin.command: docker network rm acme-renewal
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer les fichiers et journaux de l'épreuve
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-traefik-acme
+        - /var/log/dsoxlab-pub-acme-renewal.log
+        - /var/log/dsoxlab-pub-traefik-acme.log
+
+    - name: Vérifier la libération des ports réseau
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 80
+        - 443
+        - 8080

@@ -1,0 +1,8 @@
+# Surcharge française du lab pub-traefik-modele. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Tracer une requête dans le modèle de routage de Traefik"
+description: |
+  Lisez une configuration Traefik partiellement mal reliée, corrigez ses
+  associations entre routeurs et services à travers les providers fichier et
+  Docker, et prouvez qu'un nom non prévu n'atteint aucune application.

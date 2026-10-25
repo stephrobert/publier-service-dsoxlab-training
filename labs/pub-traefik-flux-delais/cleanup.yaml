@@ -1,0 +1,49 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-traefik-flux-delais
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Supprimer les conteneurs du lab
+      ansible.builtin.command:
+        cmd: >
+          docker rm -f pub-flux-traefik pub-flux-backend-a pub-flux-backend-b
+          pub-flux-backend-flux pub-flux-backend-action
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer le réseau Docker du lab
+      ansible.builtin.command:
+        cmd: docker network rm pub-flux
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer les fichiers du lab
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-flux
+        - /tmp/pub-flux-backend_api.py
+        - /tmp/pub-flux-backend_action.py
+        - /tmp/pub-flux-backend_flux.py
+        - /tmp/pub-flux-mesure_ws.py
+        - /var/log/dsoxlab-pub-flux.log
+
+    - name: Retirer les entrées de résolution ajoutées dans /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: "{{ item }}$"
+        state: absent
+      loop:
+        - "api\\.flux\\.lab\\.test"
+        - "flux\\.lab\\.test"
+        - "action\\.flux\\.lab\\.test"
+
+    - name: Vérifier que le port du lab est libéré
+      ansible.builtin.wait_for:
+        port: 80
+        host: 127.0.0.1
+        state: stopped
+        timeout: 30

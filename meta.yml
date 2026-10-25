@@ -8,8 +8,8 @@
 #
 # UN LAB ENTRE DANS CETTE LISTE LE JOUR OÙ IL EST ÉCRIT ET JOUÉ, PAS AVANT :
 # `validate-structure` refuse un lab déclaré dont le `lab.yaml` n'existe pas.
-# Ordre de jeu prévu : pub-01 (certificats), pub-02 à pub-04 (Traefik), puis
-# l'épreuve du niveau 1.
+# L'ordre pédagogique est porté par la liste ci-dessous, jamais par les noms
+# de lab : on peut insérer un exercice sans renommer les suivants.
 #
 # `repo.id` sert de clé pour l'état local de ce catalogue : le changer
 # déplace ces emplacements.
@@ -21,10 +21,9 @@ repo:
   title: "Publish a web service: a reverse proxy in front of your services, with automatic certificates"
   blog_url: "https://www.stephane-robert.info/docs/services/web/"
   description: |
-    Labs for the "Publish a web service" course. Learners put a reverse proxy
-    in front of real services on a single virtual machine: they obtain a
-    certificate automatically over ACME from a test certificate authority
-    (Pebble), then publish containers behind Traefik.
+    Labs for the "Publish a web service" course. Learners obtain and renew
+    certificates from a test ACME authority (Pebble), publish containers behind
+    Traefik, protect administration, and verify service recovery.
 
     Every lab is graded on the state of the system, never on the commands
     typed: the tests read the certificate that was actually issued, the
@@ -38,9 +37,7 @@ repo:
 #   portal_url: https://formation.example.org/mon-apprentissage/
 
 infra:
-  provider:
-    - kvm
-    - incus
+  provider: kvm
   # `lab-pub` donne le pont `virbr-pub`. CIDR pris : 10.10.20 a 90 ; 100 est
   # reserve a la future formation Base de donnees.
   network: lab-pub
@@ -52,11 +49,65 @@ infra:
       ram_mb: 4096
       vcpu: 2
       disk_gb: 20
+    # Le client ne fait que consommer : dig, curl, openssl. Ajouté EN FIN DE LISTE,
+    # l'IP et la MAC d'un hôte dérivant de sa position.
+    - name: poste.lab
+      distro: ubuntu24
+      role: poste
+      ram_mb: 1024
+      vcpu: 1
+      disk_gb: 10
 
 sections:
-  - id: niveau-1
-    title: "Level 1: publish services behind a reverse proxy"
-    description: "Obtain a certificate automatically with ACME, then publish containers behind Traefik. Other labs of the level are added as they are written and proven."
+  - id: socle
+    title: "Foundations: understand and diagnose a published service"
+    description: "Identify the service behind a web response, read an HTTP exchange, switch a DNS record safely, and obtain a certificate automatically with ACME."
     labs:
-      - pub-01-acme-pebble
-      - pub-02-traefik-docker
+      - pub-socle-service
+      - pub-socle-http
+      - pub-socle-dns
+      - pub-acme-pebble
+      - pub-socle-exposition
+      - pub-socle-dns-http-tls
+      - pub-socle-reverse-proxy
+      - pub-socle-tls
+      - pub-socle-application
+      - pub-socle-flux-longs
+      - pub-socle-disponibilite
+      - pub-socle-observabilite
+      - pub-socle-mise-en-service
+      - pub-socle-depannage
+      - pub-epreuve-socle
+  - id: traefik
+    title: "Traefik: publish, protect and operate a reverse proxy"
+    description: "Publish containers and host services behind Traefik, secure, observe, diagnose and upgrade the entry point, then prove it in the two level assessments."
+    labs:
+      - pub-traefik-modele
+      - pub-traefik-installation
+      - pub-traefik-docker
+      - pub-traefik-fichier
+      - pub-traefik-routage
+      - pub-traefik-acme
+      - pub-traefik-restart-recovery
+      - pub-epreuve-niveau-un
+      - pub-traefik-middlewares
+      - pub-traefik-protection
+      - pub-traefik-mtls
+      - pub-traefik-flux-delais
+      - pub-traefik-observabilite
+      - pub-traefik-depannage
+      - pub-traefik-mise-a-jour
+      - pub-epreuve-niveau-deux
+      - pub-traefik-zero-downtime
+  - id: haproxy
+    title: "HAProxy: publish and operate web services"
+    description: "Publish HTTPS with HAProxy native ACME and observe it with Prometheus."
+    labs:
+      - pub-haproxy-tls
+      - pub-haproxy-observabilite
+  - id: nginx
+    title: "Nginx: publish and protect web services"
+    description: "Publish an application with Nginx and protect it."
+    labs:
+      - pub-nginx-publication
+      - pub-nginx-protection

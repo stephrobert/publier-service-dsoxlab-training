@@ -1,0 +1,17 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session : il pose la situation que
+# le scénario décrit.
+- name: Préparer le lab pub-socle-http
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Déposer l'API
+      ansible.builtin.copy:
+        src: fixtures/api.py
+        dest: /tmp/pub-socle-api.py
+        mode: "0644"
+
+    - name: Poser la situation initiale
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash

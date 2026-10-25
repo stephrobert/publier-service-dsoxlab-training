@@ -1,0 +1,30 @@
+id: pub-traefik-installation
+title: "Install Traefik and master its entry-point lifecycle"
+section: traefik
+level: niveau-1
+description: |
+  Install a verifiable Traefik under systemd, closed by default, reject an
+  invalid dynamic configuration with a usable diagnostic, and prove the entry
+  point survives a reboot.
+skills:
+  - traefik
+  - systemd
+  - service-reliability
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-installation/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: true

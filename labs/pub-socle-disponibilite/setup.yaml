@@ -1,0 +1,25 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# Tout tourne sur edge.lab, en boucle locale : le sondeur fourni tourne
+# sur ce même hôte, aucun client distinct n'est nécessaire.
+- name: Préparer l'hôte edge du lab pub-socle-disponibilite
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Déposer le répartiteur et les backends
+      ansible.builtin.copy:
+        src: fixtures/app.py
+        dest: /tmp/pub-disp-app.py
+        mode: "0644"
+
+    - name: Déposer le sondeur fourni
+      ansible.builtin.copy:
+        src: fixtures/sonder.py
+        dest: /tmp/pub-disp-sonder.py
+        mode: "0755"
+
+    - name: Poser la situation initiale
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash

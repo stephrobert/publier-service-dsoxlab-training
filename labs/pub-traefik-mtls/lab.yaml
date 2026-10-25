@@ -1,0 +1,31 @@
+# Lab pub-traefik-mtls. Les champs marqués REQUIS sont exigés par le validator : sans eux,
+# le lab est refusé, ou pire, disparaît du catalogue sans un mot.
+id: pub-traefik-mtls
+title: "Verify backend TLS and client certificates"
+section: traefik
+level: niveau-2
+description: |
+  Protect a route with client certificate authentication, verify the
+  backend's own certificate instead of disabling verification, resist
+  forged forwarding headers, and survive a controlled certificate
+  rotation.
+skills:
+  - traefik
+  - tls
+  - mtls
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik/
+lab_type: lab
+estimated_time: "55m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

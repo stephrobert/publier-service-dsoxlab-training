@@ -1,0 +1,9 @@
+# Surcharge française du lab pub-socle-tls. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Vérifier une identité TLS et sa chaîne de confiance"
+description: |
+  Réceptionnez plusieurs points d'accès TLS et décidez, avec un magasin de
+  confiance explicitement fourni, lesquels prouvent vraiment leur identité :
+  un mauvais nom, une chaîne cassée et un certificat expiré doivent tous être
+  refusés, avec la bonne cause identifiée.

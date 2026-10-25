@@ -1,0 +1,9 @@
+# Surcharge française du lab pub-socle-http. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Lire et expliquer un échange HTTP"
+description: |
+  Réalisez la recette d'une petite API de commandes : vérifiez ce que le
+  backend a vraiment reçu, l'effet d'une redirection sur un POST, la lecture
+  des erreurs, puis envoyez une commande sans la dupliquer quand la réponse est
+  perdue.

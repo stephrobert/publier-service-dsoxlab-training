@@ -1,0 +1,57 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-traefik-zero-downtime
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Rétablir les règles de pare-feu du lab (si laissées par l'apprenant)
+      ansible.builtin.shell: |
+        iptables -D INPUT -p tcp --dport 19000 -j DROP 2>/dev/null || true
+        iptables -D INPUT -p tcp --dport 19001 -j DROP 2>/dev/null || true
+      changed_when: false
+
+    - name: Supprimer les conteneurs du lab
+      ansible.builtin.command:
+        cmd: >
+          docker rm -f pub-zds-entry-a pub-zds-entry-b pub-zds-app-v1
+          pub-zds-app-v2
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer le réseau Docker du lab
+      ansible.builtin.command:
+        cmd: docker network rm pub-zds
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer les fichiers du lab
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-zds
+        - /tmp/pub-zds-backend_version.py
+        - /home/student/domaine-de-panne.yaml
+        - /var/log/dsoxlab-pub-zds.log
+
+    - name: Vérifier que les ports du lab sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 30
+      loop:
+        - 19000
+        - 19001
+
+- name: Défaire la résolution côté client du lab pub-traefik-zero-downtime
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Retirer zds.lab.test de /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: "zds\\.lab\\.test$"
+        state: absent
+

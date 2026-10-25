@@ -1,0 +1,30 @@
+---
+id: pub-traefik-observabilite
+title: "Observe Traefik with JSON access logs and Prometheus"
+section: traefik
+level: niveau-2
+description: |
+  Filter Traefik access logs as JSON, expose Prometheus metrics locally, and
+  configure an alert that fires on real HTTP 5xx responses.
+skills:
+  - traefik
+  - prometheus
+  - observability
+  - troubleshooting
+distros:
+  - ubuntu24
+doc_url: >-
+  https://www.stephane-robert.info/docs/services/reseau/traefik-observability/
+lab_type: lab
+estimated_time: "40m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

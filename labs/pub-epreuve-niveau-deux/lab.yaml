@@ -1,0 +1,29 @@
+---
+id: pub-epreuve-niveau-deux
+title: "Level 2 assessment: protect, observe, and diagnose"
+section: traefik
+level: niveau-2
+description: |
+  Protect and observe a supplied Traefik stack, diagnose an unknown outage
+  from its logs and live responses, and justify the repair in a report.
+skills:
+  - traefik
+  - security
+  - observability
+  - troubleshooting
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-securite/
+lab_type: lab
+estimated_time: "75m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

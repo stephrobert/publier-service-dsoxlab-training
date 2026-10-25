@@ -1,0 +1,69 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. Les paquets restent installés ;
+# partent les services, l'autorité, les certificats, la configuration du
+# routeur, le résolveur, l'incident tiré au sort, la sauvegarde et les
+# livrables de l'apprenant.
+- name: Défaire le lab pub-epreuve-socle sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-eps-router.service
+        - pub-eps-backend.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-eps-router.service
+        - /etc/systemd/system/pub-eps-backend.service
+        - /opt/pub-eps
+        - /etc/pub-eps
+        - /var/lib/pub-eps
+        - /var/backups/pub-eps
+        - /root/.pub-eps-secret.yaml
+        - /etc/unbound/unbound.conf.d/pub-eps.conf
+        - /home/student/README-epreuve
+        - /home/student/dossier.md
+        - /home/student/incident.yaml
+        - /home/student/restaurer.sh
+        - /tmp/pub-eps-app.py
+        - /tmp/pub-eps-router.py
+        - /var/log/dsoxlab-pub-epreuve-socle.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Redémarrer unbound avec sa configuration restante
+      ansible.builtin.systemd:
+        name: unbound
+        state: restarted
+      failed_when: false
+
+- name: Défaire le lab pub-epreuve-socle sur le client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Retirer l'autorité de test fournie au client
+      ansible.builtin.file:
+        path: /home/student/ca.pem
+        state: absent
+
+    - name: Retirer la configuration du résolveur
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d/pub-epreuve-socle.conf
+        state: absent
+      notify: Redémarrer resolved
+
+  handlers:
+    - name: Redémarrer resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted

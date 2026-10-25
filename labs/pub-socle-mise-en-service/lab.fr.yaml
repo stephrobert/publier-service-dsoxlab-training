@@ -1,0 +1,11 @@
+# Surcharge française du lab pub-socle-mise-en-service. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Réceptionner une publication et la restaurer"
+description: |
+  Réceptionner une publication de deux façons : comme un client qui doit la
+  vérifier indépendamment, DNS compris, et comme l'opérateur qui doit
+  survivre à la perte de la configuration et de l'état actifs. Écrire et
+  exécuter une matrice de recette, restaurer depuis la sauvegarde après une
+  perte simulée, faire revenir une mise en service défaillante en tenant
+  compte d'un cache, et dire clairement ce qui reste simulé.

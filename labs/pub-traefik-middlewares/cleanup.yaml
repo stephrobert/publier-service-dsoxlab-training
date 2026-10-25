@@ -1,0 +1,40 @@
+---
+- name: Défaire le lab pub-traefik-middlewares
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter et désactiver le backend
+      ansible.builtin.systemd:
+        name: pub-middlewares-backend
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Supprimer Traefik
+      ansible.builtin.command:
+        cmd: docker rm -f pub-middlewares-traefik
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer les fichiers du lab et la trace
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-middlewares
+        - /etc/systemd/system/pub-middlewares-backend.service
+        - /var/log/dsoxlab-pub-middlewares.log
+
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports du proxy et du backend sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 30
+      loop:
+        - 80
+        - 18082

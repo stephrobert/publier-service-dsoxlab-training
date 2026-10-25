@@ -1,0 +1,8 @@
+# Surcharge française du lab pub-traefik-installation. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Installer Traefik et maîtriser le cycle de vie du point d'entrée"
+description: |
+  Installez un Traefik vérifiable sous systemd, fermé par défaut, refusez une
+  configuration dynamique invalide avec un diagnostic exploitable, et prouvez
+  que le point d'entrée survit à un redémarrage.

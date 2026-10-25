@@ -1,0 +1,31 @@
+id: pub-socle-dns
+title: "Diagnose and switch a DNS record safely"
+section: socle
+level: niveau-1
+description: |
+  Move a site from one version to another by changing its DNS records: find
+  which server is authoritative and which one only caches, read a TTL, notice
+  the forgotten AAAA record, then switch over and back without waiting for
+  caches.
+skills:
+  - dns
+  - ttl-and-cache
+  - ipv6-records
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

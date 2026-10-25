@@ -1,0 +1,33 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session : il pose la situation que
+# le scénario décrit.
+- name: Préparer le lab pub-traefik-flux-delais
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer la couche machine (Docker, Compose, outils)
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les images épinglées
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    - name: Déposer les applications des backends
+      ansible.builtin.copy:
+        src: "fixtures/{{ item }}"
+        dest: "/tmp/pub-flux-{{ item }}"
+        mode: "0644"
+      loop:
+        - backend_api.py
+        - backend_action.py
+        - backend_flux.py
+        - mesure_ws.py
+
+    - name: Poser les backends et le Traefik mal réglé
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_TRAEFIK: "{{ socle_images.traefik.image }}:{{ socle_images.traefik.version }}@{{ socle_images.traefik.digest }}"
+        IMG_PYTHON: "{{ socle_images.python.image }}:{{ socle_images.python.version }}@{{ socle_images.python.digest }}"

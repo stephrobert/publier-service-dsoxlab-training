@@ -1,0 +1,6 @@
+---
+title: "Dépanner le routage et TLS dans Traefik"
+description: |
+  Diagnostiquez et réparez cinq pannes injectées (404, 502, 504, certificat
+  et boucle de redirection) en corrélant les réponses HTTP aux journaux
+  Traefik.

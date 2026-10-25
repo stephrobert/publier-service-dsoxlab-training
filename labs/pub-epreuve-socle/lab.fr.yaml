@@ -1,0 +1,10 @@
+# Surcharge française du lab pub-epreuve-socle. Elle ne porte QUE `title`
+# et `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Épreuve du socle : concevoir et réceptionner un service"
+description: |
+  Sans modèle à recopier, livrer le dossier d'architecture et la recette
+  d'un service déjà en fonctionnement, puis diagnostiquer et corriger un
+  incident non annoncé, et prouver son plan de reprise sur le
+  laboratoire lui-même : configuration, données et confiance. Aucune
+  syntaxe de reverse proxy spécifique n'est requise.

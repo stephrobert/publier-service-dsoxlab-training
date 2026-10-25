@@ -141,7 +141,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-    # Pas de `DSOXLAB_PROVIDER` ici, bien que les vingt et un labs soient en
+    # Pas de `DSOXLAB_PROVIDER` ici, bien que les labs soient en
     # `runtime: vm` : `meta.yml` déclare `provider: kvm` en chaîne simple, qui
     # se résout seule. Seule une LISTE de candidats aurait besoin d'être
     # tranchée, et seules les commandes d'infra la réclament de toute façon.

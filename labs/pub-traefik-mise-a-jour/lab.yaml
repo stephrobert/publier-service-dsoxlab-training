@@ -1,0 +1,28 @@
+---
+id: pub-traefik-mise-a-jour
+title: "Upgrade Traefik and prove a rollback"
+section: traefik
+level: niveau-2
+description: |
+  Upgrade the running Traefik proxy from v3.7.6 to v3.7.15, verify its live
+  configuration, and prove that the previous version can be restored.
+skills:
+  - traefik
+  - upgrade
+  - rollback
+distros:
+  - ubuntu24
+doc_url: https://doc.traefik.io/traefik/migrate/v2-to-v3/
+lab_type: lab
+estimated_time: "25m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

@@ -1,0 +1,34 @@
+id: pub-socle-disponibilite
+title: "Measure a backend outage, removal and return"
+section: socle
+level: niveau-1
+description: |
+  Two identical backends run behind a provided, opaque load balancer,
+  with configurable probes and thresholds, no specific product to learn.
+  The shipped configuration ships three mistakes at once: the balancer
+  never actually alternates between the two healthy backends, its
+  failure probe is far too slow and tolerant to remove a sick backend
+  within any reasonable window, and the same is true for bringing it
+  back once healthy. The balancer itself is also the only entry point:
+  stopping it proves, honestly, what a single load balancer instance
+  cannot survive.
+skills:
+  - load-balancing
+  - health-checks
+  - failure-domains
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

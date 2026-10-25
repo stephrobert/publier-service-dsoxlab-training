@@ -1,0 +1,27 @@
+id: pub-traefik-modele
+title: "Trace a request through Traefik's routing model"
+section: traefik
+level: niveau-1
+description: |
+  Read a partially miswired Traefik configuration, correct its router and
+  service associations across the file and Docker providers, and prove that
+  an unplanned hostname reaches no application.
+skills:
+  - traefik
+  - reverse-proxy
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik/
+lab_type: lab
+estimated_time: "30m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

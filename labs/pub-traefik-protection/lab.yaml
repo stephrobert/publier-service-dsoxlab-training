@@ -1,0 +1,29 @@
+id: pub-traefik-protection
+title: "Protect the Traefik entry point"
+section: traefik
+level: niveau-2
+description: |
+  Protect Traefik administration with authenticated HTTPS, secure its Docker
+  API access through a restricted socket proxy, enforce security headers, and
+  rate-limit requests.
+skills:
+  - traefik
+  - security
+  - tls
+  - docker-socket-proxy
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-securite/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

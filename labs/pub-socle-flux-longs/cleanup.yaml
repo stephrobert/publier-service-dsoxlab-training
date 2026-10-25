@@ -1,0 +1,35 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. Le paquet `websockets`
+# (installé par pip) reste installé : seuls les services, la politique,
+# l'état et les livrables du lab partent.
+- name: Défaire le lab pub-socle-flux-longs sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-flux-producteur.service
+        - pub-flux-service.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-flux-producteur.service
+        - /etc/systemd/system/pub-flux-service.service
+        - /opt/pub-flux
+        - /etc/pub-flux
+        - /var/lib/pub-flux
+        - /home/student/README-flux
+        - /tmp/pub-flux-app.py
+        - /tmp/pub-flux-mesure.py
+        - /var/log/dsoxlab-pub-socle-flux-longs.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true

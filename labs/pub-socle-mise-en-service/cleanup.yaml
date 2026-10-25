@@ -1,0 +1,72 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. Les paquets restent installés ;
+# partent les services, l'autorité, les certificats, la configuration du
+# routeur, l'état métier, la sauvegarde, le résolveur et les livrables de
+# l'apprenant.
+- name: Défaire le lab pub-socle-mise-en-service sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-mes-router.service
+        - pub-mes-origine-a.service
+        - pub-mes-origine-b.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-mes-router.service
+        - /etc/systemd/system/pub-mes-origine-a.service
+        - /etc/systemd/system/pub-mes-origine-b.service
+        - /opt/pub-mes
+        - /etc/pub-mes
+        - /var/lib/pub-mes
+        - /var/backups/pub-mes
+        - /etc/unbound/unbound.conf.d/pub-mes.conf
+        - /home/student/README-mes
+        - /home/student/recette.yaml
+        - /home/student/restaurer.sh
+        - /home/student/revenir-origine.sh
+        - /home/student/limites.yaml
+        - /tmp/pub-mes-app.py
+        - /tmp/pub-mes-router.py
+        - /var/log/dsoxlab-pub-socle-mise-en-service.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Redémarrer unbound avec sa configuration restante
+      ansible.builtin.systemd:
+        name: unbound
+        state: restarted
+      failed_when: false
+
+- name: Défaire le lab pub-socle-mise-en-service sur le client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Retirer l'autorité de test fournie au client
+      ansible.builtin.file:
+        path: /home/student/ca.pem
+        state: absent
+
+    - name: Retirer la configuration du résolveur
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d/pub-socle-mise-en-service.conf
+        state: absent
+      notify: Redémarrer resolved
+
+  handlers:
+    - name: Redémarrer resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted
+

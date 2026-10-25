@@ -1,0 +1,8 @@
+# Surcharge française du lab pub-socle-dns. Elle ne porte QUE `title` et
+# `description`.
+title: "Diagnostiquer et basculer un enregistrement DNS"
+description: |
+  Faites passer un site d'une version à l'autre en changeant ses
+  enregistrements DNS : trouvez quel serveur fait autorité et lequel ne fait
+  que mettre en cache, lisez un TTL, repérez l'enregistrement AAAA oublié, puis
+  basculez et revenez en arrière sans attendre les caches.

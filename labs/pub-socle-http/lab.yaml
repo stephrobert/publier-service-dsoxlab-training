@@ -1,0 +1,28 @@
+id: pub-socle-http
+title: "Read and explain an HTTP exchange"
+section: socle
+level: niveau-1
+description: |
+  Run an acceptance test of a small order API: check what the backend really
+  received, what a redirect does to a POST, how errors are read, and send an
+  order without duplicating it when the response is lost.
+skills:
+  - http
+  - redirects
+  - idempotency
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/
+lab_type: lab
+estimated_time: "40m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

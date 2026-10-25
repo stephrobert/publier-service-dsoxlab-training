@@ -1,0 +1,40 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-traefik-installation
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter et désactiver le service Traefik
+      ansible.builtin.systemd:
+        name: pub-installation-traefik
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Supprimer le conteneur Traefik s'il reste
+      ansible.builtin.command:
+        cmd: docker rm -f pub-installation-traefik
+      failed_when: false
+      changed_when: true
+
+    - name: Supprimer les fichiers du lab
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-installation
+        - /etc/systemd/system/pub-installation-traefik.service
+        - /var/log/dsoxlab-pub-installation.log
+
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que le port du proxy est libéré
+      ansible.builtin.wait_for:
+        port: 80
+        host: 127.0.0.1
+        state: stopped
+        timeout: 30
+

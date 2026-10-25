@@ -1,0 +1,9 @@
+# Surcharge française du lab pub-traefik-routage. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Résoudre les priorités et collisions de routage"
+description: |
+  Corrigez des conflits de priorité explicite entre routeurs d'hôte et de
+  chemin, délimitez correctement une application sensible, qualifiez un
+  service et un middleware inter-provider, et prouvez qu'un changement
+  dynamique ultérieur ne casse pas les routes existantes.

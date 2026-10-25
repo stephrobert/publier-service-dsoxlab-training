@@ -1,0 +1,32 @@
+# Lab pub-traefik-flux-delais. Les champs marqués REQUIS sont exigés par le validator : sans eux,
+# le lab est refusé, ou pire, disparaît du catalogue sans un mot.
+id: pub-traefik-flux-delais
+title: "Bound delays and keep long-lived flows alive"
+section: traefik
+level: niveau-2
+description: |
+  Bound the proxy's wait on a slow or dead backend without cutting
+  legitimate slowness short, keep WebSocket and SSE flows open across an
+  idle period, remove a sick backend from rotation without penalizing
+  healthy ones, and make sure a retry policy never duplicates a
+  non-idempotent business action.
+skills:
+  - traefik
+  - resilience
+  - timeouts
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik/
+lab_type: lab
+estimated_time: "55m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

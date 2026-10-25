@@ -1,0 +1,33 @@
+id: pub-epreuve-socle
+title: "Socle assessment: design and hand over a service"
+section: socle
+level: niveau-1
+description: |
+  With no template to copy, deliver the architecture dossier and the
+  acceptance recipe for a service that is already running, then diagnose
+  and fix an unannounced incident, and prove your recovery plan on the
+  lab itself: configuration, data, and trust. No reverse-proxy-specific
+  syntax required.
+skills:
+  - architecture-dossier
+  - acceptance-proof
+  - incident-response
+  - disaster-recovery
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/publier-un-service/
+lab_type: lab
+estimated_time: "90m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

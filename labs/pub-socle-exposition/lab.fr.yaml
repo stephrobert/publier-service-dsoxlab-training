@@ -1,0 +1,9 @@
+# Surcharge française du lab pub-socle-exposition. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Fermer les chemins qui contournent le point d'entrée"
+description: |
+  Recevez une publication qui répond mais expose trop de ports : établissez sa
+  matrice de flux, puis fermez tous les chemins vers le backend et
+  l'administration pour que seul le point d'entrée reste joignable depuis le
+  client.

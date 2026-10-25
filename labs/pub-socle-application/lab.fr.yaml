@@ -1,0 +1,13 @@
+# Surcharge française du lab pub-socle-application. Elle ne porte QUE
+# `title` et `description`.
+title: "Réparer une session, son cookie et ses origines derrière un proxy"
+description: |
+  Réparez la configuration d'une petite application qui tourne derrière un
+  point d'entrée TLS : une connexion qui boucle indéfiniment au lieu
+  d'aboutir sur la page de compte, un cookie de session cantonné à un
+  domaine qu'aucun navigateur n'acceptera jamais, une politique d'origine
+  qui répond oui à toute origine, et un en-tête d'identité que le point
+  d'entrée répète encore depuis le client au lieu de le décider à partir
+  d'une session validée. Un navigateur automatisable est fourni pour
+  observer chacun de ces points là où il compte réellement : dans un vrai
+  navigateur, pas seulement un en-tête curl.

@@ -1,0 +1,32 @@
+id: pub-socle-reverse-proxy
+title: "Define the responsibilities and the trust of a proxy chain"
+section: socle
+level: niveau-1
+description: |
+  Walk a request through two chained reverse proxies to a backend
+  application: work out which hop terminates TLS and which one relays in
+  plain HTTP, keep a legitimate client's real origin and identity intact,
+  then close every path that lets a forged header or a direct connection
+  grant a privilege it was never given.
+skills:
+  - reverse-proxy-chain
+  - trusted-headers
+  - origin-spoofing
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

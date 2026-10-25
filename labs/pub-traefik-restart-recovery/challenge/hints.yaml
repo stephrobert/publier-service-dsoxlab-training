@@ -1,0 +1,8 @@
+# Indices encodés en base64.
+hints:
+  - cost: 10
+    text_fr: Q29uc3VsdGV6IGxlIGNoYW1wIFJlc3RhcnRQb2xpY3kgZGUgRG9ja2VyIHBvdXIgdm9pciBsYSBwb2xpdGlxdWUgYXBwbGlxdcOpZSBhdSBjb250ZW5ldXIu
+    text_en: SW5zcGVjdCB0aGUgRG9ja2VyIGNvbnRhaW5lcidzIFJlc3RhcnRQb2xpY3kgZmllbGQgdG8gc2VlIHdoaWNoIHBvbGljeSBpcyBhcHBsaWVkLg==
+  - cost: 15
+    text_fr: Q29uZmlndXJleiBsYSBwb2xpdGlxdWUgZGUgcmVkZW1hcnJhZ2UgZGFucyBDb21wb3NlLCBwdWlzIHZlcmlmaWV6IGxlIHNlcnZpY2UgYcOocHLDqHMgbGUgcmVkZW1hcnJhZ2Uu
+    text_en: U2V0IHRoZSByZXN0YXJ0IHBvbGljeSBpbiBDb21wb3NlLCB0aGVuIHZlcmlmeSB0aGUgc2VydmljZSBhZnRlciByZXN0YXJ0Lg==

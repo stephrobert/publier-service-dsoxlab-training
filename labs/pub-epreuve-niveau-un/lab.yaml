@@ -1,0 +1,29 @@
+---
+id: pub-epreuve-niveau-un
+title: "Level 1 assessment: publish and recover services"
+section: traefik
+level: niveau-1
+description: |
+  Publish two HTTPS services with automatically renewed certificates, deny
+  external access to backends and administration, and recover after a Docker
+  restart under a 60-minute time limit.
+skills:
+  - traefik
+  - acme
+  - troubleshooting
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/
+lab_type: lab
+estimated_time: "60m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

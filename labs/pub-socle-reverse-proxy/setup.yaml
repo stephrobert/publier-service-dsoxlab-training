@@ -1,0 +1,48 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# L'hôte edge porte les trois maillons (périmètre, interne, backend) et
+# l'autorité de test. Le client ne reçoit que l'autorité de test : il n'a
+# besoin de rien d'autre pour observer la chaîne depuis l'extérieur.
+- name: Préparer l'hôte edge du lab pub-socle-reverse-proxy
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Déposer l'application de la chaîne
+      ansible.builtin.copy:
+        src: fixtures/app.py
+        dest: /tmp/pub-rp-app.py
+        mode: "0644"
+
+    - name: Poser la situation initiale
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+    - name: Lire l'autorité de test à redistribuer au client
+      ansible.builtin.slurp:
+        src: /etc/pub-rp/certs/ca.pem
+      register: autorite_brute
+
+    - name: Retenir l'autorité en clair pour la deuxième passe
+      ansible.builtin.set_fact:
+        autorite_pem: "{{ autorite_brute.content | b64decode }}"
+
+- name: Préparer le client du lab pub-socle-reverse-proxy
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Installer curl et openssl
+      ansible.builtin.apt:
+        name: [curl, openssl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Déposer l'autorité de test fournie au client
+      ansible.builtin.copy:
+        dest: /home/student/ca.pem
+        content: "{{ hostvars[groups['lab_target'][0]]['autorite_pem'] }}"
+        owner: student
+        group: student
+        mode: "0644"

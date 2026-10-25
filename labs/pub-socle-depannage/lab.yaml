@@ -1,0 +1,32 @@
+id: pub-socle-depannage
+title: "Diagnose a publication, layer by layer"
+section: socle
+level: niveau-1
+description: |
+  Inherit a published service with one fault drawn at random among DNS,
+  transport, TLS, route, and backend, plus background noise unrelated to
+  it. Form a hypothesis, confirm it with a targeted test, name the actual
+  faulty layer and component, repair it, and prove no protection was
+  removed along the way.
+skills:
+  - layered-diagnosis
+  - hypothesis-testing
+  - non-regression
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/publier-un-service/
+lab_type: lab
+estimated_time: "55m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false
