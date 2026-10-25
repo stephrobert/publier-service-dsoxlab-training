@@ -1,0 +1,33 @@
+id: pub-socle-mise-en-service
+title: "Hand over a release and prove it can be restored"
+section: socle
+level: niveau-1
+description: |
+  Receive a publication two different ways: as a client who must check it
+  independently, DNS included, and as the operator who must survive losing
+  the active configuration and state. Write and run an acceptance matrix,
+  restore from backup after a simulated loss, roll a bad release back while
+  respecting a cache, and state plainly what is still simulated.
+skills:
+  - acceptance-testing
+  - backup-restore
+  - rollback
+  - operational-honesty
+distros:
+  - ubuntu24
+doc_url: https://www.stephane-robert.info/docs/services/web/publier-un-service/
+lab_type: lab
+estimated_time: "60m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Ubuntu 24.04"
+      label_fr: "Ubuntu 24.04"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

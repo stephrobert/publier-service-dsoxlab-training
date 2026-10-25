@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-25 14:35:32",
+  "genere_le": "2026-10-25 14:54:00",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -167,6 +167,18 @@
       "score_apres": 100,
       "tests": "5/5",
       "duree_s": 48.7,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
+    },
+    "pub-socle-mise-en-service": {
+      "id": "pub-socle-mise-en-service",
+      "chemin": "pub-socle-mise-en-service",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 116.3,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-25"
