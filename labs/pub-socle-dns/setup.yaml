@@ -1,0 +1,61 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# L'hôte edge porte la zone, le résolveur à cache et les deux versions du site.
+# Le client ne fait que consommer : il est configuré pour interroger le
+# résolveur de l'edge sur pub.test, sans cache local, et reçoit une adresse
+# IPv6 sur le même segment.
+- name: Préparer l'hôte edge du lab pub-socle-dns
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Déposer le site
+      ansible.builtin.copy:
+        src: fixtures/backend.py
+        dest: /tmp/pub-socle-backend.py
+        mode: "0644"
+
+    - name: Poser la situation initiale
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+- name: Préparer le client du lab pub-socle-dns
+  hosts: lab_client
+  become: true
+  vars:
+    resolveur: "{{ hostvars[groups['lab_target'][0]]['ansible_default_ipv4']['address'] }}"
+  tasks:
+    - name: Installer curl et dig
+      ansible.builtin.apt:
+        name: [curl, dnsutils]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Adresse IPv6 sur le segment du lab
+      ansible.builtin.command: "ip addr replace fd77:1::2/64 dev {{ ansible_default_ipv4.interface }}"
+      changed_when: true
+
+    - name: Répertoire des réglages de resolved
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d
+        state: directory
+        mode: "0755"
+
+    - name: Interroger le résolveur de l'edge pour pub.test, sans cache local
+      ansible.builtin.copy:
+        dest: /etc/systemd/resolved.conf.d/pub-socle-dns.conf
+        mode: "0644"
+        content: |
+          [Resolve]
+          DNS={{ resolveur }}
+          Domains=~pub.test
+          Cache=no
+      notify: Redémarrer resolved
+
+  handlers:
+    - name: Redémarrer resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted

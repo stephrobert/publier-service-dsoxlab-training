@@ -1,0 +1,71 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. Les paquets restent installés ;
+# partent la zone, le résolveur, les deux sites, les adresses ajoutées et les
+# livrables de l'apprenant.
+- name: Défaire le lab pub-socle-dns sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop: [pub-dns-v1.service, pub-dns-v2.service, named.service, unbound.service]
+      failed_when: false
+
+    - name: Retirer les adresses ajoutées
+      ansible.builtin.shell: |
+        iface=$(ip -4 route show default | awk '{print $5; exit}')
+        base=$(ip -4 -o addr show dev "$iface" scope global | awk '{print $4}' | cut -d/ -f1 | grep -v '\.20[12]$' | head -1)
+        base=${base%.*}
+        for a in "$base.201/24" "$base.202/24" fd77:1::201/64 fd77:1::202/64; do
+          ip addr del "$a" dev "$iface" 2>/dev/null || true
+        done
+        ip addr del 127.0.0.2/8 dev lo 2>/dev/null || true
+      changed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-dns-v1.service
+        - /etc/systemd/system/pub-dns-v2.service
+        - /opt/pub-dns
+        - /var/lib/pub-dns
+        - /etc/bind/pub.test.zone
+        - /etc/unbound/unbound.conf.d/pub.conf
+        - /home/student/README-dns
+        - /home/student/dns.yaml
+        - /home/student/basculer.sh
+        - /tmp/pub-socle-backend.py
+        - /var/log/dsoxlab-pub-socle-dns.log
+
+    - name: Vider la configuration de zone
+      ansible.builtin.copy:
+        dest: /etc/bind/named.conf.local
+        content: ""
+        mode: "0644"
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+- name: Défaire le lab pub-socle-dns sur le client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Retirer la configuration du résolveur
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d/pub-socle-dns.conf
+        state: absent
+
+    - name: Retirer l'adresse IPv6 du lab
+      ansible.builtin.command: "ip addr del fd77:1::2/64 dev {{ ansible_default_ipv4.interface }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Redémarrer resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted

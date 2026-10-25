@@ -49,6 +49,14 @@ infra:
       ram_mb: 4096
       vcpu: 2
       disk_gb: 20
+    # Le client ne fait que consommer : dig, curl, openssl. Ajouté EN FIN DE LISTE,
+    # l'IP et la MAC d'un hôte dérivant de sa position.
+    - name: poste.lab
+      distro: ubuntu24
+      role: poste
+      ram_mb: 1024
+      vcpu: 1
+      disk_gb: 10
 
 sections:
   - id: niveau-1
@@ -57,13 +65,13 @@ sections:
     labs:
       - pub-socle-service
       - pub-socle-http
+      - pub-socle-dns
       - pub-acme-pebble
       - pub-traefik-docker
       - pub-traefik-fichier
       - pub-traefik-acme
       - pub-traefik-restart-recovery
       - pub-epreuve-niveau-un
-      - pub-socle-http
   - id: niveau-2
     title: "Level 2: protect and operate a reverse proxy"
     description: >-
