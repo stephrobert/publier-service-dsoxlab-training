@@ -93,6 +93,7 @@ sections:
       - pub-traefik-middlewares
       - pub-traefik-protection
       - pub-traefik-mtls
+      - pub-traefik-flux-delais
       - pub-traefik-observabilite
       - pub-traefik-depannage
       - pub-traefik-mise-a-jour

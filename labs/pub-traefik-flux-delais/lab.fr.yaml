@@ -1,0 +1,10 @@
+# Surcharge française du lab pub-traefik-flux-delais. Elle ne porte QUE
+# `title` et `description` : tout autre champ y est ignoré en silence, parce
+# que le contrat ne se traduit pas.
+title: "Borner les délais et conserver les flux applicatifs"
+description: |
+  Bornez l'attente du proxy face à un backend lent ou mort sans couper une
+  lenteur légitime, maintenez les flux WebSocket et SSE ouverts malgré une
+  période d'inactivité, retirez un backend malade de la rotation sans
+  pénaliser les backends sains, et assurez-vous qu'une politique de retry
+  ne duplique jamais une action métier non idempotente.

@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-25 16:18:24",
+  "genere_le": "2026-10-25 16:44:52",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -302,6 +302,18 @@
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
+    },
+    "pub-traefik-flux-delais": {
+      "id": "pub-traefik-flux-delais",
+      "chemin": "pub-traefik-flux-delais",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 144.4,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
     },
     "pub-traefik-installation": {
       "id": "pub-traefik-installation",
