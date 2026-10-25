@@ -98,6 +98,7 @@ sections:
       - pub-traefik-depannage
       - pub-traefik-mise-a-jour
       - pub-epreuve-niveau-deux
+      - pub-traefik-zero-downtime
   - id: haproxy
     title: "HAProxy: publish and operate web services"
     description: "Publish HTTPS with HAProxy native ACME and observe it with Prometheus."

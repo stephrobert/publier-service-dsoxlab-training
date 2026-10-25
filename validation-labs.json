@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-25 16:44:52",
+  "genere_le": "2026-10-25 18:04:46",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -419,6 +419,18 @@
       "score_apres": 100,
       "tests": "4/4",
       "duree_s": 67.6,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
+    },
+    "pub-traefik-zero-downtime": {
+      "id": "pub-traefik-zero-downtime",
+      "chemin": "pub-traefik-zero-downtime",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 273.7,
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-25"

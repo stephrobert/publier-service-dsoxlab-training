@@ -1,0 +1,16 @@
+# Surcharge française du lab pub-traefik-zero-downtime. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+# Surcharge française du lab pub-traefik-zero-downtime. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Basculer une version de backend, prouver le retour arrière et nommer le vrai domaine de panne"
+description: |
+  Déplacez le trafic réel d'une version de backend vers une candidate avec
+  des erreurs bornées, retirez une candidate malsaine de la rotation et
+  revenez en arrière, prouvez quelle panne un point d'entrée redondant
+  survit réellement et laquelle il ne survit pas, et corrigez un outil de
+  rotation de certificat pour que deux points d'entrée partageant le même
+  stockage de certificat ne servent jamais une paire corrompue ou
+  dépareillée.
+
