@@ -1,0 +1,35 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`.
+- name: Défaire le lab pub-socle-disponibilite sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - pub-disp-repartiteur.service
+        - pub-disp-backend-a.service
+        - pub-disp-backend-b.service
+      failed_when: false
+
+    - name: Supprimer unités, fichiers, état et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-disp-repartiteur.service
+        - /etc/systemd/system/pub-disp-backend-a.service
+        - /etc/systemd/system/pub-disp-backend-b.service
+        - /opt/pub-disp
+        - /etc/pub-disp
+        - /var/lib/pub-disp
+        - /home/student/README-disp
+        - /tmp/pub-disp-app.py
+        - /tmp/pub-disp-sonder.py
+        - /var/log/dsoxlab-pub-socle-disponibilite.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true

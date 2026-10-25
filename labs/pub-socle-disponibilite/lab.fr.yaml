@@ -1,0 +1,13 @@
+# Surcharge française du lab pub-socle-disponibilite. Elle ne porte QUE
+# `title` et `description`.
+title: "Mesurer panne, retrait et reprise d'un backend"
+description: |
+  Deux backends identiques tournent derrière un répartiteur fourni et
+  opaque, avec sondes et seuils paramétrables, sans produit particulier
+  à apprendre. La configuration livrée porte trois erreurs à la fois :
+  le répartiteur n'alterne en réalité jamais entre les deux backends
+  sains, sa sonde de panne est bien trop lente et tolérante pour retirer
+  un backend malade dans une fenêtre raisonnable, et il en va de même
+  pour le faire revenir une fois sain. Le répartiteur est lui-même
+  l'unique point d'entrée : l'arrêter prouve, honnêtement, ce qu'un seul
+  exemplaire de répartiteur ne peut pas survivre.
