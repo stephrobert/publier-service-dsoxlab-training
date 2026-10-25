@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-25 15:12:09",
+  "genere_le": "2026-10-25 15:27:55",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -350,6 +350,18 @@
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-24"
+    },
+    "pub-epreuve-socle": {
+      "id": "pub-epreuve-socle",
+      "chemin": "pub-epreuve-socle",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 63.4,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-25"
     }
   }
 }
