@@ -1,7 +1,7 @@
 ---
 title: "Sonder, retirer et drainer des backends"
 description: |
-  Mettre des sondes representatives devant deux backends, prouver qu'un backend
-  vivant mais non pret est retire dans la fenetre prevue, qu'une baisse plus
-  courte que le seuil ne retire rien, et que le drainage arrete les nouvelles
-  affectations sans couper un flux etabli.
+  Mettre des sondes représentatives devant deux backends, prouver qu'un backend
+  vivant mais non prêt est retiré dans la fenêtre prévue, qu'une baisse plus
+  courte que le seuil ne retire rien, et que le drainage arrête les nouvelles
+  affectations sans couper un flux établi.

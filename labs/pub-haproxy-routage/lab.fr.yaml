@@ -1,6 +1,6 @@
 ---
 title: "Router avec des ACL et une map, sans route de fuite"
 description: |
-  Reparer une table de routage dont les quatre regles sont chacune justes et
-  fausses ensemble, puis montrer que la map decide reellement et qu'un
-  changement a chaud ne survit pas a un rechargement.
+  Réparer une table de routage dont les quatre règles sont chacune justes et
+  fausses ensemble, puis montrer que la map décide réellement et qu'un
+  changement à chaud ne survit pas à un rechargement.

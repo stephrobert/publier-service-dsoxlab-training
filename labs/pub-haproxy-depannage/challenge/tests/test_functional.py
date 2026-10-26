@@ -219,11 +219,16 @@ def test_les_verifications_ne_sont_pas_desactivees(
         ),
     )
 
+    # `status` porte un compteur de transition pendant qu'une sonde monte ou
+    # descend : « UP 4/5 » et non « UP ». Comparer la colonne entiere ferait
+    # lire un serveur sain en cours de montee comme un serveur hors service,
+    # et le controle echouerait sur un environnement pourtant correct. On ne
+    # garde donc que l'etat, qui est le premier mot.
     sains = [
         nom
         for nom, champs in serveurs.items()
         if nom not in ("FRONTEND", "BACKEND", degrade)
-        and champs.get("status") == "UP"
+        and champs.get("status", "").split()[:1] == ["UP"]
     ]
     assert sains, message(
         en=(

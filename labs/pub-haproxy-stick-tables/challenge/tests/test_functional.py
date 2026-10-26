@@ -183,10 +183,28 @@ def test_la_table_compte_l_adresse_du_client_sur_la_fenetre_annoncee(
         ),
     )
 
-    # LA FENETRE, mesuree et non lue. Apres elle, la cadence retombe a zero
-    # alors que l'entree est TOUJOURS LA : c'est ce qui distingue la fenetre
-    # de l'expiration.
-    time.sleep(int(recette["fenetre"]) + 3)
+    # LA FENETRE, mesuree et non lue. Apres elle, la cadence RETOMBE alors que
+    # l'entree est TOUJOURS LA : c'est ce qui distingue la fenetre de
+    # l'expiration.
+    #
+    # On attend que la cadence repasse sous le seuil, et non qu'elle vaille
+    # exactement zero. Le manuel 3.4 dit de `http_req_rate(<period>)` qu'il
+    # « reports the AVERAGE HTTP request rate over that period » : c'est une
+    # moyenne glissante, que HAProxy fait decroitre et ne remet pas a zero a
+    # l'echeance. Mesure du 2026-10-26 : elle valait encore 3 treize secondes
+    # apres la derniere requete, sur une fenetre de dix. Exiger zero reclamait
+    # donc une propriete que l'outil ne garantit pas, et accusait la
+    # configuration du lab.
+    #
+    # La propriete qui COMPTE est tenue : la cadence redescend sous le seuil,
+    # donc le blocage se leve, et l'entree survit a la fenetre.
+    seuil = int(recette["seuil"])
+    limite = time.monotonic() + (int(recette["fenetre"]) * 2) + 5
+    while time.monotonic() < limite:
+        champs = _entree(edge, recette, ip_poste)
+        if champs is not None and _cadence(champs) < seuil:
+            break
+        time.sleep(1)
     champs = _entree(edge, recette, ip_poste)
     assert champs is not None, message(
         en=(
@@ -204,16 +222,21 @@ def test_la_table_compte_l_adresse_du_client_sur_la_fenetre_annoncee(
             "l'autre combien de temps l'entrée survit."
         ),
     )
-    assert _cadence(champs) == 0, message(
+    assert _cadence(champs) < seuil, message(
         en=(
-            f"The rate is still {_cadence(champs)} more than "
-            f"{recette['fenetre']}s after the last request. The window declared "
-            "in the recipe is not the one in use."
+            f"The rate is still {_cadence(champs)}, at or above the threshold of "
+            f"{seuil}, more than {int(recette['fenetre']) * 2}s after the last "
+            "request. Over twice the declared window the average must have "
+            "fallen back below the threshold, otherwise the window in use is "
+            "not the one the recipe declares, and the block never lifts."
         ),
         fr=(
-            f"La cadence vaut encore {_cadence(champs)} plus de "
-            f"{recette['fenetre']} s après la dernière requête. La fenêtre "
-            "déclarée dans la recette n'est pas celle en service."
+            f"La cadence vaut encore {_cadence(champs)}, au niveau du seuil de "
+            f"{seuil} ou au-dessus, plus de {int(recette['fenetre']) * 2} s "
+            "après la dernière requête. Au-delà de deux fois la fenêtre "
+            "déclarée, la moyenne doit être redescendue sous le seuil : sinon "
+            "la fenêtre en service n'est pas celle de la recette, et le blocage "
+            "ne se lève jamais."
         ),
     )
 
@@ -331,23 +354,36 @@ def test_la_cle_ne_peut_pas_etre_choisie_par_le_client(
             ),
         )
 
-    # LE BLOCAGE SE LEVE. On attend la fenetre, pas l'expiration : la cadence
-    # retombe sous le seuil des que la fenetre a passe, meme si l'entree vit
-    # encore.
-    time.sleep(int(recette["fenetre"]) + 3)
-    revenu = _rafale(poste, ip_edge, 2)
+    # LE BLOCAGE SE LEVE. On attend la fenetre, pas l'expiration : l'entree
+    # vit encore quand la cadence est redescendue.
+    #
+    # L'attente est ACTIVE et bornee a deux fenetres, et non fixee a la
+    # fenetre plus trois secondes. `http_req_rate` est une moyenne glissante
+    # que HAProxy fait decroitre, pas un compteur remis a zero a l'echeance :
+    # mesure du 2026-10-26, une des deux requetes de controle etait encore
+    # refusee treize secondes apres un depassement sur une fenetre de dix. Le
+    # test accusait alors un blocage qui ne se leve pas, alors qu'il se levait
+    # une seconde plus tard.
+    delai = int(recette["fenetre"]) * 2 + 5
+    limite = time.monotonic() + delai
+    revenu: dict[str, int] = {}
+    while time.monotonic() < limite:
+        revenu = _rafale(poste, ip_edge, 2)
+        if revenu.get("200", 0) == 2:
+            break
+        time.sleep(2)
     assert revenu.get("200", 0) == 2, message(
         en=(
-            f"{int(recette['fenetre']) + 3}s after the overrun, the source is "
-            f"still refused ({revenu}). A block that does not lift is a ban, not "
-            "a rate limit: an address banned by mistake is reopened by hand, "
-            "which means never."
+            f"{delai}s after the overrun, the source is still refused "
+            f"({revenu}). A block that does not lift is a ban, not a rate "
+            "limit: an address banned by mistake is reopened by hand, which "
+            "means never."
         ),
         fr=(
-            f"{int(recette['fenetre']) + 3} s après le dépassement, la source est "
-            f"encore refusée ({revenu}). Un blocage qui ne se lève pas est un "
-            "bannissement, pas une limite de cadence : une adresse bannie par "
-            "erreur se rouvre à la main, donc jamais."
+            f"{delai} s après le dépassement, la source est encore refusée "
+            f"({revenu}). Un blocage qui ne se lève pas est un bannissement, "
+            "pas une limite de cadence : une adresse bannie par erreur se "
+            "rouvre à la main, donc jamais."
         ),
     )
 
@@ -381,15 +417,25 @@ def test_les_bornes_de_memoire_sont_celles_annoncees(
             "le proxy consomme."
         ),
     )
-    assert "type:ip" in entete.replace(" ", ""), message(
+    # `ip` OU `ipv4`, et les deux sont acceptes a dessein. Le manuel 3.4
+    # (section 11.1) ecrit : « In 3.2, "ip" is an alias for "ipv4", and
+    # "ipv4" is preferred. In a future version, "ip" will instead correspond
+    # to "ipv6" ». Un lab qui n'accepterait que `ip` apprendrait donc une
+    # forme dont le SENS va changer, et qui comptera alors des adresses que
+    # ce reseau ne porte pas. On accepte les deux et on prefere `ipv4`.
+    type_lu = entete.replace(" ", "")
+    assert "type:ipv4" in type_lu or "type:ip," in type_lu + ",", message(
         en=(
-            f"The table is not of type ip: {entete!r}. The recipe asks for the "
-            "client's address to be counted, and the type is what makes that "
-            "possible."
+            f"The table is not keyed on an IPv4 address: {entete!r}. The recipe "
+            "asks for the client's address to be counted, and the type is what "
+            "makes that possible. Prefer `type ipv4`: `type ip` is an alias "
+            "whose meaning is announced to change to IPv6."
         ),
         fr=(
-            f"La table n'est pas de type ip : {entete!r}. La recette demande de "
-            "compter l'adresse du client, et c'est le type qui le permet."
+            f"La table n'est pas clavée sur une adresse IPv4 : {entete!r}. La "
+            "recette demande de compter l'adresse du client, et c'est le type "
+            "qui le permet. Préférez `type ipv4` : `type ip` est un alias dont "
+            "le sens est annoncé comme devant devenir IPv6."
         ),
     )
 
@@ -403,16 +449,24 @@ def test_les_bornes_de_memoire_sont_celles_annoncees(
     assert _attendre_absence(edge, recette, ip_poste, expiration + 15), message(
         en=(
             f"The entry for {ip_poste} is still in the table more than "
-            f"{expiration}s after its last request. `expire` is what frees the "
-            "memory: without it, or with it too long, a table bounded in size "
-            "fills up and stops tracking anything new."
+            f"{expiration}s after its last request. `expire` is what frees "
+            "the memory. Without it, or with it too long, a table bounded in "
+            "size fills up and HAProxy then flushes a few of the OLDEST "
+            "entries to make room (manual 3.4, section 11.1): the counters of "
+            "sources that are still active are lost, silently, and the limit "
+            "stops applying to them. With `nopurge` it refuses the new entries "
+            "instead, which is the opposite trade-off."
         ),
         fr=(
             f"L'entrée de {ip_poste} est encore dans la table plus de "
-            f"{expiration} s après sa dernière requête. `expire` est ce qui libère "
-            "la mémoire : sans lui, ou avec une valeur trop longue, une table "
-            "bornée en taille se remplit et cesse de suivre quoi que ce soit de "
-            "nouveau."
+            f"{expiration} s après sa dernière requête. `expire` est ce qui "
+            "libère la mémoire. Sans lui, ou avec une valeur trop longue, une "
+            "table bornée en taille se remplit, et HAProxy évince alors "
+            "quelques-unes des entrées LES PLUS ANCIENNES pour faire de la "
+            "place (manuel 3.4, section 11.1) : les compteurs de sources "
+            "encore actives sont perdus, en silence, et la limite cesse de "
+            "s'appliquer à elles. Avec `nopurge`, il refuse au contraire les "
+            "nouvelles entrées, ce qui est l'arbitrage inverse."
         ),
     )
 

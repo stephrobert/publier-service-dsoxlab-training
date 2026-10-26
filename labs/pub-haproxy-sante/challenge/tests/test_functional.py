@@ -128,6 +128,22 @@ def _entier(enregistrement: dict[str, str], colonne: str) -> int:
     return int(valeur) if valeur.isdigit() else 0
 
 
+def _statut(enregistrement: dict[str, str]) -> str:
+    """L'etat d'un serveur, SANS son compteur de transition.
+
+    `show stat` ne rend pas « UP » mais « UP 4/5 » pendant qu'une sonde
+    remonte, et « DOWN 1/3 » pendant qu'elle descend : le suffixe est le
+    nombre de controles deja obtenus sur ceux qu'il faut. Mesure du
+    2026-10-26 : comparer la colonne entiere a « UP » fait lire une montee
+    en cours comme un retrait, puisque « UP 4/5 » n'est pas « UP ». Le test
+    concluait alors qu'un serveur etait sorti alors qu'il rentrait, et
+    s'etonnait ensuite que `chkdown` n'ait pas bouge.
+
+    On ne garde donc que l'etat, qui est le premier mot.
+    """
+    return enregistrement.get("status", "").split()[0] if enregistrement.get("status") else ""
+
+
 def _etat_backend(edge, recette, nom: str, valeur: str) -> None:
     chemin = recette["etats"][nom]
     edge.run(f"echo {valeur} | sudo tee {chemin} >/dev/null")
@@ -174,7 +190,7 @@ def test_la_sonde_est_de_niveau_sept_et_les_poids_sont_ceux_de_la_recette(
 
     for nom, poids in recette["poids"].items():
         enregistrement = serveurs[nom]
-        assert enregistrement.get("status") == "UP", message(
+        assert _statut(enregistrement) == "UP", message(
             en=(
                 f"Server {nom} is {enregistrement.get('status')!r}, expected UP "
                 "before anything is measured."
@@ -256,7 +272,7 @@ def test_un_backend_non_pret_est_retire_dans_la_fenetre(
     _etat_backend(edge, recette, "beta", "casse")
     try:
         retire = _attendre(
-            lambda: _table(edge, recette)["beta"].get("status") not in ("UP",),
+            lambda: _statut(_table(edge, recette)["beta"]) != "UP",
             fenetre,
         )
         apres = _table(edge, recette)["beta"]
@@ -318,7 +334,7 @@ def test_un_backend_non_pret_est_retire_dans_la_fenetre(
 
     retour = recette["rise"] * recette["inter"] + 12
     revenu = _attendre(
-        lambda: _table(edge, recette)["beta"].get("status") == "UP", retour
+        lambda: _statut(_table(edge, recette)["beta"]) == "UP", retour
     )
     assert revenu, message(
         en=(
@@ -349,7 +365,7 @@ def test_une_panne_plus_courte_que_le_seuil_ne_retire_rien(
     et aucune descente ne doit avoir eu lieu.
     """
     avant = _table(edge, recette)["beta"]
-    assert avant.get("status") == "UP", message(
+    assert _statut(avant) == "UP", message(
         en=f"Server beta is {avant.get('status')!r}: nothing to measure.",
         fr=f"Le serveur beta est {avant.get('status')!r} : rien à mesurer.",
     )
@@ -398,7 +414,7 @@ def test_une_panne_plus_courte_que_le_seuil_ne_retire_rien(
             "réglée trop court transforme chaque hoquet en bascule."
         ),
     )
-    assert apres.get("status") == "UP", message(
+    assert _statut(apres) == "UP", message(
         en=f"Server beta is {apres.get('status')!r} after a dip it survived.",
         fr=f"Le serveur beta est {apres.get('status')!r} après une baisse qu'il a passée.",
     )
@@ -417,6 +433,50 @@ def test_le_drainage_arrete_les_nouvelles_affectations_sans_couper_l_etabli(
     connexion ne peut aller que chez beta. C'est déterministe, et ça utilise
     précisément ce que le contrôle mesure.
     """
+    # CE TEST DOIT DEPENDRE DU TRAVAIL, et il n'en dependait pas.
+    #
+    # Drainer par le socket est une capacite NATIVE de HAProxy : elle marche
+    # sans qu'aucune sonde soit configuree, donc sans que l'apprenant ait rien
+    # fait. Mesure du 2026-10-26 : ce test passait sur l'etat de depart, et
+    # seul un defaut de son propre nettoyage (un `pkill -f` qui tuait sa
+    # session) le faisait echouer. Corriger le nettoyage a revele le faux
+    # positif, et le lab s'est mis a donner 25 points a vide.
+    #
+    # Ce qui est demande par la recette, ce sont les SONDES et les POIDS. On
+    # l'exige donc avant de mesurer le drainage : sans eux, la demonstration
+    # qui suit ne porterait sur rien.
+    depart = _table(edge, recette)
+    for nom, poids_attendu in recette["poids"].items():
+        enregistrement = depart.get(nom, {})
+        assert enregistrement.get("check_status") == "L7OK", message(
+            en=(
+                f"Server {nom} reports check_status "
+                f"{enregistrement.get('check_status')!r} instead of L7OK. "
+                "Draining is measured on a backend whose probes work: without "
+                "them, what follows would prove nothing about your work."
+            ),
+            fr=(
+                f"Le serveur {nom} rapporte check_status "
+                f"{enregistrement.get('check_status')!r} au lieu de L7OK. Le "
+                "drainage se mesure sur un backend dont les sondes "
+                "fonctionnent : sans elles, ce qui suit ne prouverait rien de "
+                "votre travail."
+            ),
+        )
+        assert enregistrement.get("weight") == str(poids_attendu), message(
+            en=(
+                f"Server {nom} carries weight {enregistrement.get('weight')!r}, "
+                f"the recipe declares {poids_attendu}. This test relies on "
+                "those weights to make the flow land where it must."
+            ),
+            fr=(
+                f"Le serveur {nom} porte le poids "
+                f"{enregistrement.get('weight')!r}, la recette déclare "
+                f"{poids_attendu}. Ce test s'appuie sur ces poids pour que le "
+                "flux atterrisse où il doit."
+            ),
+        )
+
     _piloter(edge, recette, f"set server {recette['backend']}/alpha state drain")
     try:
         poste.run("rm -f /tmp/flux-sante.txt")
@@ -442,7 +502,7 @@ def test_le_drainage_arrete_les_nouvelles_affectations_sans_couper_l_etabli(
     finally:
         _piloter(edge, recette, f"set server {recette['backend']}/alpha state ready")
 
-    _attendre(lambda: _table(edge, recette)["alpha"].get("status") == "UP", 15)
+    _attendre(lambda: _statut(_table(edge, recette)["alpha"]) == "UP", 15)
 
     lignes_avant = int(
         poste.run("wc -l < /tmp/flux-sante.txt").stdout.strip() or 0
@@ -450,7 +510,7 @@ def test_le_drainage_arrete_les_nouvelles_affectations_sans_couper_l_etabli(
     _piloter(edge, recette, f"set server {recette['backend']}/beta state drain")
     try:
         etat = _attendre(
-            lambda: "DRAIN" in _table(edge, recette)["beta"].get("status", ""),
+            lambda: _statut(_table(edge, recette)["beta"]) == "DRAIN",
             15,
         )
         assert etat, message(
@@ -512,4 +572,12 @@ def test_le_drainage_arrete_les_nouvelles_affectations_sans_couper_l_etabli(
         )
     finally:
         _piloter(edge, recette, f"set server {recette['backend']}/beta state ready")
-        poste.run("pkill -f flux-long || true")
+        # `[f]lux-long` et non `flux-long` : `pkill -f` compare le motif a la
+        # LIGNE DE COMMANDE COMPLETE de chaque processus, y compris celle du
+        # shell qui porte le pkill. Ecrit en clair, le motif se trouve
+        # lui-meme, tue son propre parent, et la session SSH meurt avec lui :
+        # testinfra remonte alors un code 255 et leve, si bien que le
+        # NETTOYAGE du test le faisait echouer. Mesure du 2026-10-26. Les
+        # crochets ne changent rien a ce que l'expression reconnait, mais la
+        # ligne du pkill ne correspond plus a son propre motif.
+        poste.run("pkill -f '[f]lux-long' || true")

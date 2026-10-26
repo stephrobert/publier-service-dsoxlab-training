@@ -298,6 +298,31 @@ def test_le_retrait_change_reellement_l_affectation(
 
 def test_la_decision_survit_a_un_rechargement(edge, poste, recette, ip_edge) -> None:
     """HAProxy doit s'en souvenir, parce que c'est lui qui affecte."""
+    # L'ETAT DE DEPART DOIT ETRE EN SERVICE.
+    #
+    # Sans ce controle, le test peut reussir SANS RIEN PROUVER : il suffit
+    # qu'un fichier d'etat laisse par un passage precedent porte deja ce
+    # serveur en DRAIN, et qu'il soit charge au demarrage. On retire alors un
+    # serveur deja retire, le rechargement le retrouve retire, et le test
+    # conclut au vert sur une decision qu'il n'a pas vue prendre. Signale le
+    # 2026-10-26 par un audit independant, et c'est le meme defaut que celui
+    # qu'on corrige partout ailleurs : un controle qui conclut sans avoir
+    # regarde.
+    depart = _etat(edge, recette, recette["serveur_b"])
+    assert "DRAIN" not in depart and "MAINT" not in depart, message(
+        en=(
+            f"Before anything is done, {recette['serveur_b']} is already "
+            f"{depart!r}. A state file from an earlier run is being loaded, so "
+            "this test would pass without ever measuring a decision. Run "
+            "`dsoxlab clean` then `dsoxlab run` to start from a known state."
+        ),
+        fr=(
+            f"Avant tout geste, {recette['serveur_b']} est déjà {depart!r}. Un "
+            "fichier d'état laissé par un passage précédent est donc chargé, et "
+            "ce test réussirait sans jamais mesurer de décision. Repartez d'un "
+            "état connu avec `dsoxlab clean` puis `dsoxlab run`."
+        ),
+    )
     _comme(
         edge,
         recette["identite_admin"],

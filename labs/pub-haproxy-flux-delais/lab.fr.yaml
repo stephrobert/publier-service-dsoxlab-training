@@ -1,7 +1,7 @@
 ---
 title: "Borner temps, files et flux longs"
 description: |
-  Donner a chaque phase lente sa propre borne pour que le temps ecoule dise
-  laquelle on regarde, tenir SSE et WebSocket a travers les silences de
+  Donner à chaque phase lente sa propre borne pour que le temps écoulé dise
+  laquelle on regarde, tenir SSE et WebSocket à travers les silences de
   l'application, choisir une politique de session et en dire les limites, et
-  empecher qu'une reponse perdue soit ecrite deux fois.
+  empêcher qu'une réponse perdue soit écrite deux fois.

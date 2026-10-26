@@ -31,6 +31,24 @@ install -d -m 0750 -o student -g docker "$WORK/acme"
 install -m 0644 -o student -g docker \
     "$PARTAGE/pebble-root.pem" "$WORK/acme/pebble-root.pem"
 
+# DEUX AUTORITES, ET ELLES NE SERVENT PAS A LA MEME CHOSE.
+#
+# L'autorite de test en porte deux, et les confondre coute une session :
+#
+#   pebble.minica.pem  signe le certificat de son API HTTPS. C'est elle qu'un
+#                      client doit approuver pour PARLER a l'autorite ;
+#   pebble-root.pem    (son /roots/0) est la racine des certificats qu'elle
+#                      EMET. C'est elle qu'on approuve pour verifier le
+#                      certificat du service, une fois obtenu.
+#
+# Mesure du 2026-10-26 : le client ACME recevait la seconde pour joindre
+# l'API, et echouait sur « unable to communicate with the API server », ce
+# qui se lit comme une panne de reseau alors que c'est un refus de confiance.
+install -m 0644 -o student -g docker \
+    "$PARTAGE/pebble.minica.pem" "$WORK/acme/pebble.minica.pem"
+install -m 0644 -o student -g docker \
+    "$PARTAGE/pebble.minica.pem" "$WORK/pebble.minica.pem"
+
 # ---------------------------------------------------------------------------
 # Le client ACME fourni. L'image est epinglee par le catalogue ; l'enveloppe
 # existe pour que l'apprenant ecrive `lego ... run` et non quinze arguments
@@ -46,16 +64,34 @@ cat > "$WORK/lego" <<WRAPPER
 # Client ACME externe, dans l'image epinglee du catalogue.
 #
 # Exemple d'appel :
-#   sudo $WORK/lego --server https://pub-renewal-pebble:14000/dir \\
+#   sudo $WORK/lego run --server https://pebble:14000/dir \\
 #       --email ops@pub.lab.test --accept-tos \\
-#       --http --http.port :5002 -d alpha.pub.lab.test run
+#       --http --http.address :5002 -d alpha.pub.lab.test
+#
+# \`pebble\` et non \`pub-renewal-pebble\` : le certificat de l'API porte
+# \`localhost\`, \`pebble\` et 127.0.0.1 en noms alternatifs, pas le nom du
+# conteneur. Appelee par ce dernier, l'autorite est joignable mais son
+# identite ne se verifie pas, et le client parle d'un serveur injoignable.
+# \`pebble\` est l'alias que le reseau porte pour ce service.
+#
+# La COMMANDE d'abord, ses options ensuite : en lego 5, \`--server\`,
+# \`--email\`, \`--http\` et les autres appartiennent a \`run\` et non au
+# programme. Ecrites avant, le client refuse d'un « flag provided but not
+# defined » et ne contacte jamais l'autorite.
 set -euo pipefail
+# \`LEGO_PATH\` et non \`--path\` : en lego 5, \`--path\` n'est plus une option
+# GLOBALE mais une option de la commande \`run\`. Place avant la commande,
+# comme le faisait ce wrapper, elle fait sortir le client en « flag provided
+# but not defined: -path » sans qu'aucun certificat soit demande. La variable
+# d'environnement, elle, vaut quelle que soit la position des arguments, donc
+# elle ne depend pas de ce que l'apprenant ecrit apres.
 exec docker run --rm \\
     --network acme-renewal \\
     -p 127.0.0.1:5002:5002 \\
     -v $WORK/acme:/data \\
-    -e LEGO_CA_CERTIFICATES=/data/pebble-root.pem \\
-    ${IMG_LEGO} --path /data "\$@"
+    -e LEGO_CA_CERTIFICATES=/data/pebble.minica.pem \\
+    -e LEGO_PATH=/data \\
+    ${IMG_LEGO} "\$@"
 WRAPPER
 chmod 0755 "$WORK/lego"
 chown root:root "$WORK/lego"
@@ -212,9 +248,19 @@ nom_b = beta.pub.lab.test
 pem_a = /etc/haproxy/certs/alpha.pub.lab.test.pem
 pem_b = /etc/haproxy/certs/beta.pub.lab.test.pem
 
-# L'AUTORITE DE TEST, son annuaire, et la racine qui l'authentifie.
+# L'AUTORITE DE TEST, son annuaire, et SES DEUX RACINES, qui ne servent pas
+# a la meme chose :
+#
+#   racine_api    authentifie l'API de l'autorite. C'est celle qu'un client
+#                 approuve pour LUI PARLER ;
+#   racine_acme   est la racine des certificats qu'elle EMET. C'est celle
+#                 qu'on approuve pour verifier le certificat du service.
+#
+# L'annuaire s'appelle par `pebble` : le certificat de l'API porte ce nom et
+# `localhost`, pas le nom du conteneur.
 
-annuaire = https://pub-renewal-pebble:14000/dir
+annuaire = https://pebble:14000/dir
+racine_api = ${WORK}/pebble.minica.pem
 racine_acme = ${WORK}/pebble-root.pem
 
 # LE CLIENT ACME FOURNI, et le port sur lequel son serveur de defi ecoute.

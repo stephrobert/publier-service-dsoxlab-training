@@ -27,9 +27,17 @@ install -d -m 0755 -o student -g student "$PKI"
 # ---------------------------------------------------------------------------
 creer_ca() {
     local nom="$1" sujet="$2"
+    # `keyUsage` EXPLICITE. `openssl req -x509` pose bien basicConstraints,
+    # mais aucune extension d'usage de cle, et la verification stricte la
+    # reclame desormais : mesure du 2026-10-26 sur Debian 13, un client
+    # Python 3.13 refuse l'autorite avec « CA cert does not include key
+    # usage extension » et le proxy semble alors coupable d'un defaut qui
+    # vient de l'autorite du lab. On la declare donc, comme une vraie AC.
     openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
         -keyout "$PKI/${nom}.key" -out "$PKI/${nom}.crt" \
-        -subj "/CN=${sujet}" 2>/dev/null
+        -subj "/CN=${sujet}" \
+        -addext "basicConstraints=critical,CA:TRUE" \
+        -addext "keyUsage=critical,keyCertSign,cRLSign" 2>/dev/null
 }
 
 signer() {
@@ -124,10 +132,48 @@ class Service(BaseHTTPRequestHandler):
         return
 
 
+class Serveur(ThreadingHTTPServer):
+    """Un serveur TLS qui ne fait pas son handshake dans l'accept().
+
+    Mesure du 2026-10-26 : enveloppe sur le socket d'ECOUTE, le handshake a
+    lieu dans accept(), donc dans le thread d'accueil. Les connexions
+    suivantes s'empilent dans le backlog, qui vaut 5 par defaut dans
+    socketserver, puis le noyau les REFUSE. HAProxy, qui sonde ce service
+    chaque seconde et y envoie du trafic, voyait le serveur UP par sa sonde
+    et recevait `SC--` sur tout le trafic : « the server explicitly refused
+    it » pendant que « the proxy was waiting for the CONNECTION to establish »
+    (manuel 3.4, section 8.5). Le 503 accusait alors le routage ou la PKI.
+
+    On accepte en clair, ce qui est immediat, et le handshake se joue dans le
+    thread de traitement.
+    """
+
+    daemon_threads = True
+    request_queue_size = 128
+    contexte = None
+
+    def process_request_thread(self, request, client_address):
+        if self.contexte is not None:
+            try:
+                request = self.contexte.wrap_socket(request, server_side=True)
+            except OSError as erreur:
+                # Un handshake refuse est le cas NORMAL de ce lab : il fait
+                # exprès presenter de mauvaises identites. Il ne doit pas
+                # emporter le service. Mais il se DIT : un refus muet se
+                # presente au proxy comme un serveur qui refuse la connexion,
+                # et le 503 qui en resulte accuse alors le routage.
+                print(f"handshake refuse pour {client_address}: "
+                      f"{type(erreur).__name__}: {erreur}",
+                      file=sys.stderr, flush=True)
+                self.shutdown_request(request)
+                return
+        super().process_request_thread(request, client_address)
+
+
 contexte = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 contexte.load_cert_chain(CERT, CLE)
-serveur = ThreadingHTTPServer(("127.0.0.1", PORT), Service)
-serveur.socket = contexte.wrap_socket(serveur.socket, server_side=True)
+serveur = Serveur(("127.0.0.1", PORT), Service)
+serveur.contexte = contexte
 serveur.serve_forever()
 PY
 chmod 0644 "$WORK/service.py"

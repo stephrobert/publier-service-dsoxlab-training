@@ -48,7 +48,14 @@ class Service(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(f"flux ouvert par {VERSION}\n".encode())
             self.wfile.flush()
-            for numero in range(90):
+            # 45 secondes, et non 90. `dsoxlab check` borne pytest a 300 s
+            # pour TOUTE la suite, et ce lab redemarre en plus la machine :
+            # mesure du 2026-10-26, la suite depassait et le verdict sortait
+            # en SKIP sans que rien soit mesure. Quarante-cinq secondes
+            # couvrent largement une bascule, qui est ce que le flux doit
+            # traverser : ce qu'il prouve ne depend pas de sa duree, mais du
+            # fait qu'il soit ETABLI AVANT la bascule et VIVANT APRES.
+            for numero in range(45):
                 time.sleep(1)
                 try:
                     self.wfile.write(f"ligne {numero} {VERSION}\n".encode())

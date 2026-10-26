@@ -1,6 +1,6 @@
 ---
-title: "Verifier l'identite du backend et de la source"
+title: "Vérifier l'identité du backend et de la source"
 description: |
-  Activer la verification TLS du backend, distinguer une identite cliente
-  valide d'une absence et d'une autre autorite, et empecher un client de
-  choisir son adresse par en-tete ou par protocole PROXY.
+  Activer la vérification TLS du backend, distinguer une identité cliente
+  valide d'une absence et d'une autre autorité, et empêcher un client de
+  choisir son adresse par en-tête ou par protocole PROXY.

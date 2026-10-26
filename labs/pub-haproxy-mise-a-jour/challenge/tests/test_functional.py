@@ -140,7 +140,7 @@ def _bascule(edge, poste, ip_edge, manifeste, commande: str, attendue: str) -> N
     )
     generation_du_flux = lignes_avant[0]
 
-    poste.run(f"nohup sonde-courte {ip_edge} {sonde} 120 >/dev/null 2>&1 &")
+    poste.run(f"nohup sonde-courte {ip_edge} {sonde} 60 >/dev/null 2>&1 &")
     time.sleep(2)
 
     maitre_avant = _maitre(edge)
@@ -205,7 +205,7 @@ def _bascule(edge, poste, ip_edge, manifeste, commande: str, attendue: str) -> N
         ),
     )
 
-    assert _attendre_fin(poste, flux, 150), message(
+    assert _attendre_fin(poste, flux, 90), message(
         en=(
             "The long flow opened before the switch never reached its end. A "
             "reload keeps old workers alive to finish the connections they "

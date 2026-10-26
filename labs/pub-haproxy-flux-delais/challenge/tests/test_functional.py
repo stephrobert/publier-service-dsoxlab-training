@@ -26,6 +26,7 @@ combien de fois le travail a eu lieu.
 from __future__ import annotations
 
 import time
+import unicodedata
 
 import pytest
 
@@ -180,7 +181,13 @@ def test_chaque_phase_lente_a_sa_propre_borne(poste, recette, ip_edge) -> None:
         )
         file_attente = duree
     finally:
-        poste.run("pkill -f 'injection/file' || true")
+        # `[i]njection` et non `injection` : `pkill -f` compare le motif a la
+        # ligne de commande complete, celle du shell qui le porte comprise.
+        # Ecrit en clair, le motif se trouve lui-meme, tue son propre parent,
+        # et la session SSH meurt : testinfra leve alors un code 255 et c'est
+        # le NETTOYAGE qui fait echouer le test. Les crochets ne changent pas
+        # ce que l'expression reconnait.
+        poste.run("pkill -f '[i]njection/file' || true")
 
     duree, statut = _mesurer(
         poste,
@@ -414,10 +421,25 @@ def test_la_politique_de_session_tient_et_ses_limites_sont_dites(
             "configuration."
         ),
     )
-    minuscules = contenu.lower()
+    # LES ACCENTS SONT RETIRES AVANT DE CHERCHER, et on cherche des
+    # RACINES. Mesure du 2026-10-26 : un dossier qui disait « coller n'est
+    # pas repliquer » et « toute mise a jour tournante deconnecte les
+    # sessions en cours » etait refuse, parce que le motif « replic » ne se
+    # trouve pas dans « repliquer » ecrit avec son accent, ni « perdue »
+    # dans « se perd ». Un controle de texte libre qui exige des formes
+    # flechies exactes rejette un texte juste, et pousse a ecrire pour le
+    # test plutot que pour le lecteur.
+    minuscules = unicodedata.normalize("NFD", contenu.lower())
+    minuscules = "".join(c for c in minuscules if not unicodedata.combining(c))
     assert any(
         motif in minuscules
-        for motif in ("replic", "perdue", "perte", "retrait", "maintenance")
+        # Des motifs qui designent LE SUJET, et non n'importe quel
+        # emploi du verbe retirer : « le cookie est retire avant
+        # transmission » ne dit rien de ce qui arrive a une session quand
+        # son instance s'en va.
+        for motif in ("replic", "quitte le service", "hors service",
+                      "maintenance", "session perdue", "sessions perdues",
+                      "perte de session", "mise a jour tournante")
     ), message(
         en=(
             f"{recette['dossier']} does not say what happens to a session when "

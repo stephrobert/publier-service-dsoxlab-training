@@ -14,8 +14,16 @@ find "$WORK" -mindepth 1 -delete
 install -d -m 0755 -o student -g student "$PKI"
 
 creer_ca() {
+    # `keyUsage` EXPLICITE. Mesure du 2026-10-26 : une autorite fabriquee
+    # sans cette extension passe `openssl verify`, mais echoue des que la
+    # verification est STRICTE, ce qu'exige un `verify required` cote
+    # HAProxy. Le serveur du backend reste alors DOWN et le proxy rend 503,
+    # un symptome qui accuse le routage alors que la faute est dans la PKI
+    # du lab.
     openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
-        -keyout "$PKI/$1.key" -out "$PKI/$1.crt" -subj "/CN=$2" 2>/dev/null
+        -keyout "$PKI/$1.key" -out "$PKI/$1.crt" -subj "/CN=$2" \
+        -addext "basicConstraints=critical,CA:TRUE" \
+        -addext "keyUsage=critical,keyCertSign,cRLSign" 2>/dev/null
 }
 signer() {
     local ca="$1" nom="$2" cn="$3"
@@ -92,11 +100,62 @@ class Service(BaseHTTPRequestHandler):
         return
 
 
-serveur = ThreadingHTTPServer(("127.0.0.1", PORT), Service)
+class Serveur(ThreadingHTTPServer):
+    """Un serveur TLS qui ne fait pas son handshake dans l'accept().
+
+    POURQUOI, mesure du 2026-10-26.
+
+    Ce service etait monte en enveloppant le socket d'ECOUTE :
+
+        serveur.socket = contexte.wrap_socket(serveur.socket, server_side=True)
+
+    C'est l'exemple de la documentation Python, et il est juste pour un
+    serveur qui traite une connexion a la fois. Avec ThreadingHTTPServer il
+    annule le benefice des threads : le handshake a lieu dans accept(), donc
+    dans le thread d'accueil, et une connexion dont le handshake n'avance pas
+    bloque l'acceptation de toutes les autres. Celles-ci s'empilent dans le
+    backlog, qui vaut 5 par defaut dans socketserver, puis le noyau les
+    REFUSE.
+
+    Vu de HAProxy, qui sonde ce service chaque seconde ET y envoie du trafic :
+    `SC--` avec `retries=3`, que le manuel 3.4 traduit par « the server
+    explicitly refused it » pendant que « the proxy was waiting for the
+    CONNECTION to establish ». Le serveur etait UP pour la sonde et refusait
+    tout le trafic, et le 503 accusait le routage.
+
+    On accepte donc en clair, ce qui est immediat, et le handshake se joue
+    dans le thread de traitement. Le backlog est elargi par surcroit : il
+    n'est plus la cause, mais une file de 5 reste etroite pour un service
+    sonde a la seconde.
+    """
+
+    daemon_threads = True
+    request_queue_size = 128
+    contexte = None
+
+    def process_request_thread(self, request, client_address):
+        if self.contexte is not None:
+            try:
+                request = self.contexte.wrap_socket(request, server_side=True)
+            except OSError as erreur:
+                # Un handshake qui echoue ne doit pas tuer le service : c'est
+                # le cas normal quand un client se presente avec la mauvaise
+                # autorite, ce que ce lab fait exprès. Mais il se DIT : un
+                # refus muet se presente au proxy comme un serveur qui refuse
+                # la connexion, et le 503 accuse alors le routage.
+                print(f"handshake refuse pour {client_address}: "
+                      f"{type(erreur).__name__}: {erreur}",
+                      file=sys.stderr, flush=True)
+                self.shutdown_request(request)
+                return
+        super().process_request_thread(request, client_address)
+
+
+serveur = Serveur(("127.0.0.1", PORT), Service)
 if CERT:
     contexte = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     contexte.load_cert_chain(CERT, CLE)
-    serveur.socket = contexte.wrap_socket(serveur.socket, server_side=True)
+    serveur.contexte = contexte
 serveur.serve_forever()
 PY
 chmod 0644 "$WORK/service.py"
@@ -203,12 +262,12 @@ backend applicatif
 backend api
     option httpchk GET /ready
     http-check expect status 200
-    server api api-interne.lab:18201 check inter 1s fall 3 rise 2 ssl verify required ca-file ${PKI}/ca-backend.crt verifyhost api-interne.lab
+    server api api-interne.lab:18201 check inter 1s fall 3 rise 2 ssl verify required ca-file ${PKI}/ca-backend.crt sni str(api-interne.lab) verifyhost api-interne.lab
 
 # LE CANARI DE LA CONFIANCE. Meme nom, autre autorite, meme marqueur : si la
 # verification est desactivee, sa reponse est indiscernable d'un succes.
 backend api_usurpe
-    server imposteur 127.0.0.1:18204 ssl verify required ca-file ${PKI}/ca-backend.crt verifyhost api-interne.lab
+    server imposteur 127.0.0.1:18204 ssl verify required ca-file ${PKI}/ca-backend.crt sni str(api-interne.lab) verifyhost api-interne.lab
 
 listen etat
     bind 127.0.0.1:8404

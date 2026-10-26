@@ -325,7 +325,7 @@ def test_les_cles_sont_protegees_et_absentes_des_sorties(edge, recette) -> None:
     """
     travail = "/opt/pub-haproxy-tls-stable"
     porteurs = edge.run(
-        f"sudo grep -rl 'PRIVATE KEY' {travail} /etc/haproxy/certs 2>/dev/null"
+        f"sudo grep -rlE 'PRIVATE[ ]KEY' {travail} /etc/haproxy/certs 2>/dev/null"
     ).stdout.split()
     assert porteurs, message(
         en=(
@@ -359,7 +359,7 @@ def test_les_cles_sont_protegees_et_absentes_des_sorties(edge, recette) -> None:
         )
 
     sentinelles = edge.run(
-        "sudo grep -rl 'PRIVATE KEY' /var/log 2>/dev/null"
+        "sudo grep -rlE 'PRIVATE[ ]KEY' /var/log 2>/dev/null"
     ).stdout.split()
     assert not sentinelles, message(
         en=(
@@ -377,7 +377,7 @@ def test_les_cles_sont_protegees_et_absentes_des_sorties(edge, recette) -> None:
     )
 
     dans_le_journal = edge.run(
-        "sudo journalctl -b --no-pager 2>/dev/null | grep -c 'PRIVATE KEY'"
+        "sudo journalctl -b --no-pager 2>/dev/null | grep -cE 'PRIVATE[ ]KEY'"
     ).stdout.strip()
     assert dans_le_journal in ("", "0"), message(
         en=(
