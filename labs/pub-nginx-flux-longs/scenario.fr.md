@@ -11,7 +11,7 @@ Le banc est décrit dans `/opt/pub-nginx-flux-longs/transports.txt`.
 ## Mission
 
 Publiez les trois transports sans retarder les événements ni bloquer les
-échanges légitimes, et libérez les ressources quand un flux s'arrête.
+échanges légitimes, et faites survivre une conversation qui se tait.
 
 ## Ce que chaque transport exige, et qui diffère
 
@@ -28,6 +28,11 @@ Et il a besoin qu'un refus applicatif reste un refus applicatif : un
 `INVALID_ARGUMENT` qui parvient au client en `UNAVAILABLE` le fera
 réessayer indéfiniment une requête qui n'aboutira jamais.
 
+Les trois, enfin, ont besoin de **temps**. Le réglage de départ coupe toute
+route dont le backend n'a rien dit depuis dix secondes, ce qui est
+exactement ce que fait un flux long : il se tait. `proxy_read_timeout`
+compte le temps écoulé **entre deux lectures**, et non la durée du flux.
+
 ## Ce qui est vérifié
 
 - la poignée de main WebSocket aboutit **et** une trame envoyée revient. La
@@ -37,9 +42,11 @@ réessayer indéfiniment une requête qui n'aboutira jamais.
   le backend en émet six à une seconde d'intervalle ;
 - un appel gRPC aboutit, et la charge `erreur` revient comme refus
   applicatif, pas comme panne de transport ;
-- couper le backend sous un flux ouvert ne laisse pas de connexion
-  orpheline. Une par client finit par épuiser le proxy, et le symptôme
-  apparaît des semaines plus tard sous la forme « le site est lent ».
+- une conversation WebSocket qui se tait quinze secondes **survit**, et
+  reprend ensuite. C'est le silence qui coupe, pas la durée : un flux
+  bavard ne déclenche jamais ce délai, et le défaut ne se montre qu'en
+  production, sur la conversation qui n'avait rien à dire pendant une
+  minute.
 
 ## Indices
 

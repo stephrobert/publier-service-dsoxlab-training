@@ -13,7 +13,7 @@ skills:
   - hostname-verification
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/
+doc_url: https://www.stephane-robert.info/docs/reseaux/fondamentaux/tls-diagnostic/
 lab_type: lab
 estimated_time: "45m"
 runtime:

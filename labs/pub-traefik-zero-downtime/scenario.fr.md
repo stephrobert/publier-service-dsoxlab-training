@@ -18,10 +18,9 @@ servir deux points d'entrée indépendants.
 
 Lisez `/opt/pub-zds/README`, puis :
 
-- Construisez un vrai chemin progressif de `v1` vers `v2` (deux serveurs
-  pondérés d'un même service Traefik réparti, pas un service de type
-  `weighted` combinant deux sous-services séparés, qui ne redistribue pas
-  le trafic d'un sous-service malsain dans Traefik v3) et montrez le
+- Construisez un vrai chemin progressif de `v1` vers `v2` : **deux
+  serveurs pondérés d'un même service Traefik réparti**, et non un service
+  de type `weighted` combinant deux sous-services séparés. Montrez le
   trafic circuler par les deux versions pendant la transition, avec une
   part d'erreurs bornée.
 - Ajoutez une sonde de santé au répartiteur du service pour que, lorsque

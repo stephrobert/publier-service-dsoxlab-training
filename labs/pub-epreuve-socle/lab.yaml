@@ -15,7 +15,7 @@ skills:
   - disaster-recovery
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/publier-un-service/
+doc_url: https://www.stephane-robert.info/docs/services/web/epreuve-socle/
 lab_type: lab
 estimated_time: "90m"
 runtime:

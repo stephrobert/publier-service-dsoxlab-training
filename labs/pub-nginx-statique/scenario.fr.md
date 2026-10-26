@@ -44,8 +44,11 @@ marche.
 
 ## Indices
 
-- `include mime.types;` charge la table des types de la distribution. Sans
-  elle, `default_type` s'applique à tout.
+- `include mime.types;` charge une table des types dans le bloc où il est
+  posé. Regardez celle que la configuration fournie déclare : un `types {}`
+  **vide** dans un `server` remplace la table héritée du `http`, et tout
+  repart alors en `default_type`.
 - Un `try_files` limité à un `location` ne s'applique qu'à lui.
-- Les workers tournent sous `www-data` : la lecture se donne par la
-  propriété ou le groupe, jamais en ouvrant à tous.
+- Les workers tournent sous le compte `nginx`, celui que déclare le paquet
+  de l'éditeur : la lecture se donne par la propriété ou le groupe, jamais
+  en ouvrant à tous.

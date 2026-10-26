@@ -52,8 +52,16 @@ chmod 0640 "$PKI"/*.key
 chmod 0644 "$PKI"/*.crt "$PKI"/*.csr
 
 empreinte() {
+  # `sed 's/.*=//'` et non `'s/.*= //'` : openssl n'ecrit PAS d'espace apres
+  # le signe egal. Mesure du 2026-10-26, openssl 3 :
+  #   sha256 Fingerprint=87:D7:D1:63:...
+  # Avec le motif qui attendait un espace, la ligne sortait entiere, le
+  # manifeste portait donc « empreinte_sha256 sha256 Fingerprint=87:... »,
+  # soit trois champs la ou le lecteur en attend deux. Il n'y lisait aucune
+  # empreinte, et les quatre controles qui comparent au manifeste tombaient
+  # en erreur de fixture, avec un message qui accusait le manifeste.
   openssl x509 -in "$PKI/service-$1.crt" -noout -fingerprint -sha256 \
-    | sed 's/^.*= //'
+    | sed 's/^.*=//'
 }
 
 # --------------------------------------------------------------------------
@@ -206,7 +214,6 @@ server {
     }
 }
 CONF
-  /etc/nginx/conf.d/service.conf
 
 nginx -t
 systemctl enable --now nginx

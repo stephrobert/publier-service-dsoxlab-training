@@ -12,7 +12,7 @@ skills:
   - http
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/nginx/
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx-publier/
 lab_type: lab
 estimated_time: "30m"
 runtime:

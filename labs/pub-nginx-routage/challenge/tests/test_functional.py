@@ -125,14 +125,29 @@ def test_un_nom_inconnu_ne_sert_ni_l_application_ni_l_administration(
         en="An unknown host name is served the application.",
         fr="Un nom d'hôte inconnu reçoit l'application.",
     )
-    assert statut.strip().startswith(("40", "44", "50")), message(
+    # « 000 » EST UNE REPONSE VALABLE, et meme la plus stricte.
+    #
+    # Le `return 444` de nginx ferme la connexion SANS envoyer d'en-tete de
+    # reponse : le client ne recoit donc aucun code, et curl rapporte 000.
+    # Mesure du 2026-10-26 : le corrige posait ce 444, qui est la bonne
+    # pratique pour un server par defaut puisqu'il ne revele rien, et le
+    # test le refusait en exigeant un code qui ne peut pas arriver.
+    #
+    # Ce qu'on verifie reste entier : un nom inconnu ne doit servir NI
+    # l'application NI l'administration, et ne doit pas recevoir 200.
+    refus = statut.strip().startswith(("40", "44", "50")) or statut.strip() in ("000", "")
+    assert refus, message(
         en=(
             f"An unknown host name answered HTTP {statut.strip()!r}. It must be "
-            "refused, by a default server that serves nothing."
+            "refused, by a default server that serves nothing: either an error "
+            "code, or a closed connection (`return 444`, which curl reports as "
+            "000)."
         ),
         fr=(
             f"Un nom d'hôte inconnu a répondu HTTP {statut.strip()!r}. Il doit "
-            "être refusé, par un server par défaut qui ne sert rien."
+            "être refusé par un server par défaut qui ne sert rien : soit un "
+            "code d'erreur, soit une connexion fermée (`return 444`, que curl "
+            "rapporte en 000)."
         ),
     )
 

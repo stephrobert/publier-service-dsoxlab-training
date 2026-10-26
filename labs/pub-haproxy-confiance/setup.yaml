@@ -118,4 +118,3 @@
               print(b"".join(morceaux).decode("utf-8", "replace"))
           except (OSError, ssl.SSLError) as souci:
               print(f"erreur: {type(souci).__name__}: {souci}")
-

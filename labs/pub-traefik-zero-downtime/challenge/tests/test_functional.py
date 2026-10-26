@@ -93,11 +93,13 @@ def test_bascule_repartit_reellement_le_trafic_avec_erreurs_bornees(edge, ports)
     )
     assert repartition["v1"] >= 5 and repartition["v2"] >= 5, message(
         en=f"Traffic is not actually split between v1 and v2 ({repartition}). "
-        "The 'app' service must be a weighted service combining both "
-        "versions, not a single hard-coded backend.",
+        "The 'app' service must spread traffic across both versions, as "
+        "two weighted servers of a single load-balanced service, "
+        "not a single hard-coded backend.",
         fr=f"Le trafic n'est pas réellement réparti entre v1 et v2 "
-        f"({repartition}). Le service « app » doit être un service "
-        "pondéré combinant les deux versions, pas un backend unique "
+        f"({repartition}). Le service « app » doit répartir le trafic sur "
+        "les deux versions, sous la forme de deux serveurs pondérés d'un "
+        "même service réparti, pas un backend unique "
         "câblé en dur.",
     )
 
@@ -116,11 +118,12 @@ def test_rollback_retire_une_version_malsaine_et_la_restaure(edge, ports) -> Non
         assert malade is not None and malade["v2"] == 0 and malade["erreur"] == 0, message(
             en=f"Marking v2 unhealthy must remove it from rotation within a "
             f"few seconds, with no request failing in the meantime (observed: "
-            f"{malade}). Add a loadBalancer.healthCheck on each sub-service.",
+            f"{malade}). Add a loadBalancer.healthCheck to the service "
+            f"carrying both servers.",
             fr=f"Marquer v2 malsaine doit la retirer de la rotation en "
             f"quelques secondes, sans qu'aucune requête n'échoue entretemps "
-            f"(observé : {malade}). Ajoutez un loadBalancer.healthCheck sur "
-            "chaque sous-service.",
+            f"(observé : {malade}). Ajoutez un loadBalancer.healthCheck "
+            "au service qui porte les deux serveurs.",
         )
     finally:
         edge.run("docker exec pub-zds-app-v2 touch /app/healthy")

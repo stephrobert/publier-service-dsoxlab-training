@@ -232,14 +232,14 @@ Publier en HTTPS avec l'ACME natif de HAProxy et l'observer avec Prometheus.
 | `pub-haproxy-installation` | Installer HAProxy et distinguer ses modes HTTP et TCP | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
 | `pub-haproxy-routage` | Router avec des ACL et une map, sans route de fuite | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
 | `pub-haproxy-sante` | Sonder, retirer et drainer des backends | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-tls-stable` | Publier TLS avec un cycle de certificats eprouve | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-tls-acme/) |
-| `pub-haproxy-confiance` | Verifier l'identite du backend et de la source | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-stick-tables` | Limiter par une cle que vous maitrisez, et lire les compteurs | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
+| `pub-haproxy-tls-stable` | Publier TLS avec un cycle de certificats éprouvé | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-tls-acme/) |
+| `pub-haproxy-confiance` | Vérifier l'identité du backend et de la source | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
+| `pub-haproxy-stick-tables` | Limiter par une clé que vous maîtrisez, et lire les compteurs | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
 | `pub-haproxy-flux-delais` | Borner temps, files et flux longs | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-runtime` | Modifier l'etat runtime avec des droits limites | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
+| `pub-haproxy-runtime` | Modifier l'état runtime avec des droits limités | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
 | `pub-haproxy-depannage` | Diagnostiquer une panne HAProxy inconnue | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-mise-a-jour` | Recharger, mettre a jour et reprendre HAProxy | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-ha` | Prouver le domaine de panne de deux points d'entree | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
+| `pub-haproxy-mise-a-jour` | Recharger, mettre à jour et reprendre HAProxy | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
+| `pub-haproxy-ha` | Prouver le domaine de panne de deux points d'entrée | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
 
 ### Nginx : publier et protéger des services web
 

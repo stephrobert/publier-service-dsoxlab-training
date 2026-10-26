@@ -66,10 +66,35 @@ def _session_ws(conn: socket.socket) -> None:
     try:
         requete = conn.recv(4096).decode("utf-8", "replace")
         cle = ""
+        upgrade = ""
+        connexion = ""
         for ligne in requete.split("\r\n"):
-            if ligne.lower().startswith("sec-websocket-key:"):
+            bas = ligne.lower()
+            if bas.startswith("sec-websocket-key:"):
                 cle = ligne.split(":", 1)[1].strip()
-        if not cle:
+            elif bas.startswith("upgrade:"):
+                upgrade = ligne.split(":", 1)[1].strip().lower()
+            elif bas.startswith("connection:"):
+                connexion = ligne.split(":", 1)[1].strip().lower()
+
+        # LES TROIS EN-TETES, ET PAS SEULEMENT LA CLE. La RFC 6455 impose au
+        # serveur de refuser une poignee de main sans `Upgrade: websocket`
+        # ni `Connection: Upgrade`.
+        #
+        # Ce n'est pas du zele : `Upgrade` et `Connection` sont des en-tetes
+        # DE SAUT, qu'un proxy retire s'il ne les repose pas explicitement,
+        # alors que `Sec-WebSocket-Key` traverse sans rien demander. Un
+        # backend qui se contente de la cle accepte donc la poignee que le
+        # proxy MAL REGLE lui transmet, et le defaut que ce lab enseigne
+        # disparait. Mesure du 2026-10-26 : le controle WebSocket passait
+        # sur l'etat de depart, qui ne transmet pourtant ni l'un ni l'autre.
+        if not cle or upgrade != "websocket" or "upgrade" not in connexion:
+            conn.sendall(
+                b"HTTP/1.1 400 Bad Request\r\n"
+                b"Content-Type: text/plain\r\n"
+                b"Content-Length: 60\r\n\r\n"
+                b"poignee refusee : Upgrade et Connection n'ont pas ete recus\n"
+            )
             conn.close()
             return
         accepte = base64.b64encode(

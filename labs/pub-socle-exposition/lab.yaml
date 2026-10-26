@@ -12,7 +12,7 @@ skills:
   - flow-matrix
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/
+doc_url: https://www.stephane-robert.info/docs/services/web/exposition-ports-pare-feu/
 lab_type: lab
 estimated_time: "45m"
 runtime:

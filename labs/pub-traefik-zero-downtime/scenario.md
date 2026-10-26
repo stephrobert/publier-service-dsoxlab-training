@@ -17,12 +17,10 @@ points.
 
 Read `/opt/pub-zds/README`, then:
 
-- Build a real, gradual path from `v1` to `v2` (two weighted servers of
-  the same load-balanced Traefik service, not a `weighted`
-  *service* combining two separate sub-services, which does not
-  redistribute traffic away from an unhealthy sub-service in Traefik v3)
-  and show traffic moving through both versions during the
-  transition, with a bounded share of errors.
+- Build a real, gradual path from `v1` to `v2`: **two weighted servers
+  of the same load-balanced Traefik service**, not a `weighted` *service*
+  combining two separate sub-services. Show traffic moving through both
+  versions during the transition, with a bounded share of errors.
 - Add a load-balancer health check on the backend service so that, when
   `v2` is marked unhealthy (its `/app/healthy` marker removed, simulating
   a real failure), it is actually removed from rotation and traffic falls

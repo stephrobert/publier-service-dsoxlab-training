@@ -50,10 +50,30 @@ def _reponse(poste, ip: str, chemin: str) -> tuple[str, str, str]:
     Trois appels separes mesureraient trois requetes, donc potentiellement
     trois etats : ici le statut et le type viennent des en-tetes de la meme
     reponse que le corps.
+
+    LE FORMAT DE `-w` NE COMMENCE PAS PAR « @ », ET C'EST VITAL
+
+    `curl` traite un format `-w` qui commence par `@` comme un NOM DE
+    FICHIER d'ou lire ce format. Le format `'@@%{http_code}@@…'` qui etait
+    ecrit ici faisait donc chercher un fichier nomme
+    « @%{http_code}@%{content_type} », et curl sortait en 26 avec
+    « option -w: error encountered when reading a file », sans rien ecrire
+    sur sa sortie standard.
+
+    Consequence mesuree le 2026-10-26 : les quatre controles du lab lisaient
+    « HTTP 000 » sur toutes les requetes, alors que Nginx servait
+    parfaitement (verifie dans la meme minute depuis la machine ET depuis le
+    client, en 200). Trois tests echouaient donc pour une raison qui n'etait
+    pas la leur, et le quatrieme, celui des fichiers prives, PASSAIT : rien
+    ne sortait, donc rien ne fuyait.
+
+    Le format commence maintenant par un saut de ligne, ce que curl lit bien
+    comme un format. Le corps rendu porte ce saut de ligne en plus, ce dont
+    aucune comparaison de ce fichier ne depend.
     """
     sortie = poste.run(
         f"curl -s --max-time 10 -H 'Host: {NOM}' "
-        f"-w '@@%{{http_code}}@@%{{content_type}}' http://{ip}{chemin}"
+        f"-w '\\n@@%{{http_code}}@@%{{content_type}}' http://{ip}{chemin}"
     ).stdout
     morceaux = sortie.split("@@")
     corps = morceaux[0] if morceaux else ""
@@ -153,7 +173,28 @@ def test_les_fichiers_prives_et_les_traversees_sont_refuses(poste, ip_edge) -> N
     Un 200 qui rend index.html sur `/.env` n'est pas une fuite ; un 200 qui
     rend la cle en est une. Le statut seul ne les distingue pas, et c'est
     exactement le piege que le fallback tend ici.
+
+    IL COMMENCE PAR EXIGER QUE LE SITE SOIT SERVI, et c'est la correction du
+    2026-10-26 : un serveur qui ne repond plus ne laisse rien fuir, donc une
+    panne complete passait ce controle. Mesure du jour : sur un etat ou le
+    client recevait « HTTP 000 » sur toutes ses requetes, ce test etait le
+    seul vert des quatre. Un controle qu'une panne satisfait ne controle
+    rien.
     """
+    statut, _, corps = _reponse(poste, ip_edge, "/")
+    assert statut == "200" and "<div id=" in corps, message(
+        en=(
+            f"The site does not answer (HTTP {statut}): there is nothing to "
+            "refuse yet. A server that serves nothing leaks nothing, which is "
+            "not the same as refusing what is private."
+        ),
+        fr=(
+            f"Le site ne répond pas (HTTP {statut}) : il n'y a encore rien à "
+            "refuser. Un serveur qui ne sert rien ne laisse rien fuir, ce qui "
+            "n'est pas la même chose que refuser ce qui est privé."
+        ),
+    )
+
     fuites = []
     for chemin in ("/.env", "/deploiement.interne", "/../../etc/passwd",
                    "/..%2f..%2fetc%2fpasswd"):
@@ -196,15 +237,18 @@ def test_les_droits_permettent_aux_workers_de_lire_sans_ouvrir_a_tous(
         en=(
             "These files are readable by everyone on the machine:\n"
             f"{ouverts}\n"
-            "Nginx workers run as www-data: give them read access through "
-            "ownership or group, not by opening the files to all."
+            "Nginx workers run as the `nginx` account here, the one the "
+            "publisher's package declares with `user nginx;`: give them read "
+            "access through ownership or group, not by opening the files to "
+            "all."
         ),
         fr=(
             "Ces fichiers sont lisibles par tout le monde sur la machine :\n"
             f"{ouverts}\n"
-            "Les workers de Nginx tournent sous www-data : donnez-leur la "
-            "lecture par la propriété ou le groupe, pas en ouvrant les fichiers "
-            "à tous."
+            "Les workers de Nginx tournent ici sous le compte `nginx`, celui "
+            "que déclare le paquet de l'éditeur avec `user nginx;` : "
+            "donnez-leur la lecture par la propriété ou le groupe, pas en "
+            "ouvrant les fichiers à tous."
         ),
     )
 

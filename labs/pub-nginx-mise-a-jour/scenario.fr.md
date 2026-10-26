@@ -61,7 +61,9 @@ de rien.
   noterait en réalité la présence de mots-clés ;
 - **critique** : `revenir` ramène 1.4.2 **et** son certificat ;
 - **critique** : après un redémarrage de la machine, la recette passe sans
-  qu'on touche à rien.
+  qu'on touche à rien, et les deux exécutables sont **encore là**. Un
+  mécanisme de livraison écrit dans `/tmp`, `/run` ou `/dev/shm` passe une
+  fois et disparaît le lendemain.
 
 ## Indices
 

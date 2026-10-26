@@ -36,6 +36,7 @@ TTL=$(shuf -i 900-3600 -n 1)
 for v in v1 v2; do
   a4=$V1_4; a6=$V1_6
   if [ "$v" = v2 ]; then a4=$V2_4; a6=$V2_6; fi
+  install -d -m 0755 /etc/systemd/system/pub-dns-$v.service.d
   cat > /etc/systemd/system/pub-dns-$v.service <<UNIT
 [Unit]
 Description=Site $v (lab DNS)
@@ -44,7 +45,18 @@ After=network-online.target
 [Service]
 ExecStart=/usr/bin/python3 /opt/pub-dns/backend.py $v $TOKEN $a4 $a6
 Restart=on-failure
+RestartSec=2
 UNIT
+
+# LE QUOTA DE DEMARRAGES NE DOIT PAS TRANSFORMER UN RETARD EN PANNE.
+# systemd bloque une unite qui redemarre trop souvent (StartLimitBurst).
+# Sur un service qui attend une adresse, cette borne fait d'une attente
+# normale un echec definitif. Mis a zero, les reprises restent possibles,
+# et c'est l'attente du backend qui borne reellement le demarrage.
+cat > /etc/systemd/system/pub-dns-$v.service.d/quota.conf <<'QUOTA' 2>/dev/null || true
+[Unit]
+StartLimitIntervalSec=0
+QUOTA
 done
 
 cat > /etc/bind/pub.test.zone <<ZONE
@@ -95,11 +107,59 @@ rm -f /etc/unbound/unbound.conf.d/remote-control.conf
 
 systemctl daemon-reload
 systemctl restart named pub-dns-v1 pub-dns-v2
-for _ in 1 2 3 4 5; do
-  systemctl restart unbound && break
-  sleep 2
+# LA REPRISE NE DOIT PAS FABRIQUER L'ECHEC QU'ELLE RATTRAPE.
+#
+# systemd borne les demarrages d'une unite (StartLimitBurst, cinq en dix
+# secondes par defaut). Une boucle qui reessaie toutes les deux secondes
+# epuise ce quota, et systemd refuse alors de demarrer le service A CAUSE
+# des tentatives : « Start request repeated too quickly ». Mesure du
+# 2026-10-26 sur Debian 13, unbound 1.26.2, avec un
+# `unbound-checkconf` sans la moindre erreur.
+#
+# On remet donc le compteur a zero avant chaque essai, et on espace.
+demarre=0
+for essai in 1 2 3 4 5; do
+  systemctl reset-failed unbound 2>/dev/null || true
+  if systemctl restart unbound; then
+    demarre=1
+    break
+  fi
+  echo "unbound n'a pas demarre (essai $essai), nouvelle tentative dans 5 s"
+  sleep 5
 done
-systemctl is-active --quiet unbound
+
+if [ "$demarre" != 1 ] || ! systemctl is-active --quiet unbound; then
+  # Dire CE QU'ON VOIT, et non « Job for unbound.service failed », qui ne
+  # nomme ni la cause ni le fichier a regarder.
+  echo "unbound refuse de demarrer. Ce que la machine en dit :" >&2
+  unbound-checkconf 2>&1 | sed 's/^/  checkconf: /' >&2
+  journalctl -u unbound -n 15 --no-pager 2>&1 | sed 's/^/  journal: /' >&2
+  exit 1
+fi
+
+# LES DEUX SITES, ET PAS SEULEMENT LE DNS.
+#
+# Ce banc ne controlait que la reponse de `dig`, c'est-a-dire bind seul.
+# Les deux sites de version pouvaient etre morts sans que rien le dise, et
+# le lab echouait alors sur « the client sees '' », ce qui accuse la
+# resolution. Un banc qui ne verifie qu'une moitie de ce qu'il pose laisse
+# l'autre moitie mentir.
+for v in v1 v2; do
+  pret=0
+  for _ in $(seq 1 30); do
+    if systemctl is-active --quiet "pub-dns-$v"; then
+      pret=1
+      break
+    fi
+    sleep 1
+  done
+  if [ "$pret" != 1 ]; then
+    echo "le site $v n'a pas demarre. Ce que la machine en dit :" >&2
+    systemctl status "pub-dns-$v" --no-pager -n 10 2>&1 | sed 's/^/  /' >&2
+    journalctl -u "pub-dns-$v" -n 10 --no-pager 2>&1 | sed 's/^/  journal: /' >&2
+    exit 1
+  fi
+done
 
 for _ in $(seq 1 30); do
   dig +short @127.0.0.2 shop.pub.test A | grep -q . && break

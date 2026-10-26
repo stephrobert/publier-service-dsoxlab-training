@@ -30,6 +30,27 @@ for img in "$IMG_PEBBLE" "$IMG_CHALLTESTSRV" "$IMG_LEGO"; do
   docker pull "$img"
 done
 
+# L'AUTORITE QUI SIGNE L'API DE PEBBLE, et qui n'est pas celle qui signe
+# les certificats emis. Les confondre coute une session, parce que le
+# message d'erreur ment : un client qui approuve la mauvaise se voit
+# repondre « unable to communicate with the API server », ce qui se lit
+# comme une panne de reseau alors que c'est un refus de confiance.
+#
+#   pebble.minica.pem  signe le certificat de l'API HTTPS. A approuver pour
+#                      PARLER a l'autorite.
+#   /roots/0           racine des certificats EMIS. A approuver pour
+#                      verifier le certificat du service, une fois obtenu.
+#
+# L'image est distroless : ni `find` ni `cat` n'y existent. `docker create`
+# suivi de `docker cp` n'a besoin d'aucun executable dedans.
+docker rm -f pub-nginx-tls-extraction 2>/dev/null || true
+docker create --name pub-nginx-tls-extraction "$IMG_PEBBLE" >/dev/null
+docker cp pub-nginx-tls-extraction:/test/certs/pebble.minica.pem \
+  "$WORK/lego/pebble.minica.pem"
+docker rm -f pub-nginx-tls-extraction >/dev/null
+chmod 0644 "$WORK/lego/pebble.minica.pem"
+chown student:docker "$WORK/lego/pebble.minica.pem"
+
 # Pebble valide le defi HTTP-01 en allant frapper le port 80 de la machine.
 # On le lui dit explicitement : par defaut il viserait le port 5002.
 cat > "$WORK/pebble.json" <<'JSON'
@@ -68,7 +89,19 @@ services:
     container_name: pub-nginx-tls-challtestsrv
     network_mode: host
     restart: unless-stopped
-    command: ["-dns01", ":8053", "-http01", "", "-https01", "", "-tlsalpn01", "", "-management", ":8055"]
+    # `-dnsserver`, ET SURTOUT PAS `-dns01`. Cette option n'existe pas dans
+    # challtestsrv 2.10.1 : le conteneur sortait aussitot en code 2 en
+    # affichant son aide, et plus rien n'ecoutait sur 8053. Pebble, qui
+    # resout les noms du defi par ce serveur, echouait alors sur
+    # « dial tcp 127.0.0.1:8053: connect: connection refused », message qui
+    # accuse le reseau et non une option mal nommee. Mesure du 2026-10-26.
+    # `-defaultIPv6 ""` : SANS LUI, LE BANC ANNONCE UNE ADRESSE QUI NE
+    # REPOND PAS. challtestsrv repond `::1` a toute requete AAAA, Pebble
+    # prefere IPv6, et le defi echoue sur
+    # « dial tcp [::1]:80: connect: connection refused » alors que Nginx
+    # ecoute, en IPv4. Vide, le serveur ne repond plus aux AAAA et Pebble
+    # retombe sur le 127.0.0.1 des requetes A (mesure du 2026-10-26).
+    command: ["-dnsserver", ":8053", "-defaultIPv6", "", "-http01", "", "-https01", "", "-tlsalpn01", "", "-management", ":8055"]
 YAML
 chown -R student:docker "$WORK"
 
@@ -151,6 +184,7 @@ Le banc TLS.
   autorite ACME locale : https://localhost:14000/dir
   gestion de Pebble    : https://localhost:15000
   racine de l'autorite : https://localhost:15000/roots/0
+  autorite de son API  : /opt/pub-nginx-tls/lego/pebble.minica.pem
   client ACME          : l'image $IMG_LEGO, deja tiree
   noms a servir        : app.lab.test et api.lab.test
   repertoire du defi   : /opt/pub-nginx-tls/defi (deja servi en clair par
@@ -158,6 +192,19 @@ Le banc TLS.
 
 L'AUTORITE RACINE DE PEBBLE CHANGE A CHAQUE DEMARRAGE. C'est voulu par ses
 auteurs : elle se recupere sur /roots/0, jamais ne se suppose.
+
+ET ELLE N'EST PAS LA SEULE. Pebble en porte DEUX, qui ne servent pas a la
+meme chose :
+
+  pebble.minica.pem  signe le certificat de son API HTTPS. C'est elle que
+                     votre client ACME doit approuver pour PARLER a
+                     l'autorite. Elle ne change pas.
+  /roots/0           signe les certificats qu'elle EMET. C'est elle qui
+                     verifie le certificat de votre service une fois
+                     obtenu. Elle change a chaque demarrage.
+
+Les confondre donne « unable to communicate with the API server », qui se
+lit comme une panne de reseau et n'en est pas une.
 
 CE QUE LA VALIDATION APPELLERA
 

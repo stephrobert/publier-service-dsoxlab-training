@@ -8,6 +8,12 @@
 #   2. `proxy_next_upstream` porte `non_idempotent` : un POST dont la
 #      reponse echoue est REJOUE sur l'autre backend, et l'action est
 #      comptee deux fois.
+#   3. le second backend est declare `backup`. Il ne sert donc QUE si le
+#      premier echoue : on croit avoir deux backends actifs, on en a un.
+#      Ce defaut a ete AJOUTE le 2026-10-26, apres mesure : sans lui, le
+#      premier controle du lab (« les deux backends recoivent du trafic »)
+#      passait AVANT tout travail, et un test vert sur l'etat de depart ne
+#      mesure rien.
 set -euo pipefail
 exec > >(tee /var/log/dsoxlab-pub-nginx-upstream.log) 2>&1
 set -x
@@ -31,6 +37,18 @@ echo ok > "$WORK/mode-a.txt"
 echo ok > "$WORK/mode-b.txt"
 chmod 0666 "$WORK/mode-a.txt" "$WORK/mode-b.txt"
 
+# CE QUE CHAQUE BACKEND A REELLEMENT RECU.
+#
+# Mesure du 2026-10-26 : vu du client, un backend fautif RETIRE et un
+# backend fautif dont les 502 sont rattrapes par `proxy_next_upstream` se
+# ressemblent trait pour trait, puisque dans les deux cas c'est l'autre
+# backend qui rend un 200. Le controle « les erreurs cessent » passait donc
+# sur l'etat de depart, ou rien n'est jamais retire. Le seul endroit ou la
+# difference existe est ici : un backend retire ne recoit plus rien.
+echo 0 > "$WORK/vus-a.txt"
+echo 0 > "$WORK/vus-b.txt"
+chmod 0666 "$WORK/vus-a.txt" "$WORK/vus-b.txt"
+
 cat > "$WORK/backend.py" <<'PY'
 import json
 import os
@@ -45,6 +63,7 @@ PORT = int(sys.argv[2])
 RACINE = pathlib.Path("/opt/pub-nginx-upstream")
 MODE = RACINE / f"mode-{NOM}.txt"
 COMPTEUR = RACINE / "commandes.json"
+VUS = RACINE / f"vus-{NOM}.txt"
 VERROU = threading.Lock()
 
 
@@ -55,10 +74,27 @@ def mode() -> str:
         return "ok"
 
 
+def noter_la_visite() -> None:
+    """Compte les requetes RECUES par ce backend, et non celles qui ont abouti.
+
+    C'est la seule mesure qui distingue un backend retire d'un backend
+    fautif dont les erreurs sont rattrapees par le rejeu : le client voit
+    un 200 dans les deux cas, le backend ne recoit plus rien que dans le
+    premier.
+    """
+    with VERROU:
+        try:
+            compte = int(VUS.read_text(encoding="utf-8").strip() or "0")
+        except (OSError, ValueError):
+            compte = 0
+        VUS.write_text("%d\n" % (compte + 1), encoding="utf-8")
+
+
 class Backend(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def do_GET(self):
+        noter_la_visite()
         courant = mode()
         if courant == "lent":
             time.sleep(8)
@@ -68,6 +104,7 @@ class Backend(BaseHTTPRequestHandler):
         self._repondre(200, f"backend={NOM}\n")
 
     def do_POST(self):
+        noter_la_visite()
         # L'ACTION A LIEU D'ABORD, l'echec vient ensuite : c'est le cas qui
         # piege un rejeu. Le backend a ecrit, le client ne le sait pas.
         with VERROU:
@@ -121,7 +158,9 @@ upstream applicatif {
     # max_fails=0 DESACTIVE la detection passive : un backend en erreur
     # garde sa part du trafic, pour toujours.
     server 127.0.0.1:18095 max_fails=0;
-    server 127.0.0.1:18096 max_fails=0;
+    # `backup` : ce backend ne sert QUE si le premier echoue. La
+    # repartition qu'on croit avoir n'existe pas.
+    server 127.0.0.1:18096 max_fails=0 backup;
 }
 
 server {
@@ -139,7 +178,6 @@ server {
     }
 }
 CONF
-  /etc/nginx/conf.d/upstream.conf
 
 cat > "$WORK/banc.txt" <<'TXT'
 Le banc de repartition.
@@ -156,6 +194,19 @@ Pilotage, en ecrivant un mot dans le fichier :
 Un POST sur / incremente le compteur metier AVANT de savoir s'il repondra :
 en mode erreur, le backend a donc ecrit puis echoue. Le compteur est dans
 /opt/pub-nginx-upstream/commandes.json.
+
+CE QUE CHAQUE BACKEND A RECU
+
+  /opt/pub-nginx-upstream/vus-a.txt    nombre de requetes RECUES par a
+  /opt/pub-nginx-upstream/vus-b.txt    idem pour b
+
+Ces deux compteurs sont la seule mesure qui dise si un backend est
+SOLLICITE. Vu du client, un backend retire et un backend fautif dont les
+502 sont rattrapes par `proxy_next_upstream` sont indiscernables : dans les
+deux cas, c'est l'autre backend qui rend le 200. La validation s'en sert, et
+vous pouvez en faire autant pour verifier votre travail :
+
+  watch -n1 'cat /opt/pub-nginx-upstream/vus-*.txt'
 
 RAPPEL SUR LE BUILD OPEN SOURCE : il n'a PAS de sonde active. La seule
 detection disponible est passive, par `max_fails` et `fail_timeout` sur la

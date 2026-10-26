@@ -21,8 +21,11 @@ apt-get install -y --no-install-recommends curl
 
 # La configuration de demonstration de la distribution repondrait sur le
 # port 80 et ferait passer le premier controle sans travail.
-rm -f /etc/nginx/sites-enabled/default
-install -d -m 0755 /etc/nginx/sites-available /etc/nginx/sites-enabled
+# Les paquets de nginx.org ne posent ni sites-available ni
+# sites-enabled : c'est une convention du paquet Debian, et
+# `nginx.conf` n'inclut ici que `conf.d/*.conf`. On retire donc la
+# configuration de demonstration a l'endroit ou elle est vraiment.
+rm -f /etc/nginx/conf.d/default.conf
 
 install -d -m 0775 -o student -g student "$WORK"
 find "$WORK" -mindepth 1 -delete
@@ -80,8 +83,7 @@ Manifeste de l'installation attendue.
   module      : http_ssl_module (compile dans le paquet de la distribution)
   nom servi   : app.lab.test
   backend     : 127.0.0.1:18092
-  fichier     : /etc/nginx/sites-available/app.conf, active par lien
-                symbolique dans /etc/nginx/sites-enabled/
+  fichier     : /etc/nginx/conf.d/app.conf
 
 Le service doit repondre sur le port 80 pour le nom ci-dessus, et revenir
 de lui-meme apres un redemarrage de la machine.

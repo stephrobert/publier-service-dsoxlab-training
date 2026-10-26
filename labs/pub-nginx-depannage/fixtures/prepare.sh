@@ -14,7 +14,8 @@
 #
 # LE BRUIT, LUI, EST TOUJOURS LA, ET N'EST JAMAIS LA CAUSE : un bloc server
 # pour un nom de domaine abandonne, un conf.d/ qui ne contient que des
-# commentaires, un `gzip on` en double, et un proxy_pass commente qui porte
+# commentaires, une directive `gzip_vary` sans effet, et un proxy_pass
+# commente qui porte
 # un mauvais port. Chacun a l'air suspect. Aucun n'explique la panne.
 set -euo pipefail
 exec > >(tee /var/log/dsoxlab-pub-nginx-depannage.log) 2>&1
@@ -127,6 +128,34 @@ class Backend(BaseHTTPRequestHandler):
         return
 
 
+class Serveur(ThreadingHTTPServer):
+    """Un serveur TLS qui ne fait pas son handshake dans l'accept().
+
+    Mesure du 2026-10-26 : enveloppe sur le socket d'ECOUTE, le handshake a
+    lieu dans accept(), donc dans le thread d'accueil. Les connexions
+    suivantes s'empilent dans le backlog, qui vaut 5 par defaut dans
+    socketserver, puis le noyau les REFUSE. Un proxy qui sonde ce service a
+    la seconde et y envoie du trafic voit le serveur en bonne sante par sa
+    sonde et recoit un refus sur tout le trafic.
+
+    On accepte en clair, ce qui est immediat, et le handshake se joue dans le
+    thread de traitement.
+    """
+
+    daemon_threads = True
+    request_queue_size = 128
+    contexte = None
+
+    def process_request_thread(self, request, client_address):
+        if self.contexte is not None:
+            try:
+                request = self.contexte.wrap_socket(request, server_side=True)
+            except OSError:
+                self.shutdown_request(request)
+                return
+        super().process_request_thread(request, client_address)
+
+
 def main():
     global ARGS, MARQUEUR
     p = argparse.ArgumentParser()
@@ -139,11 +168,11 @@ def main():
     with open(ARGS.marqueur, encoding="utf-8") as f:
         MARQUEUR = f.read().strip()
 
-    serveur = ThreadingHTTPServer(("127.0.0.1", ARGS.port), Backend)
+    serveur = Serveur(("127.0.0.1", ARGS.port), Backend)
     if ARGS.cert:
         contexte = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         contexte.load_cert_chain(ARGS.cert, ARGS.cle)
-        serveur.socket = contexte.wrap_socket(serveur.socket, server_side=True)
+        serveur.contexte = contexte
     serveur.serve_forever()
 
 
@@ -216,7 +245,13 @@ server {
     index index.html;
 
     gzip on;
-    gzip on;          # du bruit : un doublon sans effet
+    # Du bruit : une directive qui ne sert a rien ici, mais que nginx
+    # accepte. Un `gzip on` REPETE aurait ete plus parlant, et c'est ce
+    # qu'il y avait : mesure du 2026-10-26, nginx 1.31.8 le refuse en
+    # « gzip directive is duplicate » et rejette TOUTE la configuration.
+    # Le bruit d'un lab de depannage doit etre du bruit, pas une panne de
+    # plus : sinon le service ne demarre pas et il n'y a rien a diagnostiquer.
+    gzip_vary on;
 
     location / {
         try_files $uri $uri/ =404;
@@ -255,7 +290,6 @@ server {
     }
 }
 CONF
-  /etc/nginx/conf.d/publication.conf
 
 # Du bruit : un fichier de conf.d qui ne contient que des commentaires.
 cat > /etc/nginx/conf.d/notes-exploitation.conf <<'CONF'
@@ -330,7 +364,27 @@ chmod 0644 "$WORK/recette.txt"
 # --------------------------------------------------------------------------
 # L'INJECTION. Une variante, tiree au hasard, notee hors de portee.
 # --------------------------------------------------------------------------
-VARIANTE="$(printf 'selection\npermission\ndns\ntls\ntimeout\n' | shuf -n 1)"
+# Le tirage au sort est le DEFAUT, et il le reste : c'est lui qui fait
+# qu'un depannage s'apprend. `DSOXLAB_VARIANTE` ne sert qu'a la
+# validation, qui doit pouvoir eprouver les cinq pannes une par une.
+# Attester le lab sur celle que le hasard a tiree ne dirait rien des
+# quatre autres : trois d'entre elles ont porte le meme defaut sans que
+# personne le voie, parce qu'il ne se montrait qu'une fois sur deux.
+VARIANTE="${DSOXLAB_VARIANTE:-}"
+if [ -z "$VARIANTE" ]; then
+  VARIANTE="$(printf 'selection\npermission\ndns\ntls\ntimeout\n' | shuf -n 1)"
+else
+  case "$VARIANTE" in
+    selection|permission|dns|tls|timeout) ;;
+    *)
+      # Et surtout PAS un repli silencieux sur le hasard : une validation
+      # qui croit eprouver `timeout` et qui tire `dns` mesure autre chose
+      # que ce qu'elle rapporte.
+      echo "DSOXLAB_VARIANTE=« $VARIANTE » n'est pas une variante connue." >&2
+      exit 1
+      ;;
+  esac
+fi
 echo "$VARIANTE" > /root/.variante-pub-nginx-depannage
 chmod 0600 /root/.variante-pub-nginx-depannage
 
@@ -407,21 +461,50 @@ if [ "$VARIANTE" = "dns" ]; then
   exit 0
 fi
 
+# UNE SEULE DEFINITION DE « LA PANNE EST POSEE », et elle sert deux fois :
+# a l'attendre, puis a la verifier. Ecrite deux fois, elle aurait diverge
+# des la premiere retouche, et l'attente aurait guette autre chose que ce
+# que le garde-fou exige.
+panne_posee() {
+  local marqueur statut_racine corps statut_lent
+  marqueur="$(cat "$ETAT/nonce-api.txt")"
+  statut_racine="$(curl --max-time 5 --silent --output /dev/null \
+    --write-out '%{http_code}' http://127.0.0.1/ || true)"
+  corps="$(curl --max-time 5 --silent http://127.0.0.1/api/ || true)"
+  statut_lent="$(curl --max-time 20 --silent --output /dev/null \
+    --write-out '%{http_code}' http://127.0.0.1/api/lent || true)"
+
+  # « Rien n'a casse » quand les trois routes repondent comme avant.
+  if [ "$statut_racine" = "200" ] \
+    && [ "${corps#*"$marqueur"}" != "$corps" ] \
+    && [ "$statut_lent" = "200" ]; then
+    return 1
+  fi
+  return 0
+}
+
+# ATTENDRE QUE LE RECHARGEMENT AIT PRIS EFFET, et non qu'il ait ete demande.
+#
+# `systemctl reload nginx` rend la main quand le signal est envoye. Nginx
+# laisse alors ses anciens workers finir, et une requete lancee dans la
+# foulee est servie par l'ANCIENNE configuration. Mesure le 2026-10-26 : la
+# variante `tls` remplacait l'autorite du backend, et `/api/` repondait
+# encore correctement une fraction de seconde plus tard. Le controle
+# concluait « rien n'a casse » avant que quoi que ce soit ait pu casser, et
+# le setup sortait en erreur une fois sur deux, au hasard de la variante.
+for _ in $(seq 1 15); do
+  if panne_posee; then
+    break
+  fi
+  sleep 1
+done
+
 if ! curl --max-time 5 --silent --output /dev/null http://127.0.0.1/app/; then
   echo "La route /app/ ne répond pas : l'injection a cassé plus que prévu." >&2
   exit 1
 fi
 
-MARQUEUR_API="$(cat "$ETAT/nonce-api.txt")"
-STATUT_RACINE="$(curl --max-time 5 --silent --output /dev/null \
-  --write-out '%{http_code}' http://127.0.0.1/)"
-CORPS_API="$(curl --max-time 5 --silent http://127.0.0.1/api/ || true)"
-STATUT_LENT="$(curl --max-time 20 --silent --output /dev/null \
-  --write-out '%{http_code}' http://127.0.0.1/api/lent || true)"
-
-if [ "$STATUT_RACINE" = "200" ] \
-  && [ "${CORPS_API#*"$MARQUEUR_API"}" != "$CORPS_API" ] \
-  && [ "$STATUT_LENT" = "200" ]; then
+if ! panne_posee; then
   echo "L'injection $VARIANTE n'a rien cassé : il n'y a rien à diagnostiquer." >&2
   exit 1
 fi

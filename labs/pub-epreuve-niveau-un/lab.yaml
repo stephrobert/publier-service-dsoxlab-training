@@ -13,7 +13,7 @@ skills:
   - troubleshooting
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/
+doc_url: https://www.stephane-robert.info/docs/services/web/epreuve-niveau-1/
 lab_type: lab
 estimated_time: "60m"
 runtime:

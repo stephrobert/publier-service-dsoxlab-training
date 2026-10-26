@@ -109,7 +109,6 @@ server {
     }
 }
 CONF
-  /etc/nginx/conf.d/limites.conf
 
 cat > "$WORK/politique.txt" <<'TXT'
 La politique a appliquer.

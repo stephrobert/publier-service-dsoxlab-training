@@ -43,8 +43,11 @@ that merely works.
 
 ## Hints
 
-- `include mime.types;` loads the distribution's type table. Without it,
-  `default_type` applies to everything.
+- `include mime.types;` loads a type table into the block where it sits.
+  Look at the one the given configuration declares: an **empty** `types {}`
+  inside a `server` replaces the table inherited from `http`, and
+  everything then falls back to `default_type`.
 - A `try_files` placed inside a `location` applies to that one only.
-- Workers run as `www-data`: read access is given through ownership or
-  group, never by opening to all.
+- Workers run as the `nginx` account, the one the publisher's package
+  declares: read access is given through ownership or group, never by
+  opening to all.

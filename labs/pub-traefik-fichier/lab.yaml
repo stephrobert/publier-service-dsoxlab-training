@@ -11,7 +11,7 @@ skills:
   - systemd
 distros:
   - debian13
-doc_url: https://doc.traefik.io/traefik/providers/file/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-fichier/
 lab_type: lab
 estimated_time: "30m"
 runtime:

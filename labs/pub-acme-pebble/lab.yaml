@@ -16,7 +16,7 @@ skills:
   - docker-compose
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/
+doc_url: https://www.stephane-robert.info/docs/services/web/certificats-acme/
 certification_tags: []
 runtime:
   type: vm
