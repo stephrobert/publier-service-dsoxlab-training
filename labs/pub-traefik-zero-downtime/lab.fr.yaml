@@ -13,4 +13,3 @@ description: |
   rotation de certificat pour que deux points d'entrée partageant le même
   stockage de certificat ne servent jamais une paire corrompue ou
   dépareillée.
-

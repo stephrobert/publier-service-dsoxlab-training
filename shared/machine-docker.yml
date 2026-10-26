@@ -30,18 +30,30 @@
 # Ne jamais réintroduire de `when:` qui couvre ce fichier.
 
 - name: Vérifier que la distribution est celle que le catalogue éprouve
-  # Le catalogue n'est jouable que sur `ubuntu24` et `alma10`, les deux seules
-  # distributions que les images de dsoxlab fournissent et que la skill de
-  # validation des VM retient. `debian12` est annoncé mais cassé.
+  # Debian 13, et elle seule, depuis le 2026-10-26.
   #
-  # Échouer ici, avec un message, vaut mieux que de laisser une tâche plus loin
-  # échouer sur un nom de paquet inconnu.
+  # Cette liste a RÉTRÉCI, et c'est délibéré. Elle portait Ubuntu 24.04 et
+  # AlmaLinux 10 tant que le catalogue installait les paquets de la
+  # distribution. Il installe désormais Nginx et HAProxy depuis les dépôts
+  # de leurs éditeurs, et ces dépôts sont propres à une version de Debian :
+  # `trixie-backports-3.4` n'existe pas ailleurs, et le dépôt nginx.org se
+  # choisit par `{{ ansible_distribution_release }}`.
+  #
+  # Accepter une autre distribution ne ferait donc pas échouer ici, mais
+  # trois tâches plus loin, sur un dépôt introuvable. Un garde-fou qui
+  # laisse passer ce qu'il ne sait pas éprouver déplace l'échec sans
+  # l'éviter, et le rend plus difficile à lire.
+  #
+  # La raison du choix de Debian 13 : c'est la seule plateforme où les deux
+  # logiciels existent à leur dernière version, HAProxy 3.4 n'étant publié
+  # ni pour noble ni pour jammy. Mesuré le 2026-10-26.
   ansible.builtin.assert:
     that:
-      - ansible_facts['distribution'] in ['Ubuntu', 'AlmaLinux']
+      - ansible_facts['distribution'] == 'Debian'
+      - ansible_facts['distribution_major_version'] == '13'
     fail_msg: >-
-      Ce catalogue ne se joue que sur Ubuntu 24.04 ou AlmaLinux 10, et cette
-      machine annonce {{ ansible_facts['distribution'] }}
+      Ce catalogue ne se joue que sur Debian 13, et cette machine annonce
+      {{ ansible_facts['distribution'] }}
       {{ ansible_facts['distribution_version'] }}. Le `meta.yml` déclare la
       distribution de chaque hôte.
     quiet: true
@@ -81,9 +93,9 @@
   until: outils_installes is succeeded
 
 - name: Déclarer le dépôt Docker officiel
-  # Le paquet `docker.io` d'Ubuntu est en retard et ne fournit pas le plugin
-  # Compose v2, que tous les labs utilisent. On prend le dépôt de Docker, comme
-  # la leçon d'installation du site le fait.
+  # Le paquet `docker.io` de la distribution est en retard et ne fournit pas
+  # le plugin Compose v2, que tous les labs utilisent. On prend le dépôt de
+  # Docker, comme la leçon d'installation du site le fait.
   when: ansible_facts['os_family'] == 'Debian'
   block:
     - name: Créer le répertoire des clés de dépôt
@@ -92,9 +104,28 @@
         state: directory
         mode: "0755"
 
+    - name: De quoi déclarer un dépôt signé
+      # `apt_repository` a besoin d'un binaire `gpg` ou `apt-key`. Debian 13
+      # a RETIRÉ `apt-key`, et une image cloud minimale n'embarque pas
+      # forcément `gnupg` : la tâche échouait alors sur « binary is
+      # required, but neither could be found », un message qui parle d'un
+      # binaire sans dire lequel installer.
+      ansible.builtin.apt:
+        name: [gnupg, ca-certificates]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
     - name: Récupérer la clé du dépôt Docker
+      # Le chemin dépend de la DISTRIBUTION, pas de la famille : Docker
+      # publie `linux/debian` et `linux/ubuntu` séparément, avec des
+      # suites différentes. Pointer l'un depuis l'autre donne un dépôt dont
+      # la suite `trixie` n'existe pas, et l'erreur parle alors de dépôt
+      # introuvable plutôt que de chemin faux.
       ansible.builtin.get_url:
-        url: https://download.docker.com/linux/ubuntu/gpg
+        url: >-
+          https://download.docker.com/linux/{{
+          ansible_facts['distribution'] | lower }}/gpg
         dest: /etc/apt/keyrings/docker.asc
         mode: "0644"
         force: false
@@ -104,7 +135,7 @@
         repo: >-
           deb [arch={{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else ansible_facts['architecture'] }}
           signed-by=/etc/apt/keyrings/docker.asc]
-          https://download.docker.com/linux/ubuntu
+          https://download.docker.com/linux/{{ ansible_facts['distribution'] | lower }}
           {{ ansible_facts['distribution_release'] }} stable
         filename: docker
         state: present

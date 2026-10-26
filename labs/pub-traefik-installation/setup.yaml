@@ -19,4 +19,3 @@
         executable: /bin/bash
       environment:
         IMG_TRAEFIK: "{{ socle_images.traefik.image }}:{{ socle_images.traefik.version }}@{{ socle_images.traefik.digest }}"
-

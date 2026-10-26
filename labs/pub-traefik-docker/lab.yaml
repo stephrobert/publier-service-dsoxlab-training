@@ -16,7 +16,7 @@ skills:
   - reverse-proxy
   - docker-compose
 distros:
-  - ubuntu24
+  - debian13
 doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-docker/
 certification_tags: []
 runtime:
@@ -24,8 +24,8 @@ runtime:
   targets:
     - name: edge
       host: edge.lab
-      label_en: "Ubuntu 24.04"
-      label_fr: "Ubuntu 24.04"
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
   default: edge
 validation:
   functional: true

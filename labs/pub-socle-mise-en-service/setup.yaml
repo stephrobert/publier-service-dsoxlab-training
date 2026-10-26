@@ -78,4 +78,3 @@
       ansible.builtin.systemd:
         name: systemd-resolved
         state: restarted
-

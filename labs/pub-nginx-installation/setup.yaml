@@ -1,0 +1,23 @@
+---
+- name: Préparer le lab pub-nginx-installation
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer Nginx depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-nginx.yml
+
+    - name: Poser Nginx installé, et aucun service publié
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+- name: Outils du client indépendant
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi interroger le service depuis l'extérieur
+      ansible.builtin.apt:
+        name: [curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600

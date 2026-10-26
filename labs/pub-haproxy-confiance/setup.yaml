@@ -1,0 +1,121 @@
+---
+- name: Préparer le lab pub-haproxy-confiance
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer HAProxy depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-haproxy.yml
+
+    - name: Poser quatre autorités, deux backends, et une confiance débranchée
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+    - name: Une sonde qui parle le protocole PROXY
+      ansible.builtin.copy:
+        dest: /usr/local/bin/proxy-protocole
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/usr/bin/env python3
+          # proxy-protocole <ip> <port> <adresse-declaree> <chemin>
+          #
+          # Ouvre une connexion, ecrit un en-tete PROXY v1 declarant une
+          # adresse, PUIS fait la poignee de main TLS et une requete HTTP.
+          # C'est l'ordre qu'impose le protocole : l'en-tete precede TLS, et
+          # c'est ce qui le rend indetectable pour qui lit le trafic chiffre.
+          #
+          # Un echec se DIT (« erreur: ... ») au lieu de ne rien afficher :
+          # une sortie vide ne distingue pas « l'ecoute a refuse » de « la
+          # sonde n'est jamais partie », et ce sont deux verdicts opposes.
+          import socket
+          import ssl
+          import sys
+
+          ip, port, declaree, chemin = (
+              sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
+          )
+          contexte = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+          contexte.check_hostname = False
+          contexte.verify_mode = ssl.CERT_NONE
+          try:
+              with socket.create_connection((ip, port), timeout=10) as prise:
+                  entete = f"PROXY TCP4 {declaree} {ip} 55555 {port}\r\n"
+                  prise.sendall(entete.encode())
+                  with contexte.wrap_socket(prise) as chiffree:
+                      chiffree.sendall(
+                          f"GET {chemin} HTTP/1.1\r\n"
+                          f"Host: service.pub.lab.test\r\n"
+                          f"Connection: close\r\n\r\n".encode()
+                      )
+                      morceaux = []
+                      while True:
+                          morceau = chiffree.recv(4096)
+                          if not morceau:
+                              break
+                          morceaux.append(morceau)
+              print(b"".join(morceaux).decode("utf-8", "replace"))
+          except (OSError, ssl.SSLError) as souci:
+              print(f"erreur: {type(souci).__name__}: {souci}")
+
+
+- name: Outils du client indépendant
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi interroger le service depuis l'extérieur
+      ansible.builtin.apt:
+        name: [curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: La même sonde, pour éprouver l'écoute approuvée depuis le réseau
+      ansible.builtin.copy:
+        dest: /usr/local/bin/proxy-protocole
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/usr/bin/env python3
+          # proxy-protocole <ip> <port> <adresse-declaree> <chemin>
+          #
+          # Ouvre une connexion, ecrit un en-tete PROXY v1 declarant une
+          # adresse, PUIS fait la poignee de main TLS et une requete HTTP.
+          # C'est l'ordre qu'impose le protocole : l'en-tete precede TLS, et
+          # c'est ce qui le rend indetectable pour qui lit le trafic chiffre.
+          #
+          # Un echec se DIT (« erreur: ... ») au lieu de ne rien afficher :
+          # une sortie vide ne distingue pas « l'ecoute a refuse » de « la
+          # sonde n'est jamais partie », et ce sont deux verdicts opposes.
+          import socket
+          import ssl
+          import sys
+
+          ip, port, declaree, chemin = (
+              sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
+          )
+          contexte = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+          contexte.check_hostname = False
+          contexte.verify_mode = ssl.CERT_NONE
+          try:
+              with socket.create_connection((ip, port), timeout=10) as prise:
+                  entete = f"PROXY TCP4 {declaree} {ip} 55555 {port}\r\n"
+                  prise.sendall(entete.encode())
+                  with contexte.wrap_socket(prise) as chiffree:
+                      chiffree.sendall(
+                          f"GET {chemin} HTTP/1.1\r\n"
+                          f"Host: service.pub.lab.test\r\n"
+                          f"Connection: close\r\n\r\n".encode()
+                      )
+                      morceaux = []
+                      while True:
+                          morceau = chiffree.recv(4096)
+                          if not morceau:
+                              break
+                          morceaux.append(morceau)
+              print(b"".join(morceaux).decode("utf-8", "replace"))
+          except (OSError, ssl.SSLError) as souci:
+              print(f"erreur: {type(souci).__name__}: {souci}")
+

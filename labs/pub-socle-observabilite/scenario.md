@@ -23,4 +23,3 @@ Read `/home/student/README-obs`, then, on `edge.lab`:
 - Write `/home/student/correlation.yaml`: the backend and duration you find
   in the access log for the incident already logged and named in the
   README.
-

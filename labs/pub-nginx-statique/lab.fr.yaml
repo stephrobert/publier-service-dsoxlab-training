@@ -1,0 +1,6 @@
+---
+title: "Servir uniquement les fichiers prévus"
+description: |
+  Publiez les ressources d'une application monopage avec les bons types
+  MIME, conservez les vraies erreurs, refusez les fichiers privés et les
+  traversées, et resserrez les droits sans cesser de servir.

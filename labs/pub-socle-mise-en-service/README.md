@@ -19,4 +19,3 @@ release, `service.mes.test`, published in TLS on `edge.lab`.
   for a cache that does not forget a stale decision on its own.
 - State, in writing, which parts of this acceptance were only simulated and
   which proofs a real Internet-facing release would still need.
-

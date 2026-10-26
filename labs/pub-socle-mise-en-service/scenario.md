@@ -17,4 +17,3 @@ client. Then prove, on `edge.lab`, that you can lose it and get it back, and
 that you can undo a bad switch without waiting out its cache. Close with an
 honest account of what this acceptance still owes to a real, Internet-facing
 release.
-

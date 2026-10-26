@@ -1,0 +1,31 @@
+---
+id: pub-socle-securite
+title: "Write and test a web service access policy"
+section: socle
+level: niveau-2
+description: |
+  Turn a business requirement into a policy of access, trust, limits and log
+  retention, then prove it refuses what it must without breaking what must
+  keep working.
+skills:
+  - http-security
+  - authorization
+  - logging
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/securite-point-entree/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

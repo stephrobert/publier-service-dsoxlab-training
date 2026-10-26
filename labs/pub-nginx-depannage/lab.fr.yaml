@@ -1,0 +1,6 @@
+---
+title: "Diagnostiquer et corriger Nginx"
+description: |
+  Une panne, tirée au hasard parmi cinq familles, a été injectée, avec
+  du bruit de configuration autour. Trouvez-la, corrigez-la, et
+  vérifiez toute la recette sans rien desserrer.

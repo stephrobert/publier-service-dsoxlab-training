@@ -1,0 +1,6 @@
+---
+title: "Épreuve de niveau 2 : protéger, observer et diagnostiquer"
+description: |
+  Protégez et observez une pile Traefik fournie, diagnostiquez une panne
+  inconnue à partir de ses journaux et de ses réponses en direct, puis
+  justifiez la réparation dans un rapport.

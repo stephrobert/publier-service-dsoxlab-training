@@ -1,0 +1,6 @@
+---
+title: "Protéger une application avec HAProxy"
+description: |
+  Durcissez un frontend HAProxy : en-têtes de sécurité, route
+  d'administration authentifiée, limite de débit par source qui relâche, et
+  méthodes HTTP restreintes.

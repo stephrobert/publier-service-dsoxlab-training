@@ -1,0 +1,31 @@
+---
+id: pub-haproxy-ha
+title: "Prove the failure domain of two entry points"
+section: haproxy
+level: option-haproxy
+description: |
+  Deploy a failover compatible with the network provided, then measure the
+  loss of a process and the loss of a host without touching the client.
+skills:
+  - haproxy
+  - keepalived
+  - high-availability
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+lab_type: lab
+estimated_time: "65m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        pair: edge2.lab
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: true

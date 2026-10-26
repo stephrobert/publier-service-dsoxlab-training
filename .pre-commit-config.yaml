@@ -54,6 +54,58 @@ repos:
         language: system
         pass_filenames: false
 
+      # Le `[tool.ruff]` du pyproject existait depuis l'origine, mais AUCUN
+      # hook ne l'appelait : onze erreurs dormaient dans quatre labs, dont un
+      # `zip()` sans `strict=` et une variable nommee `l`. Une configuration
+      # que rien ne joue n'est pas une regle, c'est une intention.
+      #
+      # `--force-exclude` n'est pas une precaution : sans lui, l'exclusion
+      # declaree dans le pyproject est IGNOREE pour tout fichier passe en
+      # argument, et pre-commit passe justement les fichiers en argument.
+      - id: ruff
+        name: ruff (lint du python des labs, des tests et des scripts)
+        entry: uvx ruff check --fix --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+
+      # `scripts/gen_catalog.py --check` existait depuis l'origine et RIEN ne
+      # l'appelait. Resultat mesure le 2026-10-25 : le catalogue des deux
+      # README ignorait deux labs, et affichait en francais sept titres
+      # anglais, faute de lab.fr.yaml. Un generateur dont personne ne verifie
+      # la sortie produit une documentation qui derive en silence.
+      - id: catalogue-a-jour
+        name: le catalogue des README suit les labs
+        entry: python3 scripts/gen_catalog.py --check
+        language: system
+        pass_filenames: false
+
+      # Un playbook refuse AU CHARGEMENT ne joue aucune tache, et son message
+      # ne nomme pas la ligne fautive. La cause la plus frequente est une
+      # apostrophe francaise ou un `${#...}` dans un script shell embarque :
+      # Ansible decoupe la chaine a la facon d'un shell, Jinja lit `{#` comme
+      # un debut de commentaire. Le seul juge fiable est Ansible lui-meme,
+      # d'ou ce controle plutot qu'un linter de plus.
+      #
+      # Il vaut surtout pour ce catalogue : ses 38 labs embarquent tous un
+      # script de mise en situation, et decouvrir le defaut pendant une
+      # campagne coute une VM et dix minutes.
+      - id: playbooks-se-chargent
+        name: tous les playbooks se chargent
+        entry: python3 scripts/check-playbooks.py
+        language: system
+        pass_filenames: false
+
+      # `pytest --collect-only` IMPORTE le module sans executer les corps de
+      # fonctions : un nom manquant dans un corps passe la collecte et casse a
+      # l'appel, c'est-a-dire pendant la campagne, sur une VM. Ce controle
+      # cherche les noms qu'aucun import ni aucune affectation ne fournit.
+      - id: tests-ont-leurs-noms
+        name: les tests des labs ont tous leurs noms
+        entry: python3 scripts/check-tests.py
+        language: system
+        pass_filenames: false
+
       # La règle d'écriture du projet interdit le tiret cadratin en français :
       # il se remplace par la ponctuation qui dit son rôle. Mesuré sur un
       # catalogue sans ce hook : 51 `lab.fr.yaml`, 172 README de labs et 86

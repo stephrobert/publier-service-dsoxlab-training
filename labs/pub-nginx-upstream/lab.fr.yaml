@@ -1,0 +1,6 @@
+---
+title: "Mesurer répartition et détection passive"
+description: |
+  Répartissez vers deux backends, justifiez les seuils de la détection
+  passive du build open source, et empêchez un rejeu de doubler une
+  action non idempotente.

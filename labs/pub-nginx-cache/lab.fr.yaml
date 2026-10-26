@@ -1,0 +1,7 @@
+---
+title: "Mettre en cache sans partager de données privées"
+description: |
+  Mettre en cache les réponses publiques que le contrat de contenu
+  déclare éligibles, en préservant les variantes de représentation,
+  en gardant les sessions privées hors du cache, et en tenant la
+  fraîcheur du contenu volatil.

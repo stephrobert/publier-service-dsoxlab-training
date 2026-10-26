@@ -19,4 +19,3 @@ indépendant. Prouvez ensuite, sur `edge.lab`, que vous savez la perdre et la
 récupérer, et défaire une bascule défaillante sans attendre l'expiration de
 son cache. Terminez par un compte rendu honnête de ce que cette recette doit
 encore à une vraie mise en service exposée sur Internet.
-

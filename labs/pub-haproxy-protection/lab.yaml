@@ -1,0 +1,29 @@
+---
+id: pub-haproxy-protection
+title: "Protect an application with HAProxy"
+section: haproxy
+level: option-haproxy
+description: |
+  Harden an HAProxy frontend with security headers, an authenticated admin
+  endpoint, a per-source rate limit that releases, and restricted HTTP
+  methods.
+skills:
+  - haproxy
+  - http-security
+  - rate-limiting
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+lab_type: lab
+estimated_time: "40m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

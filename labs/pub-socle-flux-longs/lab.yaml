@@ -17,7 +17,7 @@ skills:
   - stream-backpressure
   - backend-failure-signaling
 distros:
-  - ubuntu24
+  - debian13
 doc_url: https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/
 lab_type: lab
 estimated_time: "45m"
@@ -26,8 +26,8 @@ runtime:
   targets:
     - name: cible
       host: edge.lab
-      label_en: "Ubuntu 24.04"
-      label_fr: "Ubuntu 24.04"
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
   default: cible
 validation:
   functional: true

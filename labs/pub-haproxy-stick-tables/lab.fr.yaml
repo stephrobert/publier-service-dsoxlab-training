@@ -1,0 +1,6 @@
+---
+title: "Limiter par une cle que vous maitrisez, et lire les compteurs"
+description: |
+  Compter l'adresse du client plutot qu'une valeur qu'il fournit, separer la
+  fenetre de cadence de la duree de vie d'une entree, refuser au dela du seuil
+  sans bloquer les autres, et dire ce que la table ne protege pas.

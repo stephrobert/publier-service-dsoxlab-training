@@ -1,0 +1,31 @@
+---
+id: pub-nginx-upstream
+title: "Measure load sharing and passive detection"
+section: nginx
+level: option-nginx
+description: |
+  Share traffic between two backends, justify the passive detection
+  thresholds of the open source build, and keep a retry from
+  duplicating a non-idempotent action.
+skills:
+  - nginx
+  - load-balancing
+  - idempotence
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

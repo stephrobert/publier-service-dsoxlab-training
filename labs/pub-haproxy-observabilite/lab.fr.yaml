@@ -1,0 +1,6 @@
+---
+title: "Observer HAProxy avec Prometheus"
+description: |
+  Publiez les métriques de HAProxy sur un point d'écoute réservé à la
+  boucle locale, collectez-les avec Prometheus, et vérifiez la santé des
+  backends sans exposer l'écoute des métriques.

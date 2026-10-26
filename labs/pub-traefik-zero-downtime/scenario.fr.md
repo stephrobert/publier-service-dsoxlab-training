@@ -51,4 +51,3 @@ Lisez `/opt/pub-zds/README`, puis :
   laisse jamais une paire certificat/clé dépareillée ou illisible dans le
   stockage partagé ; les deux points d'entrée doivent continuer à servir
   du TLS valide ensuite.
-

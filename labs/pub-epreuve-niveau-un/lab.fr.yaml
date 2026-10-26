@@ -1,0 +1,7 @@
+---
+title: "Épreuve de niveau 1 : publier et rétablir des services"
+description: |
+  Publiez deux services HTTPS aux certificats renouvelés automatiquement,
+  refusez l'accès extérieur aux backends et à l'administration, et
+  rétablissez le service après un redémarrage de Docker, en moins de
+  soixante minutes.

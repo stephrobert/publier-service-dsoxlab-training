@@ -86,13 +86,13 @@ def test_retrait_backend_malade(edge, etat):
                 break
             time.sleep(1)
         assert "a" not in identites, message(
-            en=f"Backend a kept receiving traffic through the balancer "
-            f"12s after being marked sick: the removal probe is probably "
-            f"still too slow or too tolerant.",
-            fr=f"Le backend a a continué à recevoir du trafic via le "
-            f"répartiteur 12 s après avoir été marqué malade : la sonde "
-            f"de retrait est probablement encore trop lente ou trop "
-            f"tolérante.",
+            en="Backend a kept receiving traffic through the balancer "
+            "12s after being marked sick: the removal probe is probably "
+            "still too slow or too tolerant.",
+            fr="Le backend a a continué à recevoir du trafic via le "
+            "répartiteur 12 s après avoir été marqué malade : la sonde "
+            "de retrait est probablement encore trop lente ou trop "
+            "tolérante.",
         )
         assert "b" in identites, message(
             en="No traffic reached the remaining healthy backend b once a "

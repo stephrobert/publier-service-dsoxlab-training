@@ -1,0 +1,6 @@
+---
+title: "Installer HAProxy et distinguer ses modes HTTP et TCP"
+description: |
+  Installer HAProxy par le paquet de la distribution, publier deux noms en HTTP
+  et un protocole de lignes depuis la meme instance, et garder la page d'etat et
+  le socket d'administration hors du reseau.

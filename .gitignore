@@ -20,3 +20,13 @@ __pycache__/
 .mypy_cache/
 .venv/
 .vault-pass
+
+# Reglages d'editeur : ils appartiennent a la machine, pas au catalogue. Sans
+# cette ligne, `git status` les affiche a chaque session et on finit par ne
+# plus lire la liste.
+.vscode/
+
+# La version LISIBLE des corriges, d'ou `scripts/chiffrer-solutions.sh` tire
+# le chiffre. Elle ne doit jamais partir : c'est la solution en clair d'un
+# depot public.
+solution-en-clair/

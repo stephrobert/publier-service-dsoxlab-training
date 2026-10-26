@@ -1,0 +1,6 @@
+---
+title: "Limiter un abus tout en conservant les clients légitimes"
+description: |
+  Posez des limites de débit, de concurrence et de corps pour une API
+  dont les utilisateurs sont derrière un NAT, avec une clé de
+  regroupement que l'appelant ne peut pas forger.

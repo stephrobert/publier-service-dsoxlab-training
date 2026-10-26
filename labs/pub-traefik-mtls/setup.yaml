@@ -21,4 +21,3 @@
         IMG_TRAEFIK: "{{ socle_images.traefik.image }}:{{ socle_images.traefik.version }}@{{ socle_images.traefik.digest }}"
         IMG_WHOAMI: "{{ socle_images.whoami.image }}:{{ socle_images.whoami.version }}@{{ socle_images.whoami.digest }}"
         IMG_NGINX: "{{ socle_images.nginx.image }}:{{ socle_images.nginx.version }}@{{ socle_images.nginx.digest }}"
-

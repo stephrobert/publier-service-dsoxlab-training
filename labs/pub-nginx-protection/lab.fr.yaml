@@ -1,0 +1,6 @@
+---
+title: "Protéger une application avec Nginx"
+description: |
+  Durcissez un reverse proxy Nginx : en-têtes de sécurité, route
+  d'administration protégée, refus des fichiers cachés et liste
+  restreinte de méthodes HTTP.

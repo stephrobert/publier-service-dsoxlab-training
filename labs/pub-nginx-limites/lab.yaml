@@ -1,0 +1,30 @@
+---
+id: pub-nginx-limites
+title: "Limit abuse while keeping legitimate clients"
+section: nginx
+level: option-nginx
+description: |
+  Set rate, concurrency and body limits for an API whose users sit
+  behind a NAT, with a grouping key the caller cannot forge.
+skills:
+  - nginx
+  - rate-limiting
+  - http-security
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

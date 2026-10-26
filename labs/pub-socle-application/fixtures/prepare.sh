@@ -160,4 +160,3 @@ Navigateur automatisable fourni : $WORK/verifier_navigateur.py
 Verifications disponibles : parcours, cors, identite.
 TXT
 chown student:student /home/student/README-app
-

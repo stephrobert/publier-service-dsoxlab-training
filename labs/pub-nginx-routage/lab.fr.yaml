@@ -1,0 +1,6 @@
+---
+title: "Vérifier la sélection de server et location"
+description: |
+  Réparez une configuration dont les noms et les chemins se recouvrent,
+  fermez la porte aux noms d'hôte inconnus, et prédisez la règle de
+  sélection depuis la configuration active.

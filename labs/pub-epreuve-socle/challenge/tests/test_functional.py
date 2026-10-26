@@ -65,43 +65,43 @@ def _requete_https(
 
 
 def test_besoin_dossier_architecture(edge) -> None:
-    """Revue humaine assistée par des observations : ce contrôle ne juge
-    pas la pertinence du dossier (affaire de relecture humaine), il
-    vérifie seulement que l'apprenant a bien produit un dossier
-    substantiel qui couvre les quatre catégories attendues : les noms, les
-    flux, les identités et les responsabilités.
+    """Contrôle de PRÉSENCE, et qui le dit : la pertinence relève de la relecture.
+
+    CE QUE CE TEST NE FAIT PLUS, ET POURQUOI
+
+    Il exigeait 200 caractères et la présence de quelques mots attendus
+    (« tls », « certificat », « responsab »). Contre-test du 2026-10-25 : un
+    texte incohérent dépassant 200 caractères et saupoudré de ces mots-là
+    validait l'épreuve. Le contrôle ne mesurait donc pas le dossier, il
+    mesurait sa longueur et son vocabulaire, et surtout il transformait une
+    relecture humaine ABSENTE en épreuve réussie.
+
+    Un seuil de longueur et une liste de mots ne jugent pas un document.
+    Plutôt que de faire semblant, ce test se borne à ce qu'une machine peut
+    honnêtement affirmer : le dossier existe, il n'est pas vide, et il nomme
+    le service qu'il documente. Savoir s'il couvre réellement les noms, les
+    flux, les identités et les responsabilités est déclaré NON NOTÉ ici, et
+    relève de la relecture, ce que le scénario annonce à l'apprenant.
+
+    Le reste de l'épreuve, lui, se note : les trois tests qui suivent
+    comparent des faits à l'état réel de la machine, jamais à un texte.
     """
     res = edge.run(f"cat {DOSSIER}")
     assert res.rc == 0 and res.stdout.strip(), message(
         en=f"{DOSSIER} does not exist or is empty: the architecture dossier "
-        f"must be written down, not kept in your head.",
+        f"must be written down, not kept in your head. Its content is read "
+        f"by a human reviewer and is not graded here.",
         fr=f"{DOSSIER} n'existe pas ou est vide : le dossier d'architecture "
-        f"doit être écrit, pas resté dans votre tête.",
+        f"doit être écrit, pas resté dans votre tête. Son contenu est lu par "
+        f"un relecteur humain et n'est pas noté ici.",
     )
-    contenu = res.stdout
-    bas = contenu.lower()
-    assert len(contenu.strip()) >= 200, message(
-        en=f"{DOSSIER} is too short to cover names, flows, identities and "
-        f"responsibilities.",
-        fr=f"{DOSSIER} est trop court pour couvrir noms, flux, identités et "
-        f"responsabilités.",
-    )
-    assert NOM in bas, message(
-        en=f"{DOSSIER} never names the service it documents ({NOM}).",
-        fr=f"{DOSSIER} ne nomme jamais le service qu'il documente ({NOM}).",
-    )
-    a_flux = any(mot in bas for mot in ("443", "tls", "flux"))
-    a_identite = any(
-        mot in bas for mot in ("autorite", "autorité", "certificat", "ca ")
-    )
-    a_responsabilite = any(
-        mot in bas for mot in ("responsab", "responsib")
-    )
-    assert a_flux and a_identite and a_responsabilite, message(
-        en=f"{DOSSIER} must cover the TLS flow, the certificate authority "
-        f"identity, and who is responsible for what.",
-        fr=f"{DOSSIER} doit couvrir le flux TLS, l'identité de l'autorité de "
-        f"certification, et les responsabilités de chacun.",
+    assert NOM in res.stdout.lower(), message(
+        en=f"{DOSSIER} never names the service it documents ({NOM}). This is "
+        f"the only thing about the dossier a machine can check; everything "
+        f"else is left to the human review the scenario announces.",
+        fr=f"{DOSSIER} ne nomme jamais le service qu'il documente ({NOM}). "
+        f"C'est la seule chose qu'une machine puisse contrôler du dossier ; "
+        f"le reste est laissé à la relecture humaine que le scénario annonce.",
     )
 
 
@@ -181,21 +181,49 @@ def test_incident_diagnostic_et_reparation(edge, poste, etat, secret) -> None:
         fr=f"{INCIDENT_YAML} nomme la couche {couche!r}, mais l'incident réel "
         f"est sur une autre couche.",
     )
-    composant_et_explication = f"{composant} {explication}"
-    assert secret["mot_cle"] in composant_et_explication, message(
-        en=f"{INCIDENT_YAML} never names the actual faulty component, nor "
-        f"explains the incident from what was really observed.",
-        fr=f"{INCIDENT_YAML} ne nomme jamais le composant réellement fautif, "
-        f"ni n'explique l'incident à partir de ce qui a été réellement "
-        f"observé.",
+    # CE QUI SE NOTE EST LE CHAMP STRUCTURE, PAS LA PROSE.
+    #
+    # La version precedente cherchait le mot-cle dans `composant` ET
+    # `explication` reunis. Deux consequences, toutes deux mauvaises : le
+    # champ structure pouvait rester VIDE pendant que de la prose libre
+    # emportait le point, et un apprenant qui expliquait proprement ce qu'il
+    # avait ECARTE se faisait recaler par le controle « tout citer a la fois
+    # n'est pas un diagnostic », alors qu'enoncer ses hypotheses rejetees est
+    # precisement ce qu'on attend d'un diagnostic.
+    #
+    # `explication` reste demandee par le scenario et lue par un relecteur :
+    # elle n'est simplement pas notee ici.
+    assert secret["mot_cle"] in composant, message(
+        en=f"{INCIDENT_YAML}'s 'composant' field never names the actual "
+        f"faulty component. Name it in that field: the free-text "
+        f"'explication' is read by a human reviewer and is not graded here.",
+        fr=f"Le champ 'composant' de {INCIDENT_YAML} ne nomme jamais le "
+        f"composant réellement fautif. Nommez-le dans ce champ : le texte "
+        f"libre 'explication' est lu par un relecteur humain et n'est pas "
+        f"noté ici.",
     )
     for autre in secret["mots_cle_autres"]:
-        assert autre not in composant_et_explication, message(
-            en=f"{INCIDENT_YAML} also names an unrelated layer ({autre!r}): "
-            f"naming every layer at once is not a diagnosis.",
-            fr=f"{INCIDENT_YAML} nomme aussi une couche sans rapport "
-            f"({autre!r}) : tout citer à la fois n'est pas un diagnostic.",
+        assert autre not in composant, message(
+            en=f"{INCIDENT_YAML}'s 'composant' field also names an unrelated "
+            f"layer ({autre!r}): naming every layer at once is not a "
+            f"diagnosis. Ruled-out hypotheses belong in 'explication'.",
+            fr=f"Le champ 'composant' de {INCIDENT_YAML} nomme aussi une "
+            f"couche sans rapport ({autre!r}) : tout citer à la fois n'est "
+            f"pas un diagnostic. Les hypothèses écartées ont leur place dans "
+            f"'explication'.",
         )
+
+    # PRESENCE, pas contenu : le scenario demande une explication ecrite, et
+    # on verifie qu'elle existe. Ce qu'elle VAUT est affaire de relecture, et
+    # ce test ne pretend pas en juger.
+    assert explication, message(
+        en=f"{INCIDENT_YAML} carries no 'explication'. Write how you reached "
+        f"the diagnosis: it is read by a human reviewer, and its content is "
+        f"not graded here, but its absence is.",
+        fr=f"{INCIDENT_YAML} ne porte aucune 'explication'. Écrivez comment "
+        f"vous êtes arrivé au diagnostic : elle est lue par un relecteur "
+        f"humain, son contenu n'est pas noté ici, mais son absence l'est.",
+    )
 
     edge_ip = etat["edge_ip"]
     for essai in range(3):

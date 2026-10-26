@@ -1,0 +1,6 @@
+---
+title: "Renouveler et servir un certificat Nginx"
+description: |
+  Obtenez les certificats de deux noms par la voie stable du build open
+  source, rechargez ce qui est nécessaire, et prouvez que le
+  renouvellement est réellement servi, après un reload puis un reboot.

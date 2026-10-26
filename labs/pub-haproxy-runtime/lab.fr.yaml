@@ -1,0 +1,7 @@
+---
+title: "Modifier l'etat runtime avec des droits limites"
+description: |
+  Separer la lecture de l'etat de l'action sur lui, donner a chacune son
+  socket et son groupe, faire survivre une decision prise a chaud a un
+  rechargement par le fichier d'etat de HAProxy, et livrer un retour au
+  nominal que la validation execute.

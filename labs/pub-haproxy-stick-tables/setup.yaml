@@ -1,0 +1,63 @@
+---
+- name: Préparer le lab pub-haproxy-stick-tables
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer HAProxy depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-haproxy.yml
+
+    - name: Poser une table qui se remplit et ne protège de rien
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+- name: Outils du client indépendant
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi interroger le service depuis l'extérieur
+      ansible.builtin.apt:
+        name: [curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Un générateur de rafales, qui compte les codes rendus
+      ansible.builtin.copy:
+        dest: /usr/local/bin/rafale
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/usr/bin/env python3
+          # rafale <ip> <nombre> [en-tete-client]
+          #
+          # Envoie <nombre> requêtes aussi vite que possible et affiche
+          # « <code> <compte> » par ligne.
+          #
+          # Les requêtes sont séquentielles et non parallèles : une cadence
+          # se mesure par un nombre de requêtes dans une fenêtre, et des
+          # requêtes parallèles rendraient la mesure dépendante du nombre de
+          # fils plutôt que du débit demandé.
+          import collections
+          import http.client
+          import sys
+
+          ip = sys.argv[1]
+          nombre = int(sys.argv[2])
+          entete = sys.argv[3] if len(sys.argv) > 3 else None
+
+          comptes = collections.Counter()
+          for _ in range(nombre):
+              try:
+                  liaison = http.client.HTTPConnection(ip, 80, timeout=10)
+                  entetes = {"X-Client-Id": entete} if entete else {}
+                  liaison.request("GET", "/", headers=entetes)
+                  reponse = liaison.getresponse()
+                  reponse.read()
+                  comptes[str(reponse.status)] += 1
+                  liaison.close()
+              except OSError as souci:
+                  comptes[type(souci).__name__] += 1
+          for cle, compte in sorted(comptes.items()):
+              print(f"{cle} {compte}")

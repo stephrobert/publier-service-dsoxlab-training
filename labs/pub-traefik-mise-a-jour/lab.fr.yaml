@@ -1,0 +1,6 @@
+---
+title: "Mettre à jour Traefik et prouver le retour arrière"
+description: |
+  Faites passer le proxy Traefik en service de la v3.7.6 à la v3.7.15,
+  vérifiez sa configuration en direct, et prouvez que la version
+  précédente peut être rétablie.

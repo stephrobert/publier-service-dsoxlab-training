@@ -1,0 +1,6 @@
+---
+title: "Diagnostiquer une panne HAProxy inconnue"
+description: |
+  Une panne tiree au hasard parmi cinq, plus du bruit qui n'explique rien.
+  Retablir le service sans desactiver ce qui le protege : deux canaris cables
+  dans la pile rendent la correction paresseuse mesurable.

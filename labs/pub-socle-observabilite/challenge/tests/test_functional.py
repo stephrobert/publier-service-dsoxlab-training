@@ -37,8 +37,8 @@ def etat(edge):
 def _lire_journal(edge) -> list[dict]:
     brut = edge.run(f"sudo cat {ACCES_LOG}").stdout
     evts = []
-    for ligne in brut.splitlines():
-        ligne = ligne.strip()
+    for brute in brut.splitlines():
+        ligne = brute.strip()
         if not ligne:
             continue
         try:

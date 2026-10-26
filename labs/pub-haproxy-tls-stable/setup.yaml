@@ -1,0 +1,73 @@
+---
+- name: Préparer le lab pub-haproxy-tls-stable
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer HAProxy depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-haproxy.yml
+
+    - name: Installer Docker, Compose et les outils du lab
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les images épinglées
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    # La plateforme partagée exige les ports 80, 443, 14000 et 15000 libres
+    # avant de se poser, et refuse de continuer sinon. Un second `dsoxlab run`
+    # trouverait HAProxy sur le 80 et Pebble sur le 14000 : on défait donc
+    # avant de reposer, plutôt que de laisser le refus ressembler à une panne.
+    - name: Libérer le port 80 avant de reposer la plateforme
+      ansible.builtin.systemd:
+        name: haproxy
+        state: stopped
+      failed_when: false
+
+    - name: Vérifier si une plateforme ACME traîne déjà
+      ansible.builtin.stat:
+        path: /opt/pub-traefik-acme/platform.yaml
+      register: plateforme_precedente
+
+    - name: Défaire la plateforme ACME précédente, si elle existe
+      ansible.builtin.command: >-
+        docker compose -f /opt/pub-traefik-acme/platform.yaml down
+      when: plateforme_precedente.stat.exists
+      changed_when: true
+      failed_when: false
+
+    - name: Préparer Pebble et son répondeur de défis
+      ansible.builtin.script: ../pub-traefik-acme/fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_TRAEFIK: >-
+          {{ socle_images.traefik.image }}:{{ socle_images.traefik.version
+          }}@{{ socle_images.traefik.digest }}
+        IMG_WHOAMI: >-
+          {{ socle_images.whoami.image }}:{{ socle_images.whoami.version
+          }}@{{ socle_images.whoami.digest }}
+        IMG_PEBBLE: >-
+          {{ socle_images.pebble.image }}:{{ socle_images.pebble.version
+          }}@{{ socle_images.pebble.digest }}
+        IMG_CHALLTESTSRV: >-
+          {{ socle_images.challtestsrv.image
+          }}:{{ socle_images.challtestsrv.version
+          }}@{{ socle_images.challtestsrv.digest }}
+
+    - name: Poser HAProxy en HTTP, l'application, et le client ACME
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_LEGO: >-
+          {{ socle_images.lego.image }}:{{ socle_images.lego.version
+          }}@{{ socle_images.lego.digest }}
+
+    - name: Précharger l'image du client ACME, pour que le cycle ne la télécharge pas
+      # Un renouvellement qui commence par un téléchargement de 30 Mo mesure
+      # le réseau avant de mesurer ACME, et son premier échec est illisible.
+      ansible.builtin.command: >-
+        docker pull {{ socle_images.lego.image }}:{{ socle_images.lego.version
+        }}@{{ socle_images.lego.digest }}
+      changed_when: false

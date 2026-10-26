@@ -1,0 +1,39 @@
+---
+- name: Préparer le lab pub-socle-cache-delais
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: De quoi lire une politique
+      ansible.builtin.apt:
+        name: [python3-yaml, curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Déposer l'application métier
+      ansible.builtin.copy:
+        src: fixtures/application.py
+        dest: /tmp/pub-cache-application.py
+        mode: "0644"
+
+    - name: Déposer la passerelle paramétrable
+      ansible.builtin.copy:
+        src: fixtures/passerelle.py
+        dest: /tmp/pub-cache-passerelle.py
+        mode: "0644"
+
+    - name: Poser la politique rapide et dangereuse
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+- name: Outils du client indépendant
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi mesurer les réponses
+      ansible.builtin.apt:
+        name: [curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600

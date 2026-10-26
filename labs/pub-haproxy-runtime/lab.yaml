@@ -1,0 +1,31 @@
+---
+id: pub-haproxy-runtime
+title: "Change the runtime state with limited rights"
+section: haproxy
+level: option-haproxy
+description: |
+  Separate reading the state from acting on it, give each its own socket and
+  group, make a runtime decision survive a reload through HAProxy's own state
+  file, and deliver a return to nominal that the validation runs.
+skills:
+  - haproxy
+  - runtime-api
+  - least-privilege
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

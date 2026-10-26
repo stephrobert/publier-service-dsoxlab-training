@@ -1,0 +1,31 @@
+---
+id: pub-haproxy-routage
+title: "Route with ACLs and a map, without a leaking default"
+section: haproxy
+level: option-haproxy
+description: |
+  Repair a routing table whose four rules are each correct on their own and
+  wrong together, then show that the map really decides and that a runtime
+  change to it does not survive a reload.
+skills:
+  - haproxy
+  - routing
+  - acl
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

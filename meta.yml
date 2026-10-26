@@ -44,7 +44,7 @@ infra:
   cidr: 10.10.110.0/24
   hosts:
     - name: edge.lab
-      distro: ubuntu24
+      distro: debian13
       role: edge
       ram_mb: 4096
       vcpu: 2
@@ -52,11 +52,30 @@ infra:
     # Le client ne fait que consommer : dig, curl, openssl. Ajouté EN FIN DE LISTE,
     # l'IP et la MAC d'un hôte dérivant de sa position.
     - name: poste.lab
-      distro: ubuntu24
+      distro: debian13
       role: poste
       ram_mb: 1024
       vcpu: 1
       disk_gb: 10
+    # Le SECOND point d'entrée, et il ne sert qu'à `pub-haproxy-ha` : prouver
+    # un domaine de panne demande deux machines, et une seule ne prouve que
+    # la perte d'un processus.
+    #
+    # Ajouté EN FIN DE LISTE pour la même raison que `poste.lab` : l'IP et la
+    # MAC d'un hôte dérivent de sa POSITION (`cidrhost(cidr, index + 11)`
+    # dans le template KVM). L'insérer ailleurs décalerait l'adresse de
+    # `poste.lab`, et tout ce qui la cite.
+    #
+    # Le prix est réel et se paie à chaque `provision` de ce catalogue : une
+    # troisième VM, soit 7 Go de mémoire au total au lieu de 5. Les labs qui
+    # n'en ont pas besoin la démarrent quand même, le contrat `infra:` étant
+    # commun au dépôt.
+    - name: edge2.lab
+      distro: debian13
+      role: edge
+      ram_mb: 2048
+      vcpu: 1
+      disk_gb: 20
 
 sections:
   - id: socle
@@ -77,6 +96,8 @@ sections:
       - pub-socle-observabilite
       - pub-socle-mise-en-service
       - pub-socle-depannage
+      - pub-socle-securite
+      - pub-socle-cache-delais
       - pub-epreuve-socle
   - id: traefik
     title: "Traefik: publish, protect and operate a reverse proxy"
@@ -104,10 +125,33 @@ sections:
     description: "Publish HTTPS with HAProxy native ACME and observe it with Prometheus."
     labs:
       - pub-haproxy-tls
+      - pub-haproxy-protection
       - pub-haproxy-observabilite
+      - pub-haproxy-installation
+      - pub-haproxy-routage
+      - pub-haproxy-sante
+      - pub-haproxy-tls-stable
+      - pub-haproxy-confiance
+      - pub-haproxy-stick-tables
+      - pub-haproxy-flux-delais
+      - pub-haproxy-runtime
+      - pub-haproxy-depannage
+      - pub-haproxy-mise-a-jour
+      - pub-haproxy-ha
   - id: nginx
     title: "Nginx: publish and protect web services"
     description: "Publish an application with Nginx and protect it."
     labs:
       - pub-nginx-publication
+      - pub-nginx-installation
+      - pub-nginx-routage
+      - pub-nginx-statique
+      - pub-nginx-upstream
+      - pub-nginx-tls
+      - pub-nginx-limites
+      - pub-nginx-flux-longs
+      - pub-nginx-cache
+      - pub-nginx-depannage
+      - pub-nginx-mise-a-jour
       - pub-nginx-protection
+      - pub-nginx-observation

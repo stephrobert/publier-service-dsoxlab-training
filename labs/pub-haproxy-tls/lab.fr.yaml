@@ -1,0 +1,6 @@
+---
+title: "Publier en HTTPS avec l'ACME natif de HAProxy"
+description: |
+  Terminez TLS avec HAProxy 3.4, obtenez et renouvelez un certificat
+  Pebble avec le client ACME natif, encore expérimental, et gardez le
+  service disponible pendant le renouvellement.

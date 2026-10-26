@@ -9,7 +9,122 @@ un incrément MINEUR ajoute des labs, un CORRECTIF corrige un énoncé ou un tes
 sans changer ce qu'un lab prouve, et un incrément MAJEUR renomme ou retire des
 labs, ce qui casse la progression déjà enregistrée des apprenants.
 
-## [1.0.0] - 2026-10-24
+## [1.0.0] - 2026-10-26
+
+### Ajouté le 2026-10-26
+
+- **Le parcours Nginx au complet, dix labs**, et **le parcours HAProxy au
+  complet, onze labs**. Les deux séries vont de l'installation au dépannage
+  et à la mise à jour, et chacune se termine par un lab qui redémarre la
+  machine : un service qui répond aujourd'hui et ne revient pas demain n'est
+  pas installé, il est lancé.
+
+  Chaque lab porte son corrigé de référence chiffré, quatre indices
+  bilingues à coût croissant, et des tests qui mesurent l'état du système
+  plutôt que les commandes tapées. **Aucun des vingt et un n'est attesté**,
+  et c'est écrit ici plutôt que laissé à découvrir : ils ont été éprouvés
+  par relecture et par exécution de leurs composants pris séparément, pas de
+  bout en bout sur une VM.
+
+- **Une seconde machine d'entrée, `edge2.lab`**, ajoutée en fin de
+  `infra.hosts`. Elle ne sert qu'à `pub-haproxy-ha` : prouver un domaine de
+  panne demande deux machines, et une seule ne prouve que la perte d'un
+  processus. Le contrat `infra:` étant commun au dépôt, tous les labs
+  démarrent désormais trois VM au lieu de deux, soit 7 Go de mémoire au lieu
+  de 5.
+
+### Corrigé le 2026-10-26
+
+- **`pub-nginx-tls` affirmait qu'une redirection globale vers HTTPS empêche
+  la validation d'un défi HTTP-01.** C'est trop affirmatif : le validateur
+  de Let's Encrypt suit les redirections, jusqu'à dix, vers les ports 80 et
+  443, et ne vérifie pas le certificat de la cible. L'énoncé dit maintenant
+  ce qui reste vrai quelle que soit l'autorité, à savoir qu'une redirection
+  place le défi hors du contrôle de celui qui l'écrit, qu'elle échoue à la
+  première émission puisque rien n'écoute encore en 443, et qu'elle casse
+  dès que la cible sort des deux ports autorisés.
+
+- **`pub-nginx-tls` livrait un corrigé injouable.** Il employait `http2 on;`,
+  forme qui n'existe qu'à partir de Nginx 1.25.1, alors que les labs
+  tournent sur le paquet d'Ubuntu 24.04, soit 1.24. Une directive inconnue
+  n'est pas ignorée : elle fait échouer `nginx -t`, donc tout le fichier.
+
+### Ajouté le 2026-10-25
+
+- **Deux labs que des pages publiées citaient déjà et qui n'existaient pas** :
+  `pub-haproxy-protection` et `pub-nginx-observation`. Un lecteur qui suivait
+  `nginx-proteger-observer` ou `haproxy-proteger-observer` était envoyé vers
+  un exercice introuvable. Les deux arrivent avec un corrigé de référence
+  chiffré et quatre indices bilingues à coût croissant ; aucun des deux n'est
+  encore attesté, et le CHANGELOG le dit plutôt que de le laisser découvrir.
+
+  `pub-haproxy-protection` porte sur ce que HAProxy sait faire et que le lab
+  Nginx ne couvre pas : la limite de débit par source, avec une
+  `stick-table`. Son test central prouve trois choses à la fois, parce
+  qu'aucune ne suffit seule : une rafale de 40 requêtes doit rencontrer des
+  429 **et** des 200 (des 429 seuls diraient une porte fermée, des 200 seuls
+  une absence de limite), et le service doit revenir une fois la fenêtre
+  écoulée, parce qu'une limite de débit relâche.
+
+  `pub-nginx-observation` repose sur une idée : observer n'est pas écrire des
+  champs. Un journal où `request_time` vaudrait toujours `0.000` serait
+  structuré, parsable et inutile. Le backend sert donc une page qui dort deux
+  secondes et une qui répond 503, et les tests confrontent la valeur
+  journalisée à ces faits.
+
+- **Les indices des quatre labs d'option qui n'en avaient pas**
+  (`pub-nginx-publication`, `pub-nginx-protection`, `pub-haproxy-tls`,
+  `pub-haproxy-observabilite`), et les sept `lab.fr.yaml` manquants. Les deux
+  épreuves chronométrées restent sans indices : leur scénario annonce qu'il
+  n'en est fourni aucun, donc leur absence est une règle du lab et non un
+  oubli.
+
+- **`scripts/chiffrer-solutions.sh`**, que tous les catalogues frères avaient.
+  Les corrigés n'existaient ici que chiffrés : en lire un demandait un
+  `ansible-vault view` à la main, en modifier un un aller-retour que rien ne
+  guidait. Une solution dont le clair n'a pas changé n'est pas rechiffrée :
+  le chiffré change à chaque passage, et le recalculer sans raison ferait
+  passer le lab pour modifié et son attestation pour périmée.
+
+- **Un hook `ruff`.** La section `[tool.ruff]` était dans le pyproject depuis
+  l'origine, mais aucun hook ne l'appelait : onze erreurs dormaient dans
+  quatre labs, dont un `zip()` sans `strict=` et une variable nommée `l`. Une
+  configuration que rien ne joue n'est pas une règle, c'est une intention.
+  Les onze sont corrigées.
+
+### Corrigé le 2026-10-25
+
+- **`pub-traefik-mtls` concluait sur « un statut différent de 200 ».** Mesuré
+  par contre-test : ce critère tient **sept situations sur dix** pour un refus
+  TLS, dont un service éteint, un fichier de certificat illisible et un 404 de
+  routage. Avec le backend invalide répondant 404, le test du backend passait
+  au vert sans avoir démontré le moindre refus. Les tests lisent désormais
+  aussi le code de sortie de curl, qui sépare ce que le code HTTP confond, et
+  `tests/test_discriminant_mtls.py` rejoue les dix situations à chaque commit.
+
+- **`pub-epreuve-socle` notait deux choses qu'il ne pouvait pas juger.** Le
+  dossier d'architecture était noté à un seuil de 200 caractères et à quelques
+  mots attendus : un texte incohérent assez long et saupoudré de « tls »,
+  « certificat » et « responsab » validait l'épreuve. Et le diagnostic
+  cherchait son mot-clé dans `composant` **et** `explication` réunis, si bien
+  que le champ structuré pouvait rester vide pendant que de la prose libre
+  emportait le point, tandis qu'un apprenant qui écrivait proprement les
+  hypothèses qu'il avait **écartées** se faisait recaler par le contrôle
+  « tout citer à la fois n'est pas un diagnostic ». La note porte désormais
+  sur les champs structurés comparés au secret ; la prose est exigée présente
+  et déclarée non notée, et les deux scénarios annoncent la distinction.
+
+- **`pub-socle-exposition` classait « fermé » un service joignable.** Sa sonde
+  lisait le corps de la réponse, donc un service répondant **204 No Content**
+  était rapporté comme un port fermé. Elle lit maintenant `%{http_code}`.
+
+### Manques connus
+
+- `pub-haproxy-protection` et `pub-nginx-observation` n'ont aucune entrée dans
+  `validation-labs.json` : les attester demande les machines du lab et une
+  campagne dédiée. Les trois labs corrigés ci-dessus, et les quatre dont les
+  tests ont été touchés par la passe de lint, sont à rejouer pour la même
+  raison.
 
 ### Ajouté
 

@@ -1,0 +1,6 @@
+---
+title: "Observer un reverse proxy Nginx"
+description: |
+  Exposez un point d'état réservé à la boucle locale, produisez un journal
+  d'accès structuré dont les durées mesurent réellement, et enregistrez les
+  erreurs de l'amont comme telles.

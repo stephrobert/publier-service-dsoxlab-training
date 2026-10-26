@@ -1,0 +1,5 @@
+---
+title: "Installer Nginx et maîtriser validation et reload"
+description: |
+  Installez un Nginx vérifiable, organisez sa configuration, et montrez
+  ce qui distingue un reload, un restart et un reboot.
