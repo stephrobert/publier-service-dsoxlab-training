@@ -1,0 +1,21 @@
+---
+- name: Préparer le lab pub-haproxy-protection
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer Docker, Compose et les outils du lab
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les images épinglées
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    - name: Poser HAProxy sans protection et le backend
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_HAPROXY: >-
+          {{ socle_images.haproxy.image }}:{{ socle_images.haproxy.version
+          }}@{{ socle_images.haproxy.digest }}

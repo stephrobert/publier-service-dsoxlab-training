@@ -1,0 +1,121 @@
+---
+# Installe Nginx DEPUIS LE DÉPÔT DE L'ÉDITEUR, à la version que
+# `shared/images.yml` déclare.
+#
+# POURQUOI PAS LE PAQUET DE LA DISTRIBUTION
+#
+# Debian 13 livre Nginx 1.26, soit cinq branches derrière la mainline. Le
+# catalogue enseigne la dernière version publiée, et il la déclare à UN seul
+# endroit : `shared/images.yml`. Les labs en conteneur y lisent une image,
+# les labs système y lisent un numéro de paquet. Deux formes, une version.
+#
+# CE QUE LE PAQUET AMONT NE POSE PAS, ET QU'IL FAUT SAVOIR
+#
+# Ni `sites-available`, ni `sites-enabled`. Ces deux répertoires sont une
+# convention du paquet *Debian*, pas du logiciel : le paquet Debian ajoute
+# un `include sites-enabled/*` au fichier principal et laisse activer un
+# site par un lien symbolique.
+#
+# Le paquet amont livre `include /etc/nginx/conf.d/*.conf;` et un
+# `conf.d/default.conf` de démonstration. Un lab qui écrirait dans
+# `sites-available` écrirait dans un répertoire que personne ne lit, et son
+# service ne servirait rien sans que rien ne le dise.
+#
+# L'utilisateur du service est **`nginx`**, et non `www-data`. Mesuré le
+# 2026-10-26 sur trixie : `user nginx;` en tête de `/etc/nginx/nginx.conf`.
+# Tout ce qui donne des droits de lecture à Nginx vise donc ce compte.
+#
+# L'EMPREINTE DE LA CLÉ EST VÉRIFIÉE, ET ELLE A CHANGÉ
+#
+# La valeur ci-dessous a été relevée en important la clé servie par
+# nginx.org le 2026-10-26. Les documentations qui circulent citent encore
+# `573BFD6B...`, qui est l'ANCIENNE clé de signature : la recopier fait
+# échouer la vérification. C'est la raison pour laquelle l'empreinte est
+# contrôlée ici plutôt que supposée.
+
+- name: Lire la version déclarée par le catalogue
+  ansible.builtin.include_vars:
+    file: ../../shared/images.yml
+    name: socle_images
+
+- name: De quoi parler à un dépôt signé
+  ansible.builtin.apt:
+    name: [curl, gnupg, ca-certificates]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: La clé de signature de nginx.org
+  ansible.builtin.shell: >-
+    set -o pipefail;
+    curl -fsSL https://nginx.org/keys/nginx_signing.key
+    | gpg --dearmor --yes -o /usr/share/keyrings/nginx-archive-keyring.gpg
+  args:
+    executable: /bin/bash
+    creates: /usr/share/keyrings/nginx-archive-keyring.gpg
+
+- name: Relever l'empreinte de chaque CLÉ du trousseau
+  # `/^pub:/` d'abord : `--with-colons` emet un `fpr:` pour la cle ET pour
+  # chacune de ses sous-cles. Lister toutes les empreintes fait croire a
+  # plusieurs cles la ou il n'y en a qu'une avec sa sous-cle de
+  # chiffrement. On ne retient donc que l'empreinte qui SUIT un `pub:`.
+  # `exit` apres la premiere ligne serait une faute : le fichier servi par
+  # nginx.org porte TROIS cles, dont l'ancienne RSA 2048 de 2011 que la
+  # documentation de l'editeur cite encore. Ne lire que la premiere revient
+  # a comparer la bonne valeur a une cle choisie par l'ordre du fichier.
+  ansible.builtin.shell: >-
+    set -o pipefail;
+    gpg --show-keys --with-colons /usr/share/keyrings/nginx-archive-keyring.gpg
+    | awk -F: '/^pub:/{suivante=1} suivante && /^fpr:/{print $10; suivante=0}'
+  args:
+    executable: /bin/bash
+  register: empreintes_nginx
+  changed_when: false
+
+- name: La clé qui signe les paquets est bien dans le trousseau
+  # Un dépôt signé par une clé qu'on n'a pas vérifiée est un dépôt non
+  # signé avec une étape de plus. On contrôle donc la PRÉSENCE de la clé
+  # active, relevée le 2026-10-26 en interrogeant le dépôt, et non la
+  # première empreinte venue.
+  ansible.builtin.assert:
+    that:
+      - '"8540A6F18833A80E9C1653A42FD21310B49F6B46" in empreintes_nginx.stdout_lines'
+    fail_msg: >-
+      Le trousseau servi par nginx.org ne contient pas la clé qui signe les
+      paquets. Empreintes trouvées : {{ empreintes_nginx.stdout_lines }}.
+      Soit l'éditeur a changé de clé, soit la réponse ne vient pas de lui.
+      Dans les deux cas, on ne continue pas.
+
+- name: Le dépôt mainline de l'éditeur
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg]
+      http://nginx.org/packages/mainline/debian
+      {{ ansible_distribution_release }} nginx
+    filename: nginx
+    state: present
+    update_cache: true
+
+- name: Nginx, à la version que le catalogue déclare
+  # La version est ÉPINGLÉE, et non prise au fil de l'eau : la mainline
+  # publie souvent, et un lab dont la version bouge rend faux tout passage
+  # de leçon qui cite un comportement daté.
+  ansible.builtin.apt:
+    name: "nginx={{ socle_images.nginx.version }}-1~{{ ansible_distribution_release }}"
+    state: present
+    allow_downgrade: true
+
+- name: Retirer le site de démonstration de l'éditeur
+  # Il répond sur le port 80 et ferait passer sans travail le premier
+  # contrôle de plusieurs labs.
+  ansible.builtin.file:
+    path: /etc/nginx/conf.d/default.conf
+    state: absent
+
+- name: Ce qui tourne est bien ce qui était déclaré
+  ansible.builtin.command: nginx -v
+  register: version_nginx
+  changed_when: false
+  failed_when: >-
+    ('nginx/' ~ socle_images.nginx.version) not in (version_nginx.stderr | default(''))
+    and ('nginx/' ~ socle_images.nginx.version) not in (version_nginx.stdout | default(''))

@@ -1,0 +1,35 @@
+---
+- name: Préparer le lab pub-nginx-flux-longs
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer Nginx depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-nginx.yml
+
+    - name: Déposer les trois backends
+      ansible.builtin.copy:
+        src: fixtures/backends.py
+        dest: /tmp/pub-flux-backends.py
+        mode: "0644"
+
+    - name: Poser les trois transports derrière un proxy qui les ignore
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+- name: Outils du client indépendant
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi parler gRPC et suivre un flux
+      ansible.builtin.apt:
+        name: [curl, python3-grpcio]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Le client gRPC du lab
+      ansible.builtin.copy:
+        src: fixtures/client_grpc.py
+        dest: /usr/local/bin/client-grpc
+        mode: "0755"

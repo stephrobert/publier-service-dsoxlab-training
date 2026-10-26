@@ -21,4 +21,3 @@ exposée en TLS sur `edge.lab`.
   lui-même une décision périmée.
 - Dire par écrit ce qui, dans cette recette, n'était que simulé, et quelles
   preuves une vraie mise en service exposée sur Internet exigerait encore.
-

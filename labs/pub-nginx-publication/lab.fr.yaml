@@ -1,0 +1,6 @@
+---
+title: "Publier une application avec Nginx"
+description: |
+  Configurez Nginx en reverse proxy devant une application locale, en
+  préservant l'hôte d'origine, le chemin de la requête et le protocole
+  de transfert.

@@ -70,8 +70,20 @@ openssl x509 -req -in "$CERTS/chaine.csr" -CA "$CERTS/rogue.pem" -CAkey "$CERTS/
 openssl genrsa -out "$CERTS/date.key" 2048 2>/dev/null
 openssl req -new -key "$CERTS/date.key" -subj "/CN=$NOM" -out "$CERTS/date.csr"
 printf 'subjectAltName=DNS:%s\n' "$NOM" > "$CERTS/date.ext"
+# Un certificat REELLEMENT perime, par des dates explicites.
+#
+# `-days -1` marchait sur l'OpenSSL d'Ubuntu 24.04 et echoue sur celui de
+# Debian 13 : « Error: end date before start date ». OpenSSL 3.5 refuse une
+# duree negative, et c'est defendable, une duree ne se compte pas a
+# l'envers.
+#
+# `-not_before` et `-not_after` disent la meme chose sans ruse : le
+# certificat a ete valide trente jours, et il a expire hier.
+DEBUT_PERIME="$(date -u -d '-30 days' +%Y%m%d%H%M%SZ)"
+FIN_PERIME="$(date -u -d '-1 day' +%Y%m%d%H%M%SZ)"
 openssl x509 -req -in "$CERTS/date.csr" -CA "$CERTS/inter.pem" -CAkey "$CERTS/inter.key" \
-  -CAcreateserial -days -1 -sha256 -extfile "$CERTS/date.ext" -out "$CERTS/date.crt"
+  -CAcreateserial -not_before "$DEBUT_PERIME" -not_after "$FIN_PERIME" \
+  -sha256 -extfile "$CERTS/date.ext" -out "$CERTS/date.crt"
 cat "$CERTS/date.crt" "$CERTS/inter.pem" > "$CERTS/date-chain.pem"
 
 chmod 0644 "$CERTS"/*.pem "$CERTS"/*.crt "$CERTS"/*.key

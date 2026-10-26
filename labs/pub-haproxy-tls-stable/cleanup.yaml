@@ -1,0 +1,89 @@
+---
+- name: Défaire le lab pub-haproxy-tls-stable
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter l'application et la relance de la plateforme
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - pub-haproxy-tls-stable-service
+        - pub-haproxy-tls-stable-acme
+      failed_when: false
+
+    - name: Arrêter HAProxy et le laisser comme il a été trouvé
+      ansible.builtin.systemd:
+        name: haproxy
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Défaire la plateforme ACME
+      ansible.builtin.command: >-
+        docker compose -f /opt/pub-traefik-acme/platform.yaml down
+      changed_when: true
+      failed_when: false
+
+    - name: Retirer le réseau de la plateforme
+      ansible.builtin.command: docker network rm acme-renewal
+      changed_when: true
+      failed_when: false
+
+    - name: Retirer ce que le lab a déposé
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-haproxy-tls-stable
+        - /opt/pub-traefik-acme
+        - /etc/systemd/system/pub-haproxy-tls-stable-service.service
+        - /etc/systemd/system/pub-haproxy-tls-stable-acme.service
+        - /etc/tmpfiles.d/pub-haproxy-tls-stable.conf
+        - /etc/haproxy/certs
+        - /run/haproxy
+        - /var/log/dsoxlab-pub-haproxy-tls-stable.log
+        - /var/log/dsoxlab-pub-traefik-acme.log
+
+    - name: HAProxy est-il seulement installé ?
+      # Apres un retour a la base figee, la VM n'a jamais vu HAProxy :
+      # /etc/haproxy n'existe pas, et reecrire une configuration dedans
+      # echoue sur « Destination directory does not exist ». Un nettoyage ne
+      # remet en etat que ce qui existe.
+      ansible.builtin.stat:
+        path: /etc/haproxy
+      register: dossier_haproxy
+
+    - name: Ramener la configuration à un fichier sans mission
+      ansible.builtin.copy:
+        dest: /etc/haproxy/haproxy.cfg
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          global
+              log /dev/log local0
+              chroot /var/lib/haproxy
+              user haproxy
+              group haproxy
+              daemon
+
+          defaults
+              log     global
+              option  dontlognull
+              timeout connect 5s
+              timeout client  30s
+              timeout server  30s
+      when: dossier_haproxy.stat.exists
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop: [80, 443, 14000, 15000, 18151]

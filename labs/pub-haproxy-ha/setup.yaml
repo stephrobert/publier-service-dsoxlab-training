@@ -1,0 +1,128 @@
+---
+- name: Poser le premier point d'entrée, et la PKI
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer HAProxy depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-haproxy.yml
+
+    - name: Le point d'entrée complet, keepalived installé et non configuré
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+    - name: Récupérer l'autorité et le certificat de service
+      # Les deux points d'entrée doivent présenter LE MEME certificat. On le
+      # génère une fois et on le recopie, plutôt que d'en générer deux :
+      # deux certificats rendraient la bascule visible côté client, ce
+      # qu'elle doit justement ne pas être.
+      ansible.builtin.slurp:
+        src: "/opt/pub-haproxy-ha/pki/{{ item }}"
+      register: materiel
+      loop: [ca.crt, service.pem]
+
+- name: Poser le second point d'entrée, avec la MEME PKI
+  hosts: lab_pair
+  become: true
+  tasks:
+    - name: Installer HAProxy depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-haproxy.yml
+
+    - name: Le répertoire de la PKI
+      ansible.builtin.file:
+        path: /opt/pub-haproxy-ha/pki
+        state: directory
+        owner: student
+        group: student
+        mode: "0755"
+
+    - name: Déposer l'autorité et le certificat du premier
+      ansible.builtin.copy:
+        dest: "/opt/pub-haproxy-ha/pki/{{ item.item }}"
+        content: "{{ item.content | b64decode }}"
+        owner: student
+        group: student
+        mode: "0644"
+      loop: "{{ hostvars[groups['lab_target'][0]].materiel.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Le point d'entrée complet, avec la PKI fournie
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        PKI_FOURNIE: "1"
+
+- name: Outils du client indépendant
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi interroger le service depuis l'extérieur
+      ansible.builtin.apt:
+        name: [curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Déposer l'autorité, pour que le client vérifie strictement
+      ansible.builtin.copy:
+        dest: /usr/local/share/pub-haproxy-ha-ca.crt
+        content: >-
+          {{ hostvars[groups['lab_target'][0]].materiel.results[0].content
+             | b64decode }}
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Une sonde continue, qui dit QUI répond
+      ansible.builtin.copy:
+        dest: /usr/local/bin/sonde-entree
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/usr/bin/env python3
+          # sonde-entree <ip> <nom> <duree> <fichier>
+          #
+          # Interroge la MEME adresse pendant toute la durée, et écrit
+          # « <seconde> <machine-ou-erreur> » par ligne. Le client ne change
+          # rien : c'est la condition de la mesure, puisqu'une bascule qui
+          # demanderait une action du client n'en serait pas une.
+          import socket
+          import ssl
+          import sys
+          import time
+
+          ip, nom, duree, destination = (
+              sys.argv[1], sys.argv[2], float(sys.argv[3]), sys.argv[4]
+          )
+          contexte = ssl.create_default_context(
+              cafile="/usr/local/share/pub-haproxy-ha-ca.crt"
+          )
+          debut = time.monotonic()
+          with open(destination, "w", buffering=1) as sortie:
+              while time.monotonic() - debut < duree:
+                  instant = time.monotonic() - debut
+                  try:
+                      brute = socket.create_connection((ip, 443), timeout=3)
+                      with contexte.wrap_socket(brute, server_hostname=nom) as prise:
+                          prise.sendall(
+                              f"GET / HTTP/1.1\r\nHost: {nom}\r\n"
+                              f"Connection: close\r\n\r\n".encode()
+                          )
+                          recu = b""
+                          while True:
+                              morceau = prise.recv(4096)
+                              if not morceau:
+                                  break
+                              recu += morceau
+                      qui = "inconnu"
+                      for ligne in recu.decode("utf-8", "replace").splitlines():
+                          if ligne.startswith("pub-haproxy-ha service "):
+                              qui = ligne.rsplit(" ", 1)[-1]
+                      sortie.write(f"{instant:.1f} {qui}\n")
+                  except (OSError, ssl.SSLError) as souci:
+                      sortie.write(f"{instant:.1f} erreur:{type(souci).__name__}\n")
+                  time.sleep(1)
+              sortie.write("fin\n")

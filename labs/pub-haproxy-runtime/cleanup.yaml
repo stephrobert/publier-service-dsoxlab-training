@@ -1,0 +1,94 @@
+---
+- name: Défaire le lab pub-haproxy-runtime
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les backends du lab
+      ansible.builtin.systemd:
+        name: "pub-haproxy-runtime-{{ item }}"
+        state: stopped
+        enabled: false
+      loop: [a, b]
+      failed_when: false
+
+    - name: Arrêter HAProxy et le laisser comme il a été trouvé
+      ansible.builtin.systemd:
+        name: haproxy
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Retirer les identités de test
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+        remove: true
+      loop: [exploitant, veilleur, intrus]
+      failed_when: false
+
+    - name: Retirer les groupes de test
+      ansible.builtin.group:
+        name: "{{ item }}"
+        state: absent
+      loop: [exploitants, observateurs]
+      failed_when: false
+
+    - name: Retirer ce que le lab a déposé
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-haproxy-runtime
+        - /etc/systemd/system/pub-haproxy-runtime-a.service
+        - /etc/systemd/system/pub-haproxy-runtime-b.service
+        - /etc/tmpfiles.d/pub-haproxy-runtime.conf
+        # Le fichier d'etat vit HORS du repertoire de chroot : tout ce
+        # qui s'y trouve devient joignable depuis l'interieur de la
+        # prison, et un repertoire de chroot se garde vide.
+        - /var/lib/haproxy-etat
+        - /etc/systemd/system/haproxy.service.d
+        - /usr/local/sbin/haproxy-sauver-etat
+        - /run/haproxy
+        - /var/log/dsoxlab-pub-haproxy-runtime.log
+
+    - name: HAProxy est-il seulement installé ?
+      # Apres un retour a la base figee, la VM n'a jamais vu HAProxy :
+      # /etc/haproxy n'existe pas, et reecrire une configuration dedans
+      # echoue sur « Destination directory does not exist ». Un nettoyage ne
+      # remet en etat que ce qui existe.
+      ansible.builtin.stat:
+        path: /etc/haproxy
+      register: dossier_haproxy
+
+    - name: Ramener la configuration à un fichier sans mission
+      ansible.builtin.copy:
+        dest: /etc/haproxy/haproxy.cfg
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          global
+              log /dev/log local0
+              chroot /var/lib/haproxy
+              user haproxy
+              group haproxy
+              daemon
+
+          defaults
+              log     global
+              option  dontlognull
+              timeout connect 5s
+              timeout client  30s
+              timeout server  30s
+      when: dossier_haproxy.stat.exists
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop: [80, 8404, 18191, 18192]

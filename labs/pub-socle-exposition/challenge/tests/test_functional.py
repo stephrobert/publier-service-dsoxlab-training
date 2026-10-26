@@ -55,11 +55,24 @@ def adresse(edge):
 
 
 def _sonder(hote, ip: str, port: int) -> tuple[str, str]:
+    """Ouvert ou ferme, mesure sur la REPONSE et non sur son CORPS.
+
+    La premiere version lisait `res.stdout` : un service qui repond sans corps
+    etait classe « ferme » alors qu'il est joignable. Mesure du 2026-10-25, par
+    contre-test : un serveur local rendant **204 No Content** passait pour un
+    port ferme, et l'exercice declarait close une exposition bien ouverte.
+
+    `%{http_code}` rend **000** quand la connexion n'aboutit pas, et le code
+    HTTP des qu'un serveur repond, corps vide compris. C'est donc lui qui
+    distingue les deux etats, jamais la longueur du corps.
+    """
     nonce = secrets.token_hex(6)
     res = hote.run(
-        f"curl -s --max-time 3 -H 'X-Nonce: {nonce}' http://{ip}:{port}/"
+        f"curl -s -o /dev/null --max-time 3 -H 'X-Nonce: {nonce}' "
+        f"-w '%{{http_code}}' http://{ip}:{port}/"
     )
-    return ("ouvert" if res.stdout.strip() else "ferme"), nonce
+    code = res.stdout.strip()
+    return ("ferme" if code in ("", "000") else "ouvert"), nonce
 
 
 def _observe(edge, client, ports, adresse) -> dict:

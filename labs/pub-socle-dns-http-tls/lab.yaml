@@ -13,7 +13,7 @@ skills:
   - tls-sni
   - http-routing
 distros:
-  - ubuntu24
+  - debian13
 doc_url: https://www.stephane-robert.info/docs/services/web/publier-un-service/
 lab_type: lab
 estimated_time: "45m"
@@ -22,8 +22,8 @@ runtime:
   targets:
     - name: cible
       host: edge.lab
-      label_en: "Ubuntu 24.04"
-      label_fr: "Ubuntu 24.04"
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
       roles:
         client: poste.lab
   default: cible

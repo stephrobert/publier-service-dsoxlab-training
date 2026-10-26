@@ -68,7 +68,10 @@ def test_flux_echange_reellement_des_donnees(edge) -> None:
         "timeout 7 curl -s --max-time 5 -H 'Host: flux.lab.test' "
         "http://127.0.0.1/events"
     )
-    lignes = [l for l in sse.stdout.splitlines() if l.startswith("data:")]
+    lignes = [
+        ligne for ligne in sse.stdout.splitlines()
+        if ligne.startswith("data:")
+    ]
     assert len(lignes) >= 4, message(
         en=f"Only {len(lignes)} SSE event(s) arrived in a 5s window: the "
         "entry point's writeTimeout is probably still cutting the stream "

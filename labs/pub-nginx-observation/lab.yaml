@@ -1,0 +1,28 @@
+---
+id: pub-nginx-observation
+title: "Observe an Nginx reverse proxy"
+section: nginx
+level: option-nginx
+description: |
+  Expose a loopback-only status endpoint, emit a structured access log whose
+  timings really measure, and record upstream errors as such.
+skills:
+  - nginx
+  - observability
+  - logging
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx/
+lab_type: lab
+estimated_time: "35m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false

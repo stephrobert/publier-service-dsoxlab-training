@@ -43,6 +43,27 @@ def _attendre_port_80(hote, limite_s: float = 60.0) -> bool:
     return False
 
 
+
+def _attendre_retour(machine, limite_s: float = 180.0) -> bool:
+    """Attend qu'une machine redemarree reponde de nouveau.
+
+    `testinfra` LEVE quand la connexion SSH echoue, au lieu de rendre un
+    resultat en echec. Lire `res.rc` ne protege donc pas : l'appel leve
+    AVANT que `res` existe. Une machine absente pendant son redemarrage
+    n'est pas une erreur de test, c'est l'etat qu'on attend.
+    """
+    limite = time.monotonic() + limite_s
+    while time.monotonic() < limite:
+        try:
+            resultat = machine.run("echo up")
+        except Exception:  # noqa: BLE001 - toute panne de transport vaut « pas encore »
+            time.sleep(5)
+            continue
+        if resultat.rc == 0 and "up" in resultat.stdout:
+            return True
+        time.sleep(5)
+    return False
+
 def test_version_provenance_du_conteneur_reel(edge) -> None:
     attendu = edge.run(f"cat {WORK}/image-ref").stdout.strip()
     inspecte = edge.run(
@@ -125,14 +146,7 @@ def test_point_entree_persiste_apres_reboot(edge, poste) -> None:
     edge.run("nohup bash -c 'sleep 2 && systemctl reboot' >/dev/null 2>&1 &")
     time.sleep(10)
 
-    limite = time.monotonic() + 180
-    revenu = False
-    while time.monotonic() < limite:
-        res = edge.run("echo up")
-        if res.rc == 0 and "up" in res.stdout:
-            revenu = True
-            break
-        time.sleep(5)
+    revenu = _attendre_retour(edge, 180)
 
     assert revenu, message(
         en="edge.lab did not come back online within 180s after reboot.",

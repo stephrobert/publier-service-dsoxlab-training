@@ -1,0 +1,6 @@
+---
+title: "Publier WebSocket, SSE et gRPC avec Nginx"
+description: |
+  Transportez trois flux longs sans retarder les événements ni bloquer
+  les échanges légitimes, et libérez les ressources quand un flux
+  s'arrête.

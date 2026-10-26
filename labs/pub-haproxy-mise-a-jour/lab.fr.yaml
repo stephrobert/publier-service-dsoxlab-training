@@ -1,0 +1,6 @@
+---
+title: "Recharger, mettre à jour et reprendre HAProxy"
+description: |
+  Livrer une bascule réversible entre deux générations, et mesurer ce qu'un
+  rechargement fait réellement au processus maître, à ses ouvriers, et à une
+  connexion ouverte avant le geste.

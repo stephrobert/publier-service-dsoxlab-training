@@ -1,0 +1,30 @@
+---
+id: pub-nginx-routage
+title: "Verify server and location selection"
+section: nginx
+level: option-nginx
+description: |
+  Repair a configuration whose names and paths overlap, close the door
+  on unknown host names, and predict the selection rule from the live
+  configuration.
+skills:
+  - nginx
+  - http-routing
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

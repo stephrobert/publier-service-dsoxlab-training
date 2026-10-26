@@ -1,0 +1,44 @@
+---
+- name: Défaire le lab pub-nginx-cache
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter l'origine du catalogue
+      ansible.builtin.systemd:
+        name: pub-nginx-cache-app
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Arrêter Nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Retirer ce que le lab a déposé
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-nginx-cache
+        - /etc/systemd/system/pub-nginx-cache-app.service
+        - /etc/nginx/conf.d/cache.conf
+        - /etc/nginx/conf.d/cache.conf
+        - /var/cache/nginx/catalogue
+        - /var/log/dsoxlab-pub-nginx-cache.log
+
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 80
+        - 18099

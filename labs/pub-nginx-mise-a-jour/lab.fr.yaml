@@ -1,0 +1,7 @@
+---
+title: "Mettre à jour, restaurer et rebooter Nginx"
+description: |
+  Écrire les deux exécutables qu'une livraison demande, puis laisser la
+  validation dérouler le plan : livrer une génération, mesurer la
+  disponibilité pendant la bascule, revenir avec son certificat, et
+  redémarrer.

@@ -23,4 +23,3 @@ Lisez `/home/student/README-obs`, puis, sur edge.lab :
 - Écrivez `/home/student/correlation.yaml` : le backend et la durée que vous
   trouvez dans le journal des accès pour l'incident déjà journalisé et nommé
   dans le README.
-

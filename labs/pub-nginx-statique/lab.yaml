@@ -1,0 +1,31 @@
+---
+id: pub-nginx-statique
+title: "Serve only the files you intended"
+section: nginx
+level: option-nginx
+description: |
+  Publish a single-page application's assets with correct MIME types,
+  keep real errors, refuse private files and traversals, and tighten
+  permissions without ceasing to serve.
+skills:
+  - nginx
+  - static-content
+  - filesystem-permissions
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx/
+lab_type: lab
+estimated_time: "45m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

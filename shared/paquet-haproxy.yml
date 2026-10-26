@@ -1,0 +1,112 @@
+---
+# Installe HAProxy DEPUIS LE DÉPÔT DE L'ÉDITEUR, à la version que
+# `shared/images.yml` déclare.
+#
+# UNE VERSION, DEUX FORMES
+#
+# Le catalogue épingle l'image `haproxy:3.4.7`. Le dépôt
+# `trixie-backports-3.4` publie `3.4.7-1~bpo13+1`. Les labs en conteneur et
+# les labs système servent donc exactement la même version, et elle n'est
+# déclarée qu'une fois, dans `shared/images.yml`.
+#
+# Ce n'était pas atteignable sur Ubuntu 24.04 : le dépôt officiel y plafonne
+# à 3.3.17, la branche 3.4 n'étant publiée que pour 26.04. C'est la raison
+# du passage à Debian 13, mesurée le 2026-10-26.
+#
+# CE QUE LE PAQUET FOURNIT, ET QU'IL NE FAUT PAS REFAIRE
+#
+# Mesuré sur trixie, et différent du paquet d'Ubuntu 24.04 :
+#
+#   - `/etc/haproxy/conf.d/`, chargé par l'unité systemd via `$CFGDIR` :
+#     `ExecStart=/usr/sbin/haproxy -Ws -f $CONFIG -f $CFGDIR ...`. Un lab
+#     qui a besoin d'un fragment de configuration le pose là, et n'a NI
+#     répertoire à inventer, NI surcharge d'unité à écrire ;
+#   - un `stats socket /run/haproxy/admin.sock mode 660 level admin` déjà
+#     déclaré dans `haproxy.cfg` ;
+#   - un `ExecReload` en deux temps, validation puis `kill -USR2`. Toute
+#     surcharge qui le réécrit doit reprendre `-f $CFGDIR`, sans quoi le
+#     rechargement perd tout le contenu de `conf.d`.
+#
+# ET UN PIÈGE QUI SURVIT AU CHANGEMENT DE DISTRIBUTION
+#
+# HAProxy ne retire pas son socket UNIX en s'arrêtant. Après un
+# `systemctl stop`, `/run/haproxy/admin.sock` est toujours là, vide de tout
+# processus. Un contrôle qui conclut sur la PRÉSENCE de ce fichier conclut
+# sans avoir regardé ce qui compte.
+
+- name: Lire la version déclarée par le catalogue
+  ansible.builtin.include_vars:
+    file: ../../shared/images.yml
+    name: socle_images
+
+- name: De quoi parler à un dépôt signé
+  ansible.builtin.apt:
+    name: [curl, gnupg, ca-certificates]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Le trousseau de haproxy.debian.net
+  # `haproxy-archive-keyring.gpg` et non `bernat.debian.org.gpg` : les deux
+  # repondent et portent les memes cles, mesure le 2026-10-26, mais la
+  # seconde est l'ancienne adresse. Une adresse que le fournisseur ne met
+  # plus en avant finit par disparaitre, et ce setup casserait alors un
+  # jour sans raison apparente.
+  ansible.builtin.get_url:
+    url: https://haproxy.debian.net/haproxy-archive-keyring.gpg
+    dest: /usr/share/keyrings/haproxy.debian.net.gpg
+    mode: "0644"
+
+- name: Relever l'empreinte de chaque CLÉ du trousseau
+  # `/^pub:/` d'abord : `--with-colons` emet un `fpr:` pour la cle ET pour
+  # chacune de ses sous-cles. Lister toutes les empreintes fait croire a
+  # plusieurs cles la ou il n'y en a qu'une avec sa sous-cle de
+  # chiffrement. On ne retient donc que l'empreinte qui SUIT un `pub:`.
+  # Le trousseau en porte DEUX. Lire la premiere venue reviendrait a
+  # comparer la bonne valeur a une cle choisie par l'ordre du fichier :
+  # c'est juste aujourd'hui, et faux le jour ou l'ordre change.
+  ansible.builtin.shell: >-
+    set -o pipefail;
+    gpg --show-keys --with-colons /usr/share/keyrings/haproxy.debian.net.gpg
+    | awk -F: '/^pub:/{suivante=1} suivante && /^fpr:/{print $10; suivante=0}'
+  args:
+    executable: /bin/bash
+  register: empreintes_haproxy
+  changed_when: false
+
+- name: La clé qui signe les paquets est bien dans le trousseau
+  ansible.builtin.assert:
+    that:
+      - '"AEF2348766F371C689A7360095A42FE8353525F9" in empreintes_haproxy.stdout_lines'
+    fail_msg: >-
+      Le trousseau servi par haproxy.debian.net ne contient pas la clé qui
+      signe les paquets. Empreintes trouvées :
+      {{ empreintes_haproxy.stdout_lines }}. On ne continue pas.
+
+- name: Le dépôt de backports de la branche déclarée
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/usr/share/keyrings/haproxy.debian.net.gpg]
+      http://haproxy.debian.net
+      {{ ansible_distribution_release }}-backports-{{ socle_images.haproxy.version.split('.')[:2] | join('.') }}
+      main
+    filename: haproxy
+    state: present
+    update_cache: true
+
+- name: HAProxy, à la version que le catalogue déclare
+  ansible.builtin.apt:
+    name: "haproxy={{ socle_images.haproxy.version }}-1~bpo13+1"
+    state: present
+    allow_downgrade: true
+
+- name: Ce qui tourne est bien ce qui était déclaré
+  ansible.builtin.shell: >-
+    set -o pipefail;
+    haproxy -v 2>&1 | sed -n '1s/.*version \([^ ]*\).*/\1/p'
+  args:
+    executable: /bin/bash
+  register: version_haproxy
+  changed_when: false
+  failed_when: >-
+    not (version_haproxy.stdout | trim).startswith(socle_images.haproxy.version)

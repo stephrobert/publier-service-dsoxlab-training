@@ -1,0 +1,32 @@
+---
+id: pub-haproxy-flux-delais
+title: "Bound time, queues and long streams"
+section: haproxy
+level: option-haproxy
+description: |
+  Give each slow phase its own bound so the elapsed time says which one you are
+  looking at, keep SSE and WebSocket alive through the application's silences,
+  pick a session policy and state its limits, and stop a lost response from
+  being written twice.
+skills:
+  - haproxy
+  - timeouts
+  - websocket
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+lab_type: lab
+estimated_time: "55m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

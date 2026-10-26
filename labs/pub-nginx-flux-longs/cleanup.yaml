@@ -1,0 +1,54 @@
+---
+- name: Défaire le lab pub-nginx-flux-longs
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les backends
+      ansible.builtin.systemd:
+        name: pub-nginx-flux-backends
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Arrêter Nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Retirer ce que le lab a déposé
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-nginx-flux-longs
+        - /etc/systemd/system/pub-nginx-flux-backends.service
+        - /etc/nginx/conf.d/flux.conf
+        - /etc/nginx/conf.d/flux.conf
+        - /var/log/dsoxlab-pub-nginx-flux-longs.log
+
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 80
+        - 18101
+        - 18102
+        - 18103
+
+- name: Retirer le client gRPC du poste
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Supprimer le client
+      ansible.builtin.file:
+        path: /usr/local/bin/client-grpc
+        state: absent

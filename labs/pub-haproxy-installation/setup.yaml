@@ -1,0 +1,69 @@
+---
+- name: Préparer le lab pub-haproxy-installation
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer HAProxy depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-haproxy.yml
+
+    - name: Poser HAProxy installé, ses trois services, et aucun listener
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+- name: Outils du client indépendant
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi interroger le service depuis l'extérieur
+      ansible.builtin.apt:
+        name: [curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Une sonde qui envoie une ligne brute et lit la première réponse
+      ansible.builtin.copy:
+        dest: /usr/local/bin/ligne-brute
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/usr/bin/env python3
+          # ligne-brute <ip> <port> <ligne>
+          #
+          # Envoie UNE ligne telle quelle et affiche la première ligne de
+          # réponse. Deux usages dans ce lab, et c'est leur contraste qui
+          # prouve quelque chose : sur le relais TCP la ligne revient en
+          # écho, sur le frontend HTTP elle est refusée.
+          #
+          # Un échec se DIT (« erreur: ... ») au lieu de ne rien afficher :
+          # une sortie vide ne distingue pas « le service a refusé » de « la
+          # sonde n'est jamais partie », et ce sont deux verdicts opposés.
+          import socket
+          import sys
+
+          ip, port, ligne = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+          try:
+              with socket.create_connection((ip, port), timeout=10) as prise:
+                  prise.settimeout(10)
+                  fichier = prise.makefile("rwb")
+                  # La ligne est suivie de la LIGNE VIDE qui termine les
+                  # en-tetes d'une requete HTTP. Sans elle, la requete est
+                  # incomplete : HAProxy attend la suite et ne repond
+                  # jamais, et la sonde conclut a un refus la ou il n'y a
+                  # qu'une attente.
+                  #
+                  # Cote relais TCP, le service de lignes recoit deux lignes
+                  # et repond a chacune ; on ne lit que la premiere, donc la
+                  # mesure est la meme. Un seul chemin de code sert les deux
+                  # mesures, et c'est ce qui les rend comparables.
+                  fichier.write(ligne.encode() + b"\r\n\r\n")
+                  fichier.flush()
+                  reponse = fichier.readline()
+              if not reponse:
+                  print("erreur: connexion fermée sans réponse")
+              else:
+                  print(reponse.decode("utf-8", "replace").strip())
+          except OSError as souci:
+              print(f"erreur: {souci}")

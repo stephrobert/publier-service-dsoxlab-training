@@ -1,0 +1,6 @@
+---
+title: "Mesurer les effets d'un cache et des nouvelles tentatives"
+description: |
+  Corrigez une politique de cache et de délais fournie, qui accélère bien
+  les réponses mais peut mélanger deux utilisateurs, doubler une commande,
+  et laisser un backend mort retenir tous les appelants.

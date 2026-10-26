@@ -40,9 +40,13 @@ haproxy:
     sha256:abc6a6dd00d67b796f593eb11473f61fe7ba5e29c4020fa5fb7bc6cf552e7ba9
 nginx:
   image: "nginx"
-  version: "1.29.3"
+  # Branche mainline, et non stable : le catalogue enseigne la derniere
+  # version publiee par l'editeur. Cette valeur est AUSSI celle que les labs
+  # systeme installent depuis nginx.org, parce qu'une version se declare une
+  # fois. Relevee au registre le 2026-10-26.
+  version: "1.31.8"
   digest: >-
-    sha256:2f4e10193b0c4f61472245e9d26cea78e7df7af266c7e7cf5e67353ee2731b51
+    sha256:6e67f8eaac94fc456588d4ff6c470d984841f5b5dc4279863d5cbe6ec5a60def
 python:
   image: "python"
   version: "3.12-slim"

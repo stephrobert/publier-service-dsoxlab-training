@@ -1,0 +1,31 @@
+---
+id: pub-nginx-cache
+title: "Cache public responses without sharing private data"
+section: nginx
+level: option-nginx
+description: |
+  Cache the public responses a content contract declares cacheable,
+  while keeping representation variants apart, private sessions out of
+  the cache, and volatile content fresh.
+skills:
+  - nginx
+  - http-caching
+  - http-security
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

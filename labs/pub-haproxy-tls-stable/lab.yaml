@@ -1,0 +1,29 @@
+---
+id: pub-haproxy-tls-stable
+title: "Publish TLS with a certificate cycle you have exercised"
+section: haproxy
+level: option-haproxy
+description: |
+  Obtain one certificate per published name from an external ACME client, serve
+  them by SNI, renew them without restarting, and have the new material checked
+  before it enters service.
+skills:
+  - haproxy
+  - acme
+  - tls
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy-tls-acme/
+lab_type: lab
+estimated_time: "55m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: true

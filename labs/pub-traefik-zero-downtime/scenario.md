@@ -46,4 +46,3 @@ Read `/opt/pub-zds/README`, then:
   at the same time from both entry points never leaves a mismatched or
   unreadable certificate/key pair in the shared storage; both entry points
   must keep serving valid TLS afterward.
-

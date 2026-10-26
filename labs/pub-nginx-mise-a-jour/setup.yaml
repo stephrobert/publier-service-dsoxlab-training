@@ -1,0 +1,69 @@
+---
+- name: Préparer le lab pub-nginx-mise-a-jour
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer Nginx depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-nginx.yml
+
+    - name: Poser l'étape 1 du plan, et rien pour livrer
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+
+- name: Les sondes du client indépendant
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi mesurer et lire un certificat
+      ansible.builtin.apt:
+        name: [curl, openssl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    # Les deux sondes sont posées en exécutables, et non construites dans
+    # les tests : une boucle shell passée à travers plusieurs niveaux de
+    # guillemets casse avant de mesurer quoi que ce soit. Et l'apprenant
+    # peut ainsi rejouer EXACTEMENT la mesure de la validation.
+    - name: La sonde de trafic court
+      ansible.builtin.copy:
+        dest: /usr/local/bin/sonde-courte
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/usr/bin/env bash
+          # Un code de statut par ligne, puis la ligne « fin ».
+          # Usage : sonde-courte <ip> <fichier> [iterations]
+          set -u
+          ip="$1"
+          sortie="$2"
+          n="${3:-45}"
+          : > "$sortie"
+          for _ in $(seq 1 "$n"); do
+            curl -sk -o /dev/null --max-time 3 \
+              --resolve "service.lab.test:443:$ip" \
+              -w '%{http_code}\n' "https://service.lab.test/" >> "$sortie"
+            sleep 0.3
+          done
+          echo fin >> "$sortie"
+
+    - name: Le flux long
+      ansible.builtin.copy:
+        dest: /usr/local/bin/flux-long
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/usr/bin/env bash
+          # Un flux ouvert et laissé ouvert : chaque ligne reçue s'ajoute au
+          # fichier. Ce qui compte n'est pas son contenu, c'est qu'il
+          # CONTINUE de grandir après la bascule.
+          set -u
+          ip="$1"
+          sortie="$2"
+          : > "$sortie"
+          exec curl -sk --no-buffer --max-time 150 \
+            --resolve "service.lab.test:443:$ip" \
+            "https://service.lab.test/flux" >> "$sortie"

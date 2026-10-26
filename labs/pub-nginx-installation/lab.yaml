@@ -1,0 +1,30 @@
+---
+id: pub-nginx-installation
+title: "Install Nginx and master validation and reload"
+section: nginx
+level: option-nginx
+description: |
+  Install a verifiable Nginx, organise its configuration, and show the
+  difference between reload, restart and reboot.
+skills:
+  - nginx
+  - systemd
+  - configuration-management
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: true

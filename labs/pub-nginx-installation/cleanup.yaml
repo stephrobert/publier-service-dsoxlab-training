@@ -1,0 +1,45 @@
+---
+- name: Défaire le lab pub-nginx-installation
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter le backend
+      ansible.builtin.systemd:
+        name: pub-nginx-installation-backend
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Arrêter Nginx et le laisser comme il a été trouvé
+      ansible.builtin.systemd:
+        name: nginx
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Retirer ce que le lab a déposé
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-nginx-installation
+        - /etc/systemd/system/pub-nginx-installation-backend.service
+        - /etc/nginx/sites-available/app.conf
+        - /etc/nginx/sites-enabled/app.conf
+        - /etc/nginx/conf.d/zz-faute-validation.conf
+        - /etc/nginx/conf.d/zz-temoin-reload.conf
+        - /var/log/dsoxlab-pub-nginx-installation.log
+
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 80
+        - 18092

@@ -1,0 +1,84 @@
+---
+- name: Défaire le lab pub-haproxy-sante
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les deux backends du lab
+      ansible.builtin.systemd:
+        name: "pub-haproxy-sante-{{ item }}"
+        state: stopped
+        enabled: false
+      loop: [alpha, beta]
+      failed_when: false
+
+    - name: Arrêter HAProxy et le laisser comme il a été trouvé
+      ansible.builtin.systemd:
+        name: haproxy
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Retirer ce que le lab a déposé
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-haproxy-sante
+        - /etc/systemd/system/pub-haproxy-sante-alpha.service
+        - /etc/systemd/system/pub-haproxy-sante-beta.service
+        - /run/haproxy
+        - /var/log/dsoxlab-pub-haproxy-sante.log
+
+    - name: HAProxy est-il seulement installé ?
+      # Apres un retour a la base figee, la VM n'a jamais vu HAProxy :
+      # /etc/haproxy n'existe pas, et reecrire une configuration dedans
+      # echoue sur « Destination directory does not exist ». Un nettoyage ne
+      # remet en etat que ce qui existe.
+      ansible.builtin.stat:
+        path: /etc/haproxy
+      register: dossier_haproxy
+
+    - name: Ramener la configuration à un fichier sans mission
+      ansible.builtin.copy:
+        dest: /etc/haproxy/haproxy.cfg
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          global
+              log /dev/log local0
+              chroot /var/lib/haproxy
+              user haproxy
+              group haproxy
+              daemon
+
+          defaults
+              log     global
+              option  dontlognull
+              timeout connect 5s
+              timeout client  30s
+              timeout server  30s
+      when: dossier_haproxy.stat.exists
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop: [80, 8404, 18141, 18142]
+
+- name: Retirer les sondes du client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Les deux exécutables de mesure
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /usr/local/bin/echantillon
+        - /usr/local/bin/flux-long

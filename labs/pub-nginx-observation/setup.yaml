@@ -1,0 +1,21 @@
+---
+- name: Préparer le lab pub-nginx-observation
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer Docker, Compose et les outils du lab
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les images épinglées
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    - name: Poser Nginx sans observabilité et le backend
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_NGINX: >-
+          {{ socle_images.nginx.image }}:{{ socle_images.nginx.version
+          }}@{{ socle_images.nginx.digest }}

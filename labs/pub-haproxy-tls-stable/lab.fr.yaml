@@ -1,0 +1,6 @@
+---
+title: "Publier TLS avec un cycle de certificats éprouvé"
+description: |
+  Obtenir un certificat par nom publié auprès d'un client ACME externe, les
+  servir par SNI, les renouveler sans redémarrer, et faire vérifier le nouveau
+  matériel avant qu'il entre en service.

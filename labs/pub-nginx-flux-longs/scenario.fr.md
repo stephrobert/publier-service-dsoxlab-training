@@ -1,0 +1,52 @@
+# Scénario
+
+Trois transports longs sont publiés derrière Nginx, et tous les trois sont
+traités comme des pages : le WebSocket n'établit jamais sa poignée de main,
+les événements SSE sont retenus en tampon, gRPC passe par un proxy HTTP
+ordinaire, et un délai de lecture de dix secondes coupe tout flux en pleine
+conversation.
+
+Le banc est décrit dans `/opt/pub-nginx-flux-longs/transports.txt`.
+
+## Mission
+
+Publiez les trois transports sans retarder les événements ni bloquer les
+échanges légitimes, et libérez les ressources quand un flux s'arrête.
+
+## Ce que chaque transport exige, et qui diffère
+
+Le **WebSocket** a besoin que la poignée de main soit transmise :
+`proxy_http_version 1.1`, puis les en-têtes `Upgrade` et `Connection`.
+
+Le **SSE** a besoin que rien ne soit mis en tampon. C'est le piège le plus
+sournois du lab, parce qu'un test naïf le rate : les six événements
+**finissent** par arriver. Ce qui distingue un flux d'un lot, c'est le
+**rythme**, donc la validation mesure le délai du premier événement.
+
+Le **gRPC** a besoin d'HTTP/2 et de `grpc_pass`, sur un port dédié en clair.
+Et il a besoin qu'un refus applicatif reste un refus applicatif : un
+`INVALID_ARGUMENT` qui parvient au client en `UNAVAILABLE` le fera
+réessayer indéfiniment une requête qui n'aboutira jamais.
+
+## Ce qui est vérifié
+
+- la poignée de main WebSocket aboutit **et** une trame envoyée revient. La
+  seconde moitié compte : une connexion établie qui ne transporte rien est
+  la version la plus difficile à diagnostiquer de ce défaut ;
+- le **premier** événement SSE arrive en moins de quatre secondes, alors que
+  le backend en émet six à une seconde d'intervalle ;
+- un appel gRPC aboutit, et la charge `erreur` revient comme refus
+  applicatif, pas comme panne de transport ;
+- couper le backend sous un flux ouvert ne laisse pas de connexion
+  orpheline. Une par client finit par épuiser le proxy, et le symptôme
+  apparaît des semaines plus tard sous la forme « le site est lent ».
+
+## Indices
+
+- `proxy_set_header Upgrade $http_upgrade;` et
+  `proxy_set_header Connection "upgrade";`, avec `proxy_http_version 1.1`.
+- `proxy_buffering off;` dans le `location` du flux, et non globalement :
+  le tampon reste utile partout ailleurs.
+- `grpc_pass grpc://...` sur un `server` dont le `listen` porte `http2`.
+- Les délais se règlent par route : un flux long n'a pas les mêmes besoins
+  qu'une page.

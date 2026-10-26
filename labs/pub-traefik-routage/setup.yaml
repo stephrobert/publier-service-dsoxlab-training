@@ -20,4 +20,3 @@
       environment:
         IMG_TRAEFIK: "{{ socle_images.traefik.image }}:{{ socle_images.traefik.version }}@{{ socle_images.traefik.digest }}"
         IMG_WHOAMI: "{{ socle_images.whoami.image }}:{{ socle_images.whoami.version }}@{{ socle_images.whoami.digest }}"
-

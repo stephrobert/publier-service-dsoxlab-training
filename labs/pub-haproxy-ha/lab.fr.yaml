@@ -1,0 +1,5 @@
+---
+title: "Prouver le domaine de panne de deux points d'entrée"
+description: |
+  Déployer une bascule compatible avec le réseau fourni, puis mesurer la
+  perte d'un processus et celle d'un hôte sans toucher au client.

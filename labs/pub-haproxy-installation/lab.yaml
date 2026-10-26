@@ -1,0 +1,31 @@
+---
+id: pub-haproxy-installation
+title: "Install HAProxy and tell its HTTP and TCP modes apart"
+section: haproxy
+level: option-haproxy
+description: |
+  Install HAProxy from the distribution package, publish two HTTP names and one
+  raw line protocol from the same instance, and keep the stats page and the
+  runtime socket off the network.
+skills:
+  - haproxy
+  - systemd
+  - tcp
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: true

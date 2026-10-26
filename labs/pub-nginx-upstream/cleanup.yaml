@@ -1,0 +1,48 @@
+---
+- name: Défaire le lab pub-nginx-upstream
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter les deux backends
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      failed_when: false
+      loop:
+        - pub-nginx-upstream-a
+        - pub-nginx-upstream-b
+
+    - name: Arrêter Nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Retirer ce que le lab a déposé
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /opt/pub-nginx-upstream
+        - /etc/systemd/system/pub-nginx-upstream-a.service
+        - /etc/systemd/system/pub-nginx-upstream-b.service
+        - /etc/nginx/conf.d/upstream.conf
+        - /etc/nginx/conf.d/upstream.conf
+        - /var/log/dsoxlab-pub-nginx-upstream.log
+
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 80
+        - 18095
+        - 18096

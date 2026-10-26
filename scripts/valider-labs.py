@@ -117,7 +117,30 @@ def _check(identifiant: str) -> dict:
     s'arrête en nommant le geste.
     """
     res = _dsoxlab("check", identifiant, "--json")
-    return verdict_check.lire(res.stdout)
+    lu = verdict_check.lire(res.stdout)
+
+    # QUAND RIEN N'A ETE MESURE, ON GARDE DE QUOI SAVOIR POURQUOI.
+    #
+    # Un `check` qui ne collecte aucun test rend un verdict SKIP dont le
+    # message dit « le conftest.py lève, ou le lab n'a pas de test » : les
+    # deux causes appellent des gestes opposés, et aucune trace ne permettait
+    # de les distinguer. Mesuré le 2026-10-26 sur `pub-haproxy-mise-a-jour`,
+    # dont le SKIP a resiste a trois passages faute de pouvoir lire la sortie
+    # que ce processus avait sous les yeux.
+    if not verdict_check.a_mesure(lu):
+        journaux = Path.home() / ".local" / "state" / "dsoxlab" / "verdicts"
+        try:
+            journaux.mkdir(parents=True, exist_ok=True)
+            horodatage = time.strftime("%Y%m%dT%H%M%S")
+            (journaux / f"{identifiant}-check-{horodatage}.txt").write_text(
+                (res.stdout or "") + "\n--- stderr ---\n" + (res.stderr or ""),
+                encoding="utf-8",
+            )
+        except OSError:
+            # Le verdict se mesure, la trace n'est qu'un confort : on ne fait
+            # jamais echouer une validation pour un journal.
+            pass
+    return lu
 
 
 def _conteneurs() -> set[str]:
@@ -187,9 +210,31 @@ def _poser_la_solution(lab: Path) -> str | None:
         check=False,
     )
     sortie = proc.stdout + proc.stderr
+
+    # LA SORTIE ENTIÈRE EST CONSERVÉE, et pas seulement sa queue.
+    #
+    # Ce qui suit ne retient que les 400 derniers caractères, et c'est trop
+    # peu : sur une erreur de fixture, la cause est en TÊTE de la sortie, si
+    # bien que le message affiché était un fragment de nom de test
+    # (« re_borne », « e_prevue_peut_administrer ») qui ne dit rien de ce qui
+    # a levé. Mesuré le 2026-10-26 sur cinq labs HAProxy : chaque diagnostic
+    # demandait de reposer la solution à la main pour relire ce que ce
+    # processus avait déjà sous les yeux. Un contrôle qui ne dit pas ce
+    # qu'il a vu fait payer deux fois la même mesure.
+    journaux = Path.home() / ".local" / "state" / "dsoxlab" / "verdicts"
+    try:
+        journaux.mkdir(parents=True, exist_ok=True)
+        trace = journaux / f"{lab.name}-solution-pytest.txt"
+        trace.write_text(sortie, encoding="utf-8")
+    except OSError:
+        # Ne jamais faire échouer une validation pour un journal : le verdict
+        # se mesure, la trace n'est qu'un confort de diagnostic.
+        trace = None
+
     # Messages d'échec du rejeu, tels que le conftest de ce catalogue les écrit.
     if "solution.yaml a échoué" in sortie or "solution.sh a échoué" in sortie:
-        return f"la solution n'a pas pu être posée : {sortie[-400:]}"
+        ou = f" (sortie entière : {trace})" if trace else ""
+        return f"la solution n'a pas pu être posée : {sortie[-400:]}{ou}"
     return None
 
 

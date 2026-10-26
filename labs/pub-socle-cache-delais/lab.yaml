@@ -1,0 +1,31 @@
+---
+id: pub-socle-cache-delais
+title: "Measure the effects of a cache and of retries"
+section: socle
+level: niveau-2
+description: |
+  Fix a supplied cache and timeout policy that makes answers faster but can
+  mix two users up, duplicate an order, and let a dead backend hold every
+  caller.
+skills:
+  - http-caching
+  - idempotence
+  - timeouts
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/delais-tentatives-cache/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: false

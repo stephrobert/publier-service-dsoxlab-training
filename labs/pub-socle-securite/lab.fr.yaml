@@ -1,0 +1,6 @@
+---
+title: "Écrire et tester la politique d'un service web"
+description: |
+  Transformez une demande métier en politique d'accès, de confiance, de
+  limites et de conservation des journaux, puis prouvez qu'elle refuse ce
+  qu'elle doit sans casser ce qui doit continuer de marcher.

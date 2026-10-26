@@ -16,6 +16,7 @@ ultérieure de cette suite.
 from __future__ import annotations
 
 import json
+from itertools import pairwise
 
 import pytest
 
@@ -82,7 +83,7 @@ def test_sse_evenements_progressifs(edge, etat):
         fr=f"Moins de 2 événements de données sont arrivés en 4 s : "
         f"{sortie['evenements']}",
     )
-    ecarts = [b["t"] - a["t"] for a, b in zip(donnees, donnees[1:])]
+    ecarts = [b["t"] - a["t"] for a, b in pairwise(donnees)]
     assert all(ecart < 2.5 for ecart in ecarts), message(
         en=f"Data events arrived bunched together instead of progressively: "
         f"gaps {ecarts}s between consecutive events.",
