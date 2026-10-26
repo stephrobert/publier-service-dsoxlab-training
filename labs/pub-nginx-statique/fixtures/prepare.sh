@@ -5,7 +5,9 @@
 # LES QUATRE DEFAUTS POSES
 #
 #   1. aucun type MIME correct : tout part en application/octet-stream,
-#      parce que la configuration ne charge pas la table des types ;
+#      parce que la configuration VIDE la table des types. Omettre
+#      `include mime.types` ne suffit pas : voir le bloc `types {}` plus
+#      bas, et la mesure qui l'a imposé ;
 #   2. le fallback renvoie index.html POUR TOUT, y compris pour une
 #      ressource absente et pour l'API : une erreur devient un succes ;
 #   3. le fichier prive et les dotfiles sont servis ;
@@ -91,7 +93,18 @@ server {
     server_name app.lab.test;
     root /opt/pub-nginx-statique/site;
 
-    # Aucun `include mime.types` : tout sort en application/octet-stream.
+    # LA TABLE DES TYPES EST VIDÉE ICI, et c'est ce qui pose le défaut.
+    #
+    # Omettre `include mime.types` ne suffisait pas. Mesure du 2026-10-26 :
+    # le premier contrôle du lab passait AVANT tout travail, parce que le
+    # `nginx.conf` du paquet de l'éditeur inclut `/etc/nginx/mime.types`
+    # au niveau `http`. Un `server` qui se contente de ne pas l'inclure
+    # HÉRITE donc de la table, et `/assets/app.js` sortait bel et bien en
+    # `application/javascript`. Un `types {}` vide au niveau `server`
+    # REMPLACE la table héritée : tout repart alors en
+    # `application/octet-stream`, c'est-à-dire le défaut que le lab
+    # prétend enseigner.
+    types { }
     default_type application/octet-stream;
 
     # Le fallback avale TOUT, y compris les ressources absentes et l'API.
@@ -100,7 +113,6 @@ server {
     }
 }
 CONF
-  /etc/nginx/conf.d/statique.conf
 
 cat > "$WORK/attendu.txt" <<'TXT'
 Ce que la publication doit presenter.
@@ -119,8 +131,9 @@ Ce que la publication doit presenter.
 
 Et une exigence qui ne se lit pas dans une reponse HTTP : les fichiers ne
 doivent pas etre lisibles par tout le monde sur le disque. Les workers de
-Nginx tournent sous www-data ; ils doivent pouvoir lire ce qu'ils servent,
-et rien de plus large.
+Nginx tournent sous le compte `nginx` (c'est le paquet de l'editeur qui est
+installe ici, et son nginx.conf porte `user nginx;`) ; ils doivent pouvoir
+lire ce qu'ils servent, et rien de plus large.
 TXT
 chown student:student "$WORK/attendu.txt"
 chmod 0644 "$WORK/attendu.txt"

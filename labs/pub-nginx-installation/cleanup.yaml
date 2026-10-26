@@ -24,8 +24,8 @@
       loop:
         - /opt/pub-nginx-installation
         - /etc/systemd/system/pub-nginx-installation-backend.service
-        - /etc/nginx/sites-available/app.conf
-        - /etc/nginx/sites-enabled/app.conf
+        - /etc/nginx/conf.d/app.conf
+        - /etc/nginx/conf.d/app.conf
         - /etc/nginx/conf.d/zz-faute-validation.conf
         - /etc/nginx/conf.d/zz-temoin-reload.conf
         - /var/log/dsoxlab-pub-nginx-installation.log

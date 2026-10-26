@@ -2,7 +2,7 @@
 # Pose la situation : un catalogue mis en cache, et mal.
 #
 # LES QUATRE DEFAUTS POSES
-#   1. `proxy_ignore_headers Cache-Control Expires Set-Cookie` : le contrat
+#   1. `proxy_ignore_headers Cache-Control Expires Set-Cookie Vary` : le contrat
 #      que l'origine annonce sur chacune de ses reponses est jete. C'est LE
 #      defaut de fond : il fait mettre en cache le prive, et il fait servir
 #      le volatil pendant dix minutes.
@@ -262,7 +262,7 @@ server {
         # LE DEFAUT DE FOND : le contrat que l'origine annonce sur chacune
         # de ses reponses est jete. Le prive se met donc en cache, et le
         # volatil s'y attarde.
-        proxy_ignore_headers Cache-Control Expires Set-Cookie X-Accel-Expires;
+        proxy_ignore_headers Cache-Control Expires Set-Cookie X-Accel-Expires Vary;
 
         # Un entete qui annonce HIT sur toutes les reponses, y compris
         # celles qui sortent de l'origine. Il ne mesure rien.
@@ -273,7 +273,6 @@ server {
     }
 }
 CONF
-  /etc/nginx/conf.d/cache.conf
 
 cat > "$WORK/contrat-de-contenu.txt" <<'TXT'
 Le contrat de contenu du catalogue.

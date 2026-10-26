@@ -100,11 +100,20 @@ def _version_servie(poste, ip: str) -> str:
 
 
 def _empreinte_publiee(poste, ip: str) -> str:
-    """L'empreinte du certificat lu dans la poignee de main."""
+    """L'empreinte du certificat lu dans la poignee de main.
+
+    `sed 's/.*=//'` et non `'s/.*= //'` : openssl n'ecrit pas d'espace apres
+    le signe egal (mesure du 2026-10-26, openssl 3 :
+    « sha256 Fingerprint=87:D7:... »). Le motif qui en attendait un rendait
+    la ligne entiere, des deux cotes de la comparaison, et le manifeste
+    pose par la fixture devenait illisible pour le lecteur ci-dessous. Les
+    deux endroits se corrigent ensemble : n'en changer qu'un ferait comparer
+    une empreinte nue a une ligne de sortie.
+    """
     return poste.run(
         f"echo | openssl s_client -connect {ip}:443 "
         f"-servername service.lab.test 2>/dev/null "
-        f"| openssl x509 -noout -fingerprint -sha256 | sed 's/^.*= //'"
+        f"| openssl x509 -noout -fingerprint -sha256 | sed 's/^.*=//'"
     ).stdout.strip()
 
 
@@ -308,7 +317,28 @@ def test_la_livraison_amene_la_version_et_le_certificat_du_manifeste(
 def test_la_bascule_ne_coupe_ni_le_trafic_court_ni_le_flux_long(
     poste, edge, livraison
 ) -> None:
-    """La mesure de disponibilite, prise PENDANT la livraison."""
+    """La mesure de disponibilite, prise PENDANT la livraison.
+
+    ELLE EXIGE D'ABORD QUE LA BASCULE AIT EU LIEU, et c'est la correction du
+    2026-10-26 : une sonde qui ne releve aucune erreur pendant une
+    livraison qui n'a pas eu lieu ne mesure rien du tout. Sur l'etat de
+    depart, ou `livrer` n'existe meme pas, le service ne bouge pas, donc la
+    serie est parfaite et ce test passait AVANT tout travail.
+    """
+    assert livraison["sortie"].rc == 0, message(
+        en=(
+            f"`livrer {LIVREE}` exited with {livraison['sortie'].rc}, so no "
+            "switch happened: there is no availability to measure. Its output "
+            f"was:\n{livraison['sortie'].stdout}\n{livraison['sortie'].stderr}"
+        ),
+        fr=(
+            f"`livrer {LIVREE}` est sorti en {livraison['sortie'].rc} : aucune "
+            "bascule n'a eu lieu, il n'y a donc aucune disponibilité à "
+            f"mesurer. Sa sortie était :\n{livraison['sortie'].stdout}\n"
+            f"{livraison['sortie'].stderr}"
+        ),
+    )
+
     codes = livraison["codes"]
     assert len(codes) >= 20, message(
         en=(
@@ -481,6 +511,16 @@ def test_la_recette_passe_apres_reboot_sans_intervention(
     Ce test coupe la machine. Il est donc place en dernier a dessein : tout
     ce qui le suivrait mesurerait un autre etat que celui que la sequence
     vient d'etablir.
+
+    CE QU'IL EXIGE EN PLUS DEPUIS LE 2026-10-26, et pourquoi
+
+    Que les deux executables soient ENCORE la, et encore executables, apres
+    le redemarrage. C'est une propriete du livrable, pas une repetition du
+    premier test : un `livrer` ecrit dans /tmp, /run ou /dev/shm passe le
+    premier controle et disparait au premier redemarrage. Et c'est aussi ce
+    qui empeche ce test de se satisfaire de l'etat de depart, ou la machine
+    rend deja 1.4.2 avec son certificat sans que rien ait ete livre : sans
+    cette exigence, il pouvait passer AVANT tout travail.
     """
     assert _version_servie(poste, ip_edge) == DEPART, message(
         en="The service must serve the rolled-back generation before the "
@@ -523,6 +563,23 @@ def test_la_recette_passe_apres_reboot_sans_intervention(
             "doit être activé au démarrage et écrit à un endroit qui survit."
         ),
     )
+
+    for nom in ("livrer", "revenir"):
+        chemin = f"{WORK}/{nom}"
+        fichier = edge.file(chemin)
+        assert fichier.exists and fichier.mode & 0o111, message(
+            en=(
+                f"{chemin} did not survive the reboot. A delivery mechanism "
+                "written into /tmp, /run or /dev/shm passes once and is gone "
+                "the next morning: it has to live where the machine keeps it."
+            ),
+            fr=(
+                f"{chemin} n'a pas survécu au redémarrage. Un mécanisme de "
+                "livraison écrit dans /tmp, /run ou /dev/shm passe une fois et "
+                "disparaît le lendemain : il doit vivre là où la machine le "
+                "garde."
+            ),
+        )
 
     empreinte = _empreinte_publiee(poste, ip_edge)
     assert empreinte == manifeste[DEPART]["empreinte_sha256"], message(

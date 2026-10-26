@@ -10,7 +10,7 @@ The bench is described in `/opt/pub-nginx-flux-longs/transports.txt`.
 ## Mission
 
 Publish the three transports without delaying events or blocking legitimate
-exchanges, and release resources when a stream stops.
+exchanges, and keep a conversation alive while it has nothing to say.
 
 ## What each transport requires, and how they differ
 
@@ -27,6 +27,11 @@ needs an application refusal to stay an application refusal: an
 `INVALID_ARGUMENT` reaching the client as `UNAVAILABLE` will make it retry
 forever a request that can never succeed.
 
+All three, finally, need **time**. The starting configuration cuts any
+route whose backend has said nothing for ten seconds, which is exactly what
+a long stream does: it goes quiet. `proxy_read_timeout` counts the time
+**between two reads**, not the lifetime of the stream.
+
 ## What is checked
 
 - the WebSocket handshake completes **and** a frame sent comes back. The
@@ -36,9 +41,11 @@ forever a request that can never succeed.
   emits six of them one second apart;
 - a gRPC call goes through, and the `erreur` payload comes back as an
   application refusal, not a transport failure;
-- cutting the backend under an open stream leaves no orphan connection. One
-  per client eventually exhausts the proxy, and the symptom appears weeks
-  later as "the site is slow".
+- a WebSocket conversation that stays silent for fifteen seconds
+  **survives**, and resumes afterwards. Silence is what cuts, not duration:
+  a chatty stream never triggers this timeout, and the defect only shows up
+  in production, on the conversation that had nothing to say for a
+  minute.
 
 ## Hints
 

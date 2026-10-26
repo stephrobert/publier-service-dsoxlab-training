@@ -59,7 +59,9 @@ like nothing at all.
   explanation would in fact be grading the presence of keywords;
 - **critical**: `revenir` brings back 1.4.2 **and** its certificate;
 - **critical**: after a reboot, the acceptance list passes with no
-  intervention.
+  intervention, and the two executables are **still there**. A delivery
+  mechanism written into `/tmp`, `/run` or `/dev/shm` passes once and is
+  gone the next morning.
 
 ## Hints
 
