@@ -235,7 +235,11 @@ UNIT
 systemctl daemon-reload
 systemctl enable --now pub-nginx-cache-app.service
 
-install -d -m 0700 -o www-data -g www-data /var/cache/nginx/catalogue
+# Le compte est `nginx`, et non `www-data` : c'est le paquet de l'editeur qui
+# est installe ici (voir `shared/paquet-nginx.yml`), et son nginx.conf porte
+# `user nginx;`. `www-data` est la convention du paquet Debian, qui n'est pas
+# celui du catalogue.
+install -d -m 0700 -o nginx -g nginx /var/cache/nginx/catalogue
 
 cat > /etc/nginx/conf.d/cache.conf <<'CONF'
 proxy_cache_path /var/cache/nginx/catalogue

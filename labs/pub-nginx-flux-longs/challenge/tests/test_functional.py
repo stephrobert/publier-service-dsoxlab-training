@@ -84,13 +84,18 @@ def test_le_websocket_echange_dans_les_deux_sens(poste, ip_edge) -> None:
     assert "POIGNEE True" in sortie, message(
         en=(
             f"The WebSocket handshake did not complete ({sortie.strip()[:160]!r}). "
-            "Nginx must forward the Upgrade and Connection headers, with "
-            "`proxy_http_version 1.1`."
+            "Nginx must forward the Upgrade and Connection headers: they are "
+            "hop-by-hop headers, so it drops them unless the location sets "
+            "them again. `proxy_http_version` is not the cause here, 1.1 has "
+            "been the default since nginx 1.29.7."
         ),
         fr=(
             f"La poignée de main WebSocket n'a pas abouti "
             f"({sortie.strip()[:160]!r}). Nginx doit transmettre les en-têtes "
-            "Upgrade et Connection, avec `proxy_http_version 1.1`."
+            "Upgrade et Connection : ce sont des en-têtes de saut, il les "
+            "retire donc si le location ne les repose pas. "
+            "`proxy_http_version` n'est pas la cause ici, 1.1 est le défaut "
+            "depuis nginx 1.29.7."
         ),
     )
     assert "echo:bonjour" in sortie, message(

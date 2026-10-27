@@ -189,8 +189,11 @@ server {
 }
 
 server {
-    # `listen ... http2` et non `http2 on;` : la seconde forme n'existe
-    # qu'a partir de nginx 1.25.1, et Ubuntu 24.04 livre 1.24.
+    # `listen ... http2` est DEPRECIE depuis nginx 1.25.1, qui a introduit la
+    # directive `http2`. La forme perimee est posee ici EXPRES : c'est elle
+    # que la lecon fait reperer, et nginx l'accepte encore en journalisant un
+    # avertissement au demarrage. Ne pas la "corriger" dans l'etat de depart,
+    # il n'y aurait plus rien a trouver.
     listen 443 ssl http2 default_server;
     server_name service.lab.test;
 

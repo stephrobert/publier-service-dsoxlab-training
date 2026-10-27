@@ -43,9 +43,10 @@ systemctl enable --now pub-nginx-flux-backends.service
 
 cat > /etc/nginx/conf.d/flux.conf <<'CONF'
 server {
+    # Ce `listen` ne porte PAS `http2`, et c'est l'un des defauts a trouver :
+    # gRPC exige HTTP/2 de bout en bout, donc un client gRPC n'obtient rien
+    # d'un `server` qui n'ecoute qu'en HTTP/1.
     listen 80 default_server;
-    # gRPC exige HTTP/2. Sans cette ligne, le proxy parle HTTP/1 a un
-    # client qui parle HTTP/2, et rien n'aboutit.
     server_name flux.lab.test;
 
     # Dix secondes : un flux long est coupe en pleine conversation.
@@ -54,7 +55,6 @@ server {
 
     location /ws {
         proxy_pass http://127.0.0.1:18101;
-        proxy_http_version 1.1;
         # Ni Upgrade ni Connection : la poignee de main n'aboutit jamais.
         proxy_set_header Host $host;
     }

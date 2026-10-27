@@ -14,8 +14,10 @@ exchanges, and keep a conversation alive while it has nothing to say.
 
 ## What each transport requires, and how they differ
 
-The **WebSocket** needs the handshake forwarded: `proxy_http_version 1.1`,
-then the `Upgrade` and `Connection` headers.
+The **WebSocket** needs the handshake forwarded: the `Upgrade` and
+`Connection` headers, over an HTTP/1.1 connection to the backend. That
+version has been the default since nginx 1.29.7, so only the headers are
+missing here.
 
 **SSE** needs nothing buffered. This is the subtlest trap in the lab,
 because a naive test misses it: the six events **do** eventually arrive.
@@ -49,8 +51,13 @@ a long stream does: it goes quiet. `proxy_read_timeout` counts the time
 
 ## Hints
 
-- `proxy_set_header Upgrade $http_upgrade;` and
-  `proxy_set_header Connection "upgrade";`, with `proxy_http_version 1.1`.
+- `proxy_set_header Upgrade $http_upgrade;` and `proxy_set_header Connection`.
+  A hard-coded `"upgrade"` is fine on a dedicated route such as `/ws`; as soon
+  as the route also carries ordinary traffic, compute it with a `map` on
+  `$http_upgrade`, or every request through that `location` asks for a
+  protocol switch. `proxy_http_version` is not what is missing: 1.1 has been
+  the default since nginx 1.29.7. Writing it does no harm, and even carries
+  the configuration to an older nginx, but it repairs nothing here.
 - `proxy_buffering off;` inside the stream's `location`, not globally: the
   buffer stays useful everywhere else.
 - `grpc_pass grpc://...` on a `server` whose `listen` carries `http2`.
