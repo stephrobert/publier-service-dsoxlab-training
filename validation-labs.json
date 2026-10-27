@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-26 22:39:49",
+  "genere_le": "2026-10-27 11:06:54",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -226,10 +226,10 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "4/4",
-      "duree_s": 103.6,
+      "duree_s": 73.9,
       "traces": [],
       "pourquoi": "",
-      "date": "2026-10-26"
+      "date": "2026-10-27"
     },
     "pub-nginx-depannage": {
       "id": "pub-nginx-depannage",
@@ -250,10 +250,10 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "4/4",
-      "duree_s": 149.2,
+      "duree_s": 121.3,
       "traces": [],
       "pourquoi": "",
-      "date": "2026-10-26"
+      "date": "2026-10-27"
     },
     "pub-nginx-installation": {
       "id": "pub-nginx-installation",
@@ -286,10 +286,10 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "6/6",
-      "duree_s": 207.1,
+      "duree_s": 178.9,
       "traces": [],
       "pourquoi": "",
-      "date": "2026-10-26"
+      "date": "2026-10-27"
     },
     "pub-nginx-observation": {
       "id": "pub-nginx-observation",
