@@ -12,7 +12,7 @@ skills:
   - reverse-proxy
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-routage/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik/
 lab_type: lab
 estimated_time: "40m"
 runtime:

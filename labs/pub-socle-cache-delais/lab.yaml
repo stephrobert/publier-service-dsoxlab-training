@@ -13,7 +13,7 @@ skills:
   - timeouts
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/delais-tentatives-cache/
+doc_url: https://www.stephane-robert.info/docs/services/web/publier-un-service/
 lab_type: lab
 estimated_time: "50m"
 runtime:

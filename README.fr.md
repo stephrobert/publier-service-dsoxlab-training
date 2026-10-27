@@ -178,22 +178,22 @@ Identifier le service derrière une réponse web, lire un échange HTTP, bascule
 
 | Lab (id) | Titre | Niveau | Runtime | Guide compagnon |
 |---|---|---|---|---|
-| `pub-socle-service` | Identifier le service derrière une réponse web | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
-| `pub-socle-http` | Lire et expliquer un échange HTTP | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
-| `pub-socle-dns` | Diagnostiquer et basculer un enregistrement DNS | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
-| `pub-acme-pebble` | Obtenir un certificat automatiquement avec ACME | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
-| `pub-socle-exposition` | Fermer les chemins qui contournent le point d'entrée | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
+| `pub-socle-service` | Identifier le service derrière une réponse web | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/service-web-publier/) |
+| `pub-socle-http` | Lire et expliquer un échange HTTP | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/http-lire-echange/) |
+| `pub-socle-dns` | Diagnostiquer et basculer un enregistrement DNS | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/dns-preparer-bascule/) |
+| `pub-acme-pebble` | Obtenir un certificat automatiquement avec ACME | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/certificats-acme/) |
+| `pub-socle-exposition` | Fermer les chemins qui contournent le point d'entrée | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/exposition-ports-pare-feu/) |
 | `pub-socle-dns-http-tls` | Dissocier nom résolu, certificat et route HTTP | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
 | `pub-socle-reverse-proxy` | Définir les responsabilités et la confiance d'une chaîne de proxys | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
-| `pub-socle-tls` | Vérifier une identité TLS et sa chaîne de confiance | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
+| `pub-socle-tls` | Vérifier une identité TLS et sa chaîne de confiance | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/reseaux/fondamentaux/tls-diagnostic/) |
 | `pub-socle-application` | Réparer une session, son cookie et ses origines derrière un proxy | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
 | `pub-socle-flux-longs` | Observer un WebSocket et un flux d'événements | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
 | `pub-socle-disponibilite` | Mesurer panne, retrait et reprise d'un backend | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
 | `pub-socle-observabilite` | Définir un SLI et une alerte vus du client | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/) |
 | `pub-socle-mise-en-service` | Réceptionner une publication et la restaurer | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
 | `pub-socle-depannage` | Diagnostiquer une publication par couches | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
-| `pub-socle-securite` | Écrire et tester la politique d'un service web | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/web/securite-point-entree/) |
-| `pub-socle-cache-delais` | Mesurer les effets d'un cache et des nouvelles tentatives | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/web/delais-tentatives-cache/) |
+| `pub-socle-securite` | Écrire et tester la politique d'un service web | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
+| `pub-socle-cache-delais` | Mesurer les effets d'un cache et des nouvelles tentatives | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
 | `pub-epreuve-socle` | Épreuve du socle : concevoir et réceptionner un service | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
 
 ### Traefik : publier, protéger et exploiter un reverse proxy
@@ -205,19 +205,19 @@ Publier des conteneurs et des services hôte derrière Traefik, sécuriser, obse
 | `pub-traefik-modele` | Tracer une requête dans le modèle de routage de Traefik | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
 | `pub-traefik-installation` | Installer Traefik et maîtriser le cycle de vie du point d'entrée | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-installation/) |
 | `pub-traefik-docker` | Publier deux conteneurs derrière Traefik, avec le fournisseur Docker | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-docker/) |
-| `pub-traefik-fichier` | Publier un service systemd avec le fournisseur fichier de Traefik | niveau-1 | vm | [guide](https://doc.traefik.io/traefik/providers/file/) |
+| `pub-traefik-fichier` | Publier un service systemd avec le fournisseur fichier de Traefik | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-fichier/) |
 | `pub-traefik-routage` | Résoudre les priorités et collisions de routage | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
 | `pub-traefik-acme` | Configurer HTTPS, le renouvellement ACME et TLS moderne dans Traefik | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
 | `pub-traefik-restart-recovery` | Maintenir un service web conteneurisé disponible après un redémarrage de Docker | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-installation/) |
-| `pub-epreuve-niveau-un` | Épreuve de niveau 1 : publier et rétablir des services | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
+| `pub-epreuve-niveau-un` | Épreuve de niveau 1 : publier et rétablir des services | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/epreuve-niveau-1/) |
 | `pub-traefik-middlewares` | Composer et vérifier des middlewares Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-middlewares/) |
 | `pub-traefik-protection` | Protéger le point d'entrée Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-securite/) |
 | `pub-traefik-mtls` | Vérifier TLS backend et certificats clients | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
 | `pub-traefik-flux-delais` | Borner les délais et conserver les flux applicatifs | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
 | `pub-traefik-observabilite` | Observer Traefik avec des journaux JSON et Prometheus | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-observability/) |
-| `pub-traefik-depannage` | Dépanner le routage et TLS dans Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-observability/) |
-| `pub-traefik-mise-a-jour` | Mettre à jour Traefik et prouver le retour arrière | niveau-2 | vm | [guide](https://doc.traefik.io/traefik/migrate/v2-to-v3/) |
-| `pub-epreuve-niveau-deux` | Épreuve de niveau 2 : protéger, observer et diagnostiquer | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-securite/) |
+| `pub-traefik-depannage` | Dépanner le routage et TLS dans Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-depanner/) |
+| `pub-traefik-mise-a-jour` | Mettre à jour Traefik et prouver le retour arrière | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/) |
+| `pub-epreuve-niveau-deux` | Épreuve de niveau 2 : protéger, observer et diagnostiquer | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/web/epreuve-niveau-deux/) |
 | `pub-traefik-zero-downtime` | Basculer une version de backend, prouver le retour arrière et nommer le vrai domaine de panne | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/) |
 
 ### HAProxy : publier et exploiter des services web
@@ -226,20 +226,20 @@ Publier en HTTPS avec l'ACME natif de HAProxy et l'observer avec Prometheus.
 
 | Lab (id) | Titre | Niveau | Runtime | Guide compagnon |
 |---|---|---|---|---|
-| `pub-haproxy-tls` | Publier en HTTPS avec l'ACME natif de HAProxy | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-protection` | Protéger une application avec HAProxy | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-observabilite` | Observer HAProxy avec Prometheus | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-installation` | Installer HAProxy et distinguer ses modes HTTP et TCP | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-routage` | Router avec des ACL et une map, sans route de fuite | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-sante` | Sonder, retirer et drainer des backends | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-tls-stable` | Publier TLS avec un cycle de certificats éprouvé | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-tls-acme/) |
-| `pub-haproxy-confiance` | Vérifier l'identité du backend et de la source | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-stick-tables` | Limiter par une clé que vous maîtrisez, et lire les compteurs | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-flux-delais` | Borner temps, files et flux longs | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-runtime` | Modifier l'état runtime avec des droits limités | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-depannage` | Diagnostiquer une panne HAProxy inconnue | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-mise-a-jour` | Recharger, mettre à jour et reprendre HAProxy | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
-| `pub-haproxy-ha` | Prouver le domaine de panne de deux points d'entrée | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy/) |
+| `pub-haproxy-tls` | Publier en HTTPS avec l'ACME natif de HAProxy | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-tls-acme/) |
+| `pub-haproxy-protection` | Protéger une application avec HAProxy | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-proteger-observer/) |
+| `pub-haproxy-observabilite` | Observer HAProxy avec Prometheus | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-proteger-observer/) |
+| `pub-haproxy-installation` | Installer HAProxy et distinguer ses modes HTTP et TCP | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-installer/) |
+| `pub-haproxy-routage` | Router avec des ACL et une map, sans route de fuite | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-routage/) |
+| `pub-haproxy-sante` | Sonder, retirer et drainer des backends | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-sante/) |
+| `pub-haproxy-tls-stable` | Publier TLS avec un cycle de certificats éprouvé | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-tls-stable/) |
+| `pub-haproxy-confiance` | Vérifier l'identité du backend et de la source | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-confiance/) |
+| `pub-haproxy-stick-tables` | Limiter par une clé que vous maîtrisez, et lire les compteurs | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-stick-tables/) |
+| `pub-haproxy-flux-delais` | Borner temps, files et flux longs | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-flux-delais/) |
+| `pub-haproxy-runtime` | Modifier l'état runtime avec des droits limités | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-runtime/) |
+| `pub-haproxy-depannage` | Diagnostiquer une panne HAProxy inconnue | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-depanner/) |
+| `pub-haproxy-mise-a-jour` | Recharger, mettre à jour et reprendre HAProxy | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-mise-a-jour/) |
+| `pub-haproxy-ha` | Prouver le domaine de panne de deux points d'entrée | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-disponibilite/) |
 
 ### Nginx : publier et protéger des services web
 
@@ -247,19 +247,19 @@ Publier une application avec Nginx et la protéger.
 
 | Lab (id) | Titre | Niveau | Runtime | Guide compagnon |
 |---|---|---|---|---|
-| `pub-nginx-publication` | Publier une application avec Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-installation` | Installer Nginx et maîtriser validation et reload | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-routage` | Vérifier la sélection de server et location | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-statique` | Servir uniquement les fichiers prévus | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-upstream` | Mesurer répartition et détection passive | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-tls` | Renouveler et servir un certificat Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-limites` | Limiter un abus tout en conservant les clients légitimes | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-flux-longs` | Publier WebSocket, SSE et gRPC avec Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-cache` | Mettre en cache sans partager de données privées | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-depannage` | Diagnostiquer et corriger Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-mise-a-jour` | Mettre à jour, restaurer et rebooter Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-protection` | Protéger une application avec Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
-| `pub-nginx-observation` | Observer un reverse proxy Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx/) |
+| `pub-nginx-publication` | Publier une application avec Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-publier/) |
+| `pub-nginx-installation` | Installer Nginx et maîtriser validation et reload | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-installer/) |
+| `pub-nginx-routage` | Vérifier la sélection de server et location | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-routage/) |
+| `pub-nginx-statique` | Servir uniquement les fichiers prévus | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-statique/) |
+| `pub-nginx-upstream` | Mesurer répartition et détection passive | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-upstreams/) |
+| `pub-nginx-tls` | Renouveler et servir un certificat Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-tls/) |
+| `pub-nginx-limites` | Limiter un abus tout en conservant les clients légitimes | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-limites/) |
+| `pub-nginx-flux-longs` | Publier WebSocket, SSE et gRPC avec Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-flux-longs/) |
+| `pub-nginx-cache` | Mettre en cache sans partager de données privées | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-cache/) |
+| `pub-nginx-depannage` | Diagnostiquer et corriger Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-depanner/) |
+| `pub-nginx-mise-a-jour` | Mettre à jour, restaurer et rebooter Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-mise-a-jour/) |
+| `pub-nginx-protection` | Protéger une application avec Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-proteger-observer/) |
+| `pub-nginx-observation` | Observer un reverse proxy Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-observer/) |
 
 _61 labs, table générée par `scripts/gen_catalog.py`._
 <!-- LABS:END -->

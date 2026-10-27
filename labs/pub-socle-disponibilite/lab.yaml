@@ -18,7 +18,7 @@ skills:
   - failure-domains
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/equilibrer-sante-service/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/
 lab_type: lab
 estimated_time: "50m"
 runtime:

@@ -15,7 +15,7 @@ skills:
   - mtls
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-mtls/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik/
 lab_type: lab
 estimated_time: "55m"
 runtime:
