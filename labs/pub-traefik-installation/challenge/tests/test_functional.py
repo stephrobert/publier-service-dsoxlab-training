@@ -26,8 +26,30 @@ def poste():
     return lab_host("poste.lab")
 
 
-def _unite_active(edge) -> bool:
-    return edge.run(f"systemctl is-active {UNITE}").stdout.strip() == "active"
+def _unite_active(edge, limite_s: float = 90.0) -> bool:
+    """L'unite est-elle active, en lui laissant le temps de le devenir ?
+
+    UNE MACHINE QUI REPOND EN SSH N'A PAS FINI DE DEMARRER. Lue une seule
+    fois juste apres un redemarrage, l'unite est encore `activating`, et
+    le controle echoue une fois sur trois sur un lab par ailleurs juste
+    (mesure du 2026-10-26 : 3/4 au harnais, 4/4 aux deux passages joues
+    ensuite). Un controle intermittent est pire qu'un controle faux : on
+    apprend a le rejouer, donc a ne plus le croire.
+
+    L'attente ne rend pas le controle complaisant : une unite qui ne
+    demarre pas reste rouge au bout des quatre-vingt-dix secondes.
+    """
+    limite = time.monotonic() + limite_s
+    etat = ""
+    while time.monotonic() < limite:
+        etat = edge.run(f"systemctl is-active {UNITE}").stdout.strip()
+        if etat == "active":
+            return True
+        if etat in ("failed", "inactive"):
+            # Un etat terminal ne s'ameliorera pas en attendant.
+            return False
+        time.sleep(3)
+    return etat == "active"
 
 
 def _attendre_port_80(hote, limite_s: float = 60.0) -> bool:

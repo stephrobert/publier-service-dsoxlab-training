@@ -13,7 +13,7 @@ skills:
   - least-privilege
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy-runtime/
 lab_type: lab
 estimated_time: "45m"
 runtime:

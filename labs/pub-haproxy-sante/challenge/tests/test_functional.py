@@ -484,8 +484,15 @@ def test_le_drainage_arrete_les_nouvelles_affectations_sans_couper_l_etabli(
             f"nohup flux-long {ip_edge} /tmp/flux-sante.txt "
             ">/dev/null 2>&1 &"
         )
+        # Le lambda DIFFÈRE l'appel : `_attendre` rejoue sa condition tant
+        # qu'elle est fausse, donc le `poste.run` doit repartir à chaque tour.
+        # Le correctif que propose ruff (passer `.stdout.strip`) exécuterait la
+        # commande UNE fois, puis redécouperait indéfiniment le même texte :
+        # l'attente ne mesurerait plus rien. Ruff le signale lui-même comme un
+        # correctif risqué.
         premiere = _attendre(
-            lambda: poste.run("head -1 /tmp/flux-sante.txt").stdout.strip(), 20
+            lambda: poste.run("head -1 /tmp/flux-sante.txt").stdout.strip(),  # noqa: PLW0108
+            20,
         )
         assert premiere and "beta" in premiere, message(
             en=(

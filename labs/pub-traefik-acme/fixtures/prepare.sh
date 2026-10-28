@@ -49,11 +49,19 @@ services:
   challtestsrv:
     image: $IMG_CHALLTESTSRV
     container_name: pub-renewal-challtestsrv
+    # `restart` : l'autorite de test doit SURVIVRE A UN REDEMARRAGE de la
+    # machine. Mesure du 2026-10-26 : sans cette politique, un lab dont le
+    # controle redemarre le poste trouve l'autorite eteinte au retour, et son
+    # client ACME echoue sur un « serveur injoignable » qui n'a rien a voir
+    # avec ce qu'il mesure. Une autorite reelle, elle, ne s'eteint pas parce
+    # que son client a reboote.
+    restart: unless-stopped
     command: ["-defaultIPv6", "", "-defaultIPv4", "172.29.0.1"]
     networks: [acme-renewal]
   pebble:
     image: $IMG_PEBBLE
     container_name: pub-renewal-pebble
+    restart: unless-stopped
     command: ["-config", "/test/config/pebble-config.json", "-dnsserver", "pub-renewal-challtestsrv:8053"]
     environment:
       PEBBLE_VA_NOSLEEP: "1"

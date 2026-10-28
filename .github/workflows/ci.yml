@@ -196,7 +196,11 @@ jobs:
   # place dans un hook local, qui doit rester rapide et marcher hors ligne.
   # Repris du catalogue Kubernetes, qui a tranché de la même façon.
   contrat:
-    name: Contrat du catalogue (2 labs)
+    # Le nom ne porte PAS le nombre de labs : il annoncait « 2 labs » alors
+    # que le catalogue en compte 61, et un comptage qu'il faut penser a
+    # recopier finit toujours par mentir. L'etape « Lister les labs » le dit,
+    # elle, a chaque execution.
+    name: Contrat du catalogue
     needs: zizmor
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -240,8 +244,11 @@ jobs:
       - name: Les garde-fous du dépôt passent
         run: uv run --with pytest --with pyyaml pytest tests/ -q
 
+      # Version epinglee, et la meme que celle du hook : voir le commentaire de
+      # `.pre-commit-config.yaml`. Deux appels a `uvx ruff` non epingles
+      # finissent par juger differemment du meme code.
       - name: Lint
-        run: uvx ruff check .
+        run: uvx ruff@0.17.3 check .
 
       # Un verrou qui dérive de son pyproject ne verrouille plus rien : les
       # scanners de vulnérabilités continuent de lire uv.lock, qui ne décrit

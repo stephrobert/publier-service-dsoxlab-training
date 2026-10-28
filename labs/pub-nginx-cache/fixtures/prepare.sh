@@ -2,7 +2,7 @@
 # Pose la situation : un catalogue mis en cache, et mal.
 #
 # LES QUATRE DEFAUTS POSES
-#   1. `proxy_ignore_headers Cache-Control Expires Set-Cookie` : le contrat
+#   1. `proxy_ignore_headers Cache-Control Expires Set-Cookie Vary` : le contrat
 #      que l'origine annonce sur chacune de ses reponses est jete. C'est LE
 #      defaut de fond : il fait mettre en cache le prive, et il fait servir
 #      le volatil pendant dix minutes.
@@ -235,7 +235,11 @@ UNIT
 systemctl daemon-reload
 systemctl enable --now pub-nginx-cache-app.service
 
-install -d -m 0700 -o www-data -g www-data /var/cache/nginx/catalogue
+# Le compte est `nginx`, et non `www-data` : c'est le paquet de l'editeur qui
+# est installe ici (voir `shared/paquet-nginx.yml`), et son nginx.conf porte
+# `user nginx;`. `www-data` est la convention du paquet Debian, qui n'est pas
+# celui du catalogue.
+install -d -m 0700 -o nginx -g nginx /var/cache/nginx/catalogue
 
 cat > /etc/nginx/conf.d/cache.conf <<'CONF'
 proxy_cache_path /var/cache/nginx/catalogue
@@ -262,7 +266,7 @@ server {
         # LE DEFAUT DE FOND : le contrat que l'origine annonce sur chacune
         # de ses reponses est jete. Le prive se met donc en cache, et le
         # volatil s'y attarde.
-        proxy_ignore_headers Cache-Control Expires Set-Cookie X-Accel-Expires;
+        proxy_ignore_headers Cache-Control Expires Set-Cookie X-Accel-Expires Vary;
 
         # Un entete qui annonce HIT sur toutes les reponses, y compris
         # celles qui sortent de l'origine. Il ne mesure rien.
@@ -273,7 +277,6 @@ server {
     }
 }
 CONF
-  /etc/nginx/conf.d/cache.conf
 
 cat > "$WORK/contrat-de-contenu.txt" <<'TXT'
 Le contrat de contenu du catalogue.

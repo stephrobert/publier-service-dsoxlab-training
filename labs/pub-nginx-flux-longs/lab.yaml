@@ -14,7 +14,7 @@ skills:
   - streaming
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/nginx/
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx-flux-longs/
 lab_type: lab
 estimated_time: "55m"
 runtime:

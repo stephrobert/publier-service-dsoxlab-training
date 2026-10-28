@@ -101,8 +101,16 @@ class Passerelle(http.server.BaseHTTPRequestHandler):
                 dernier, statut = self._amont("POST", politique)
                 self._envoyer(statut, dernier)
                 return
+            # `HTTPException` ET PAS SEULEMENT `RemoteDisconnected`.
+            # L'amont annonce `Content-Length: 2` puis ferme sans envoyer
+            # le corps : urllib leve alors `http.client.IncompleteRead`,
+            # qui n'est NI une `URLError` NI une `RemoteDisconnected`
+            # (mesure du 2026-10-26, banc de vingt lignes). L'exception
+            # remontait donc, la boucle s'arretait au premier essai, et le
+            # rejeu que ce lab enseigne ne se produisait jamais : le
+            # controle de non-duplication passait sans travail.
             except (urllib.error.URLError, socket.timeout, TimeoutError,
-                    http.client.RemoteDisconnected) as erreur:
+                    http.client.HTTPException) as erreur:
                 dernier = f"amont coupe : {erreur}\n".encode()
         self._envoyer(502, dernier)
 

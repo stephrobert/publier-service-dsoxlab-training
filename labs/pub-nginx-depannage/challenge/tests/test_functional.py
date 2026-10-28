@@ -239,8 +239,44 @@ def test_la_recette_metier_passe_en_entier(poste, ip_edge, marqueurs) -> None:
     )
 
 
+def _exiger_que_la_recette_passe(poste, cible: str, marqueurs: dict) -> None:
+    """Echoue tant que la panne n'est pas reparee.
+
+    Les trois routes, parce qu'aucune variante ne les abime toutes et
+    qu'aucune ne les laisse toutes saines : `selection` detourne /api/,
+    `permission` ferme la racine statique, `dns` met le service a terre,
+    `tls` fait rendre 502 a /api/, `timeout` fait sortir /api/lent en 504.
+    C'est la meme condition que le banc verifie de son cote avant de
+    declarer la situation posee, vue de l'autre bout.
+    """
+    code_racine, corps_racine = _demander(poste, cible, "/")
+    code_api, corps_api = _demander(poste, cible, "/api/")
+    code_lent, _ = _demander(poste, cible, "/api/lent")
+
+    manques = []
+    if code_racine != "200" or marqueurs["statique"] not in corps_racine:
+        manques.append(f"la racine statique rend {code_racine}")
+    if code_api != "200" or marqueurs["api"] not in corps_api:
+        manques.append(f"/api/ rend {code_api} sans son marqueur")
+    if code_lent != "200":
+        manques.append(f"/api/lent rend {code_lent}")
+
+    assert not manques, message(
+        en=(
+            "The acceptance list does not pass yet (" + ", ".join(manques) +
+            "), so there is nothing to judge here: this check grades HOW the "
+            "fault was repaired, not whether it was."
+        ),
+        fr=(
+            "La recette ne passe pas encore (" + ", ".join(manques) +
+            "), il n'y a donc rien à juger ici : ce contrôle évalue COMMENT "
+            "la panne a été réparée, pas si elle l'a été."
+        ),
+    )
+
+
 def test_la_correction_n_a_pas_donne_de_droits_excessifs(
-    poste, edge, ip_edge
+    poste, edge, ip_edge, marqueurs
 ) -> None:
     """CRITIQUE. Reparer en elargissant les droits est la facilite.
 
@@ -248,7 +284,15 @@ def test_la_correction_n_a_pas_donne_de_droits_excessifs(
     en root, et la racine statique se « corrige » en 0777. Les deux
     marchent. Les deux sont des regressions, et elles survivent au
     redemarrage.
+
+    LA RECETTE D'ABORD, LA MANIERE ENSUITE. Ce controle juge COMMENT la
+    panne a ete reparee ; il n'a donc aucun sens tant qu'elle ne l'est pas.
+    Sans cette precondition il mesurait une absence, et une absence est
+    toujours vraie chez qui n'a rien fait : il donnait ses points sur
+    l'etat de depart (mesure du 2026-10-26, variante `selection`).
     """
+    _exiger_que_la_recette_passe(poste, ip_edge, marqueurs)
+
     processus = edge.run("ps -o user=,args= -C nginx").stdout
     workers = [
         ligne for ligne in processus.splitlines() if "worker process" in ligne
@@ -333,7 +377,15 @@ def test_la_verification_tls_est_restee_stricte(
     autre autorite et dont le SAN ne correspond pas. Elle doit repondre
     502. Et /api/ doit repondre 200 : une verification stricte qui refuse
     aussi le bon backend n'a rien verifie, elle a tout ferme.
+
+    LA RECETTE D'ABORD, ICI AUSSI. Ce controle juge COMMENT la panne a ete
+    reparee. Sur la variante `timeout`, seul /api/lent est abime : la
+    sonde de confiance refuse deja et /api/ repond deja, donc le controle
+    etait satisfait sans qu'on ait rien repare (mesure du 2026-10-26, 25
+    points sur l'etat de depart).
     """
+    _exiger_que_la_recette_passe(poste, ip_edge, marqueurs)
+
     code, corps = _demander(poste, ip_edge, "/api-secondaire/")
     assert marqueurs["api"] not in corps, message(
         en=(

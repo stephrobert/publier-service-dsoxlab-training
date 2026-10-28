@@ -57,6 +57,14 @@ def _attendre_le_calme(poste, ip: str, secondes: int = 20) -> None:
     for _ in range(secondes):
         if _rafale(poste, ip, "/public", 1,
                    "-H 'X-Cle-Api: cle-alpha'") == ["200"]:
+            # UNE requete qui passe ne dit pas que la rafale est PLEINE :
+            # elle dit qu'il restait un jeton, et la sonde vient de le
+            # prendre. Mesure du 2026-10-26 : sans cette pause, une rafale
+            # de 15 n'en voyait passer que 6, et le test accusait une
+            # limite trop stricte alors qu'il mesurait un seau a moitie
+            # vide. A 10 r/s, trois secondes suffisent a recharger les 20
+            # jetons de la rafale annoncee.
+            time.sleep(3)
             return
         time.sleep(1)
 

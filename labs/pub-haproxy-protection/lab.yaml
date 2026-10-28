@@ -13,7 +13,7 @@ skills:
   - rate-limiting
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy-proteger-observer/
 lab_type: lab
 estimated_time: "40m"
 runtime:

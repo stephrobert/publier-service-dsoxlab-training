@@ -14,7 +14,7 @@ skills:
   - websocket
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy-flux-delais/
 lab_type: lab
 estimated_time: "55m"
 runtime:

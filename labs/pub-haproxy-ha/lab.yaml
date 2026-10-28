@@ -12,7 +12,7 @@ skills:
   - high-availability
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy-disponibilite/
 lab_type: lab
 estimated_time: "65m"
 runtime:

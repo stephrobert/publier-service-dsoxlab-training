@@ -121,8 +121,14 @@ def test_une_reponse_eligible_est_reutilisee_avec_sa_variation(
     # Et le cache ne sert plus ce qui est privé. C'est ce qui distingue une
     # politique corrigée d'une politique rapide et dangereuse : les deux
     # accélèrent, une seule est utilisable.
-    prive_un = _get(poste, ip_edge, "/prive", jeton="alice")
-    prive_deux = _get(poste, ip_edge, "/prive", jeton="bob")
+    # LES CONSTANTES, et non « alice » et « bob ». L'application ne connait
+    # que les deux jetons du banc : avec n'importe quelle autre valeur, elle
+    # rend ANONYME aux DEUX appelants, les corps sont alors identiques, et
+    # le controle echoue quelle que soit la politique. Il echouait donc sur
+    # l'etat de depart comme avec le corrige, c'est-a-dire qu'il ne mesurait
+    # rien.
+    prive_un = _get(poste, ip_edge, "/prive", jeton=ALICE)
+    prive_deux = _get(poste, ip_edge, "/prive", jeton=BOB)
     assert prive_un.strip() and prive_un != prive_deux, message(
         en=(
             "Two different accounts received the SAME private body "

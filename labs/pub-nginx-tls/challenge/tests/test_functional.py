@@ -320,3 +320,33 @@ def test_tls_reste_correct_apres_reload_puis_reboot(edge, poste, ip_edge, racine
             "le disque, et Nginx activé au démarrage."
         ),
     )
+
+    # CE QUE CE TEST DOIT LAISSER DERRIERE LUI.
+    #
+    # Ce qu'il mesure est verifie ci-dessus, et le reste de ce bloc n'y
+    # touche pas. Mais le redemarrage a emporte l'autorite DE TEST avec la
+    # machine : Pebble garde sa racine d'emission et ses comptes en
+    # memoire, et repart vierge. Nginx sert donc un certificat que plus
+    # aucune autorite vivante ne signe, et le prochain controle de chaine
+    # echoue pour une raison qui n'est pas la sienne.
+    #
+    # Une autorite reelle ne perd ni sa racine ni ses comptes. On remet
+    # donc l'etat en coherence avec l'autorite courante, en appelant le
+    # point d'entree que le lab exige de toute facon.
+    remise = edge.run("sudo /usr/local/bin/renouveler-certificats")
+    assert remise.rc == 0, message(
+        en=(
+            "After the reboot, the renewal entry point could not put the "
+            f"state back in line with the restarted test authority: "
+            f"{remise.stderr.strip()[:200]!r}. It must cope with an authority "
+            "that lost its root and its accounts, which is what Pebble does "
+            "on every restart."
+        ),
+        fr=(
+            "Après le redémarrage, le point d'entrée de renouvellement n'a "
+            "pas pu remettre l'état en accord avec l'autorité de test, qui a "
+            f"redémarré : {remise.stderr.strip()[:200]!r}. Il doit encaisser "
+            "une autorité qui a perdu sa racine et ses comptes, ce que Pebble "
+            "fait à chaque démarrage."
+        ),
+    )

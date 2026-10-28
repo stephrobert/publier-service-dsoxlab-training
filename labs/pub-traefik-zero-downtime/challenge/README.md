@@ -7,11 +7,15 @@ replace the single hard-coded `app` service (one server, `v1` only) with a
 an explicit `weight`), and add a `loadBalancer.healthCheck` (path
 `/health`, a short interval such as `2s`) that applies to every server of
 that service. Traefik's `weighted` *service* type (combining two named
-sub-services) does **not** redistribute traffic away from an unhealthy
-sub-service: health checks only remove individual *servers* from a
-`loadBalancer`'s own rotation, so the two versions must be two servers
-of the same load-balanced service, not two separate weighted
-sub-services. Adjust the weights to move traffic from `v1` to `v2`,
+sub-services) **can** take an unhealthy sub-service out, but only when it
+carries a `healthCheck` of its own, and under three conditions: it must
+be enabled, every descendant must have one or service creation fails, and
+it is only defined with the file provider. Without that `healthCheck`,
+nothing is wired and the unhealthy child stays in rotation.
+
+This lab therefore asks for the simplest form, which depends on none of
+those conditions: **two servers of a single load-balanced service**,
+whose health checks remove one server at a time from the rotation. Adjust the weights to move traffic from `v1` to `v2`,
 observe the live mix and error rate with real HTTP requests, then remove
 `/app/healthy` from `pub-zds-app-v2` (`docker exec pub-zds-app-v2 rm
 /app/healthy`) and confirm traffic falls back to `v1` on its own; restore

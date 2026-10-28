@@ -10,6 +10,10 @@
       ansible.builtin.script: fixtures/prepare.sh
       args:
         executable: /bin/bash
+      environment:
+        # Vide en usage normal : le script tire alors sa panne au hasard.
+        # La validation la force pour éprouver les cinq.
+        DSOXLAB_VARIANTE: "{{ lookup('env', 'DSOXLAB_VARIANTE') }}"
 
 - name: Outils du client indépendant
   hosts: lab_client

@@ -6,10 +6,19 @@ CE QUE LE BUILD OPEN SOURCE PERMET, ET CE QU'IL NE PERMET PAS
 Nginx open source n'a AUCUNE sonde active : il ne va pas interroger un
 backend pour savoir s'il va bien. La seule detection disponible est passive,
 `max_fails` et `fail_timeout`, et elle se declenche sur de vraies requetes
-de clients. Autrement dit, les premieres erreurs sont SERVIES avant que le
-backend ne soit retire. Le deuxieme test mesure donc que les erreurs
-CESSENT, et non qu'il n'y en a jamais eu : exiger zero erreur serait exiger
-du build open source ce qu'il ne sait pas faire.
+de clients. Autrement dit, les premieres requetes partent SUR le backend
+fautif avant qu'il ne soit retire. Le deuxieme test mesure donc qu'il CESSE
+d'en recevoir, et non qu'il n'en a jamais recu : exiger zero requete fautive
+serait exiger du build open source ce qu'il ne sait pas faire.
+
+OU LA DETECTION SE MESURE, ET POURQUOI PAS CHEZ LE CLIENT
+
+`proxy_next_upstream error timeout http_502` rattrape le 502 du backend
+fautif sur l'autre backend : le client recoit un 200 qu'il y ait eu retrait
+ou non. Compter ses erreurs mesure donc le rattrapage, pas la detection, et
+c'est ce qui faisait passer ce test sur l'etat de depart avant le
+2026-10-26. La mesure est prise la ou la difference existe, sur le backend,
+par les compteurs `vus-a.txt` et `vus-b.txt` du banc.
 """
 
 from __future__ import annotations
@@ -62,6 +71,21 @@ def _commandes(edge) -> int:
         return -1
 
 
+def _vus(edge, backend: str) -> int:
+    """Le nombre de requetes RECUES par un backend, lu sur le banc.
+
+    C'est la seule mesure qui dise si un backend est encore SOLLICITE. Vu
+    du client, un backend retire et un backend fautif dont les 502 sont
+    rattrapes par `proxy_next_upstream` sont indiscernables : dans les deux
+    cas, c'est l'autre backend qui rend le 200.
+    """
+    brut = edge.run(f"sudo cat {WORK}/vus-{backend}.txt").stdout.strip()
+    try:
+        return int(brut)
+    except ValueError:
+        return -1
+
+
 @pytest.fixture(autouse=True)
 def _remettre_les_modes(edge):
     """Chaque test part de deux backends sains, et les rend sains en partant.
@@ -95,41 +119,83 @@ def test_les_deux_backends_recoivent_du_trafic_en_etat_sain(poste, ip_edge) -> N
     )
 
 
-def test_les_erreurs_cessent_apres_detection_du_backend_fautif(
-    edge, poste, ip_edge
-) -> None:
-    """Les erreurs CESSENT : on ne demande pas qu'il n'y en ait jamais eu.
+def test_le_backend_fautif_cesse_d_etre_sollicite(edge, poste, ip_edge) -> None:
+    """La detection se mesure SUR LE BACKEND, pas chez le client.
 
-    La detection passive apprend des requetes des clients. Les premieres
-    erreurs sont donc servies, et c'est une propriete du build open source,
-    pas un defaut de la configuration. On mesure le retrait sur la SECONDE
-    moitie de la rafale.
+    Mesure du 2026-10-26 : la version precedente de ce test comptait les
+    erreurs vues par le client sur la seconde moitie d'une rafale, et elle
+    passait sur l'etat de depart, ou rien n'est jamais retire. La cause
+    n'etait pas le test : `proxy_next_upstream error timeout http_502`
+    rattrape le 502 du backend fautif sur l'autre backend, si bien que le
+    client recoit un 200 dans les deux cas. Compter les erreurs du client
+    ne mesurait donc pas la detection, mais le rattrapage.
+
+    Ce qui distingue reellement les deux etats, c'est que le backend retire
+    ne RECOIT plus rien. La detection passive apprend des requetes des
+    clients, donc les premieres erreurs sont bien servies : la premiere
+    rafale sert a apprendre, la seconde a mesurer.
     """
     _mode(edge, "a", "erreur")
     time.sleep(1)
 
-    reponses = _rafale(poste, ip_edge, 30)
-    seconde_moitie = reponses[15:]
-    restantes = [r for r in seconde_moitie if "erreur" in r or "echec" in r]
-
-    assert len(seconde_moitie) >= 10, message(
+    apprentissage = _rafale(poste, ip_edge, 20)
+    assert len(apprentissage) >= 10, message(
         en="The burst produced too few answers for the measurement to mean anything.",
         fr="La rafale a produit trop peu de réponses pour que la mesure signifie "
         "quelque chose.",
     )
-    assert not restantes, message(
+    pivot = _vus(edge, "a")
+    assert pivot >= 0, message(
+        en=f"The per-backend counter {WORK}/vus-a.txt could not be read.",
+        fr=f"Le compteur du banc {WORK}/vus-a.txt n'a pas pu être lu.",
+    )
+
+    reponses = _rafale(poste, ip_edge, 20)
+    recues = _vus(edge, "a") - pivot
+
+    # Une retentative par fenetre de `fail_timeout` est NORMALE, et c'est
+    # meme ainsi que le backend revient : on tolere donc quelques requetes,
+    # pas un flux continu.
+    #
+    # Le seuil est mesure, pas devine. Banc local du 2026-10-26, meme nginx
+    # 1.31.8, meme backends : avec `max_fails=2 fail_timeout=10s`, le
+    # backend retire recoit 2 requetes sur 20 (les retentatives de fin de
+    # fenetre) ; sur l'etat de depart il en recoit 20 sur 20, et 10 sur 20
+    # si l'on retire `backup` sans donner de valeur a `max_fails`. Cinq
+    # separe les trois cas en gardant de la marge des deux cotes.
+    assert recues <= 5, message(
         en=(
-            f"{len(restantes)} of the last {len(seconde_moitie)} requests still "
-            "hit the faulty backend. Passive detection is disabled: "
+            f"The faulty backend still received {recues} of the last "
+            f"{len(reponses)} requests. Passive detection is disabled: "
             "`max_fails=0` means never remove. Give `max_fails` and "
-            "`fail_timeout` values you can justify."
+            "`fail_timeout` values you can justify. Note that the client sees "
+            "no error either way, because the retry hides it on the other "
+            "backend: what is measured here is what the backend receives."
         ),
         fr=(
-            f"{len(restantes)} des {len(seconde_moitie)} dernières requêtes "
-            "touchent encore le backend fautif. La détection passive est "
-            "désactivée : `max_fails=0` veut dire « ne jamais retirer ». Donnez "
-            "à `max_fails` et `fail_timeout` des valeurs que vous savez "
-            "justifier."
+            f"Le backend fautif a encore reçu {recues} des {len(reponses)} "
+            "dernières requêtes. La détection passive est désactivée : "
+            "`max_fails=0` veut dire « ne jamais retirer ». Donnez à "
+            "`max_fails` et `fail_timeout` des valeurs que vous savez "
+            "justifier. Notez que le client ne voit d'erreur ni dans un cas ni "
+            "dans l'autre, le rejeu la masquant sur l'autre backend : ce qui "
+            "est mesuré ici, c'est ce que le backend reçoit."
+        ),
+    )
+
+    # Et le service reste debout : un retrait qui coupe le service n'est pas
+    # une detection reussie.
+    servies = [r for r in reponses if r.startswith("backend=") and "erreur" not in r]
+    assert len(servies) >= len(reponses) - 1, message(
+        en=(
+            f"Only {len(servies)} of {len(reponses)} requests were served while "
+            "one backend was faulty. Removing a backend must not take the "
+            "service with it: the other one is there for that."
+        ),
+        fr=(
+            f"Seules {len(servies)} requêtes sur {len(reponses)} ont été "
+            "servies alors qu'un seul backend était fautif. Retirer un backend "
+            "ne doit pas emporter le service : l'autre est là pour ça."
         ),
     )
 
@@ -142,9 +208,33 @@ def test_le_backend_revient_au_trafic_apres_fail_timeout(
     Apres `fail_timeout`, Nginx retente le backend retire. S'il repond, il
     reprend sa part. Le test attend donc le delai declare, puis exige de
     revoir le backend.
+
+    IL EXIGE D'ABORD LE RETRAIT, et c'est la correction du 2026-10-26 :
+    sans elle, ce test passait sur l'etat de depart. La raison est logique
+    plutot que technique : la ou rien n'est jamais retire, le backend est
+    toujours la, donc « il est revenu » est vrai sans que rien n'ait eu
+    lieu. Un retour ne se mesure qu'apres un depart.
     """
     _mode(edge, "a", "erreur")
+    time.sleep(1)
     _rafale(poste, ip_edge, 20)
+    pivot = _vus(edge, "a")
+    _rafale(poste, ip_edge, 20)
+    recues = _vus(edge, "a") - pivot
+    assert recues <= 5, message(
+        en=(
+            f"The faulty backend was never removed: it still received {recues} "
+            "of the last 20 requests. There is nothing to come back from until "
+            "`max_fails` removes it, so give it a value first."
+        ),
+        fr=(
+            f"Le backend fautif n'a jamais été retiré : il a encore reçu "
+            f"{recues} des 20 dernières requêtes. Il n'y a rien à faire "
+            "revenir tant que `max_fails` ne le retire pas : donnez-lui "
+            "d'abord une valeur."
+        ),
+    )
+
     _mode(edge, "a", "ok")
 
     # On laisse passer la fenetre la plus longue qu'une reponse raisonnable

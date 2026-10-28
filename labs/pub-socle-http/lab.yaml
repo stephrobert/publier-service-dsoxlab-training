@@ -12,7 +12,7 @@ skills:
   - idempotency
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/
+doc_url: https://www.stephane-robert.info/docs/services/web/http-lire-echange/
 lab_type: lab
 estimated_time: "40m"
 runtime:

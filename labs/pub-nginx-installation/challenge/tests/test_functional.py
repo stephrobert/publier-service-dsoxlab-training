@@ -106,12 +106,14 @@ def test_la_version_et_le_fichier_actif_suivent_le_manifeste(edge, poste, ip_edg
         en=(
             f"{NOM} does not reach the backend from the client "
             f"(answer: {corps.strip()[:120]!r}). The manifest asks for a site "
-            "defined in sites-available and enabled by a symbolic link."
+            "defined in /etc/nginx/conf.d/, which is what the editor's "
+            "packages include."
         ),
         fr=(
             f"{NOM} n'atteint pas le backend depuis le client "
             f"(réponse : {corps.strip()[:120]!r}). Le manifeste demande un site "
-            "défini dans sites-available et activé par un lien symbolique."
+            "défini dans /etc/nginx/conf.d/, qui est ce que les paquets de "
+            "l'éditeur incluent."
         ),
     )
 

@@ -14,7 +14,7 @@ skills:
   - load-balancing
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy-sante/
 lab_type: lab
 estimated_time: "50m"
 runtime:

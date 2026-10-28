@@ -13,8 +13,7 @@ skills:
   - troubleshooting
 distros:
   - debian13
-doc_url: >-
-  https://www.stephane-robert.info/docs/services/reseau/traefik-observability/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-observability/
 lab_type: lab
 estimated_time: "40m"
 runtime:

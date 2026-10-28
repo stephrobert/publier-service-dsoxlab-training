@@ -62,9 +62,17 @@ repos:
       # `--force-exclude` n'est pas une precaution : sans lui, l'exclusion
       # declaree dans le pyproject est IGNOREE pour tout fichier passe en
       # argument, et pre-commit passe justement les fichiers en argument.
+      #
+      # LA VERSION EST EPINGLEE, et declarer le jeu de regles n'y suffisait
+      # pas. `uvx ruff` installe la DERNIERE version publiee : la machine et le
+      # runner n'ont alors pas le meme juge. Mesure le 2026-10-27 : ruff 0.14.9
+      # ici disait « All checks passed », ruff 0.17.3 en CI levait un PLW0108
+      # dans `pub-haproxy-sante`. Le jeu `PLW` etait bien declare ; c'est la
+      # version qui avait change d'avis, en ajoutant une regle A L'INTERIEUR du
+      # jeu. Un lint qu'on ne peut pas rejouer ne se corrige qu'en poussant.
       - id: ruff
         name: ruff (lint du python des labs, des tests et des scripts)
-        entry: uvx ruff check --fix --force-exclude
+        entry: uvx ruff@0.17.3 check --fix --force-exclude
         language: system
         types_or: [python, pyi]
         require_serial: true

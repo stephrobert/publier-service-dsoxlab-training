@@ -8,11 +8,16 @@ backends comme serveurs (`http://pub-zds-app-v1:8080` et
 ajoutez un `loadBalancer.healthCheck` (chemin `/health`, un intervalle
 court comme `2s`) qui s'applique à tous les serveurs de ce service. Le
 type de service `weighted` de Traefik (qui combine deux sous-services
-nommés) ne redistribue **pas** le trafic d'un sous-service malsain : les
-sondes de santé ne retirent de la rotation que des *serveurs* au sein
-d'un même `loadBalancer`, donc les deux versions doivent être deux
-serveurs d'un même service pondéré, pas deux sous-services pondérés
-séparés. Ajustez les poids pour déplacer le trafic de `v1` vers `v2`,
+nommés) **peut** retirer un sous-service malsain, mais seulement s'il
+porte lui-même un `healthCheck`, et à trois conditions : il faut
+l'activer, tous ses descendants doivent en avoir un sinon la création du
+service échoue, et il n'est défini qu'avec le fournisseur fichier. Sans
+ce `healthCheck`, rien n'est câblé et l'enfant malsain reste dans la
+rotation.
+
+Ce lab demande donc la forme la plus simple, qui ne dépend d'aucune de
+ces conditions : **deux serveurs d'un même service pondéré**, dont les
+sondes retirent individuellement un serveur de la rotation. Ajustez les poids pour déplacer le trafic de `v1` vers `v2`,
 observez le mélange réel et le taux d'erreur avec de vraies requêtes
 HTTP, puis retirez `/app/healthy` de `pub-zds-app-v2` (`docker exec
 pub-zds-app-v2 rm /app/healthy`) et confirmez que le trafic revient seul

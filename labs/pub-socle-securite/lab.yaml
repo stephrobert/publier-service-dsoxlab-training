@@ -13,7 +13,7 @@ skills:
   - logging
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/securite-point-entree/
+doc_url: https://www.stephane-robert.info/docs/services/web/publier-un-service/
 lab_type: lab
 estimated_time: "45m"
 runtime:

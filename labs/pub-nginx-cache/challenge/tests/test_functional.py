@@ -90,6 +90,24 @@ def _demander(poste, ip: str, chemin: str, entetes: str = "") -> tuple[str, str]
     return code.strip(), corps
 
 
+def _statut_cache(poste, ip: str, chemin: str, entetes: str = "") -> str:
+    """Ce que le service DIT de son cache, en un mot.
+
+    `X-Cache-Status` est l'en-tete qu'un exploitant lit pour savoir si le
+    cache sert. Il n'est utile que s'il dit la verite : la situation posee
+    l'affiche a HIT sur toutes les reponses, y compris les MISS, et ferme
+    ainsi la porte au diagnostic.
+    """
+    sortie = poste.run(
+        f"curl -s -o /dev/null -D - --max-time 10 "
+        f"-H 'Host: catalogue.lab.test' {entetes} http://{ip}{chemin}"
+    ).stdout
+    for ligne in sortie.splitlines():
+        if ligne.lower().startswith("x-cache-status:"):
+            return ligne.split(":", 1)[1].strip().upper()
+    return ""
+
+
 def test_une_reponse_publique_est_reellement_servie_depuis_le_cache(
     poste, edge, ip_edge
 ) -> None:
@@ -163,6 +181,46 @@ def test_une_reponse_publique_est_reellement_servie_depuis_le_cache(
         ),
     )
 
+
+    # LE STATUT ANNONCE DOIT DIRE LA VERITE.
+    #
+    # Servir depuis le cache ne suffit pas : la situation posee le fait
+    # deja, avec une cle trop pauvre. Ce qu'elle ne fait pas, c'est le
+    # DIRE : elle pose `add_header X-Cache-Status "HIT" always`, donc elle
+    # annonce HIT y compris sur une entree froide. Un exploitant qui lit
+    # cet en-tete pour savoir si son cache sert est alors trompe, et le
+    # premier geste de diagnostic est perdu.
+    frais = f"/catalogue/accueil/{_jeton()}"
+    premier_statut = _statut_cache(poste, ip_edge, frais)
+    second_statut = _statut_cache(poste, ip_edge, frais)
+    assert premier_statut and second_statut, message(
+        en=(
+            "No X-Cache-Status header on the public route "
+            f"(first {premier_statut!r}, second {second_statut!r}). Whoever "
+            "operates this service reads that header to know whether the "
+            "cache is serving."
+        ),
+        fr=(
+            "Aucun en-tête X-Cache-Status sur la route publique "
+            f"(premier {premier_statut!r}, second {second_statut!r}). C'est "
+            "cet en-tête que lit celui qui exploite le service pour savoir "
+            "si le cache sert."
+        ),
+    )
+    assert premier_statut != second_statut, message(
+        en=(
+            f"X-Cache-Status says {premier_statut!r} on a cold entry and "
+            f"{second_statut!r} on the warm one: the same word twice. The "
+            "header is announcing a constant instead of reporting what "
+            "happened, so it cannot be used to diagnose anything."
+        ),
+        fr=(
+            f"X-Cache-Status annonce {premier_statut!r} sur une entrée froide "
+            f"et {second_statut!r} sur l'entrée chaude : le même mot deux "
+            "fois. L'en-tête annonce une constante au lieu de rapporter ce "
+            "qui s'est passé, et ne permet donc de diagnostiquer rien."
+        ),
+    )
 
 def test_les_variantes_de_langue_ne_se_melangent_pas(poste, edge, ip_edge) -> None:
     """Deux representations, deux entrees.
