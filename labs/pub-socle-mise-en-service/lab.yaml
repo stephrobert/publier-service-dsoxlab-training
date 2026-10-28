@@ -15,7 +15,7 @@ skills:
   - operational-honesty
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/web/publier-un-service/
+doc_url: https://www.stephane-robert.info/docs/services/web/mise-en-service-reprise/
 lab_type: lab
 estimated_time: "60m"
 runtime:
