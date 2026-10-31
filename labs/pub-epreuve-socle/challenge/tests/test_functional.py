@@ -15,7 +15,9 @@ quand le point de vue du client est ce qui compte réellement.
 from __future__ import annotations
 
 import json
+import re
 import secrets
+import unicodedata
 
 import pytest
 import yaml
@@ -28,6 +30,36 @@ DOSSIER = "/home/student/dossier.md"
 INCIDENT_YAML = "/home/student/incident.yaml"
 RESTAURER = "/home/student/restaurer.sh"
 COUCHES = {"dns", "transport", "tls", "route", "backend"}
+
+# Ce qui désigne chaque couche dans le champ `composant`, après
+# normalisation (minuscules, sans accents, `_` et `-` lus comme des espaces).
+# Plusieurs formulations justes sont acceptées : la version précédente
+# exigeait une chaîne exacte par couche (« non signe par »), et un
+# diagnostic juste, écrit « le certificat n'est pas signé par l'autorité »,
+# échouait sur un accent. Les signaux d'une couche n'apparaissent dans
+# aucune autre : « port backend » (route) ne contient aucun signal de
+# backend, et aucun ne cite pub-eps-router, que deux couches partagent.
+SIGNAUX = {
+    "dns": ("nxdomain", "unbound", "zone dns", "resolution dns", "resolveur"),
+    "transport": ("127.0.0.1", "loopback", "boucle locale", "bind"),
+    "tls": ("certificat", "certificate", "non signe", "not signed", "intrus",
+            "autorite de test"),
+    "route": ("port backend", "route.yaml"),
+    "backend": ("backend.service", "pub eps backend", "backend arrete",
+                "backend est arrete", "backend stopped", "backend is stopped",
+                "backend inactive", "backend inactif", "backend est inactif"),
+}
+
+
+def _normaliser(texte: str) -> str:
+    sans_accents = unicodedata.normalize("NFKD", texte)
+    sans_accents = "".join(c for c in sans_accents if not unicodedata.combining(c))
+    return re.sub(r"[\s_\-]+", " ", sans_accents.lower()).strip()
+
+
+def _couches_nommees(composant: str) -> set[str]:
+    texte = _normaliser(composant)
+    return {c for c, signaux in SIGNAUX.items() if any(s in texte for s in signaux)}
 
 
 @pytest.fixture(scope="module")
@@ -193,7 +225,11 @@ def test_incident_diagnostic_et_reparation(edge, poste, etat, secret) -> None:
     #
     # `explication` reste demandee par le scenario et lue par un relecteur :
     # elle n'est simplement pas notee ici.
-    assert secret["mot_cle"] in composant, message(
+    #
+    # Le champ se lit par SIGNAUX normalises, plus par chaine exacte : on note
+    # le raisonnement (la bonne couche, et elle seule), pas une formulation.
+    nommees = _couches_nommees(composant)
+    assert secret["incident"] in nommees, message(
         en=f"{INCIDENT_YAML}'s 'composant' field never names the actual "
         f"faulty component. Name it in that field: the free-text "
         f"'explication' is read by a human reviewer and is not graded here.",
@@ -202,16 +238,16 @@ def test_incident_diagnostic_et_reparation(edge, poste, etat, secret) -> None:
         f"libre 'explication' est lu par un relecteur humain et n'est pas "
         f"noté ici.",
     )
-    for autre in secret["mots_cle_autres"]:
-        assert autre not in composant, message(
-            en=f"{INCIDENT_YAML}'s 'composant' field also names an unrelated "
-            f"layer ({autre!r}): naming every layer at once is not a "
-            f"diagnosis. Ruled-out hypotheses belong in 'explication'.",
-            fr=f"Le champ 'composant' de {INCIDENT_YAML} nomme aussi une "
-            f"couche sans rapport ({autre!r}) : tout citer à la fois n'est "
-            f"pas un diagnostic. Les hypothèses écartées ont leur place dans "
-            f"'explication'.",
-        )
+    autres = sorted(nommees - {secret["incident"]})
+    assert not autres, message(
+        en=f"{INCIDENT_YAML}'s 'composant' field also names an unrelated "
+        f"layer ({', '.join(autres)}): naming every layer at once is not a "
+        f"diagnosis. Ruled-out hypotheses belong in 'explication'.",
+        fr=f"Le champ 'composant' de {INCIDENT_YAML} nomme aussi une "
+        f"couche sans rapport ({', '.join(autres)}) : tout citer à la fois "
+        f"n'est pas un diagnostic. Les hypothèses écartées ont leur place "
+        f"dans 'explication'.",
+    )
 
     # PRESENCE, pas contenu : le scenario demande une explication ecrite, et
     # on verifie qu'elle existe. Ce qu'elle VAUT est affaire de relecture, et

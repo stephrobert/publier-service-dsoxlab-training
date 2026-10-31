@@ -143,12 +143,20 @@ def test_cause_couche_et_composant_identifies(edge, secret) -> None:
         )
 
 
-def test_reparation_et_non_regression(edge, poste, etat) -> None:
+def test_reparation_sans_retirer_de_protection(edge, poste, etat) -> None:
     """Après correction, le service répond, et répond encore face à une
     nouvelle salve de contrôles : une seule requête qui passe par chance
-    ne prouve rien.
+    ne prouve rien. Puis, propriété critique, la réparation n'a dégradé ni
+    la route interdite, ni l'isolement du backend, ni l'obligation TLS.
+
+    Les deux moitiés vivent dans le même test, délibérément. Seule, la
+    seconde était vraie AVANT tout travail : le banc pose ces protections,
+    et le lab rendait 25/100 sans un geste (relevé du 2026-10-28). Accolée
+    à la réparation, elle sépare ce qui est demandé, réparer en gardant les
+    protections, du raccourci qui répare en les retirant.
     """
     edge_ip = etat["edge_ip"]
+    backend_port = etat["backend_port"]
 
     dig = poste.run(f"dig +short {NOM} A").stdout.strip().splitlines()
     assert edge_ip in dig, message(
@@ -163,14 +171,6 @@ def test_reparation_et_non_regression(edge, poste, etat) -> None:
             en=f"Attempt {essai + 1}/3: https://{NOM}/ returns {code}, not 200.",
             fr=f"Essai {essai + 1}/3 : https://{NOM}/ répond {code}, pas 200.",
         )
-
-
-def test_securite_aucune_protection_retiree(edge, poste, etat) -> None:
-    """Propriété critique : réparer la panne tirée au sort n'a dégradé ni
-    la route interdite, ni l'isolement du backend, ni l'obligation TLS.
-    """
-    edge_ip = etat["edge_ip"]
-    backend_port = etat["backend_port"]
 
     code, _ = _requete_https(poste, edge_ip, "/admin")
     assert code == 403, message(
