@@ -219,7 +219,7 @@ Publier des conteneurs et des services hôte derrière Traefik, sécuriser, obse
 | `pub-traefik-mise-a-jour` | Mettre à jour Traefik et prouver le retour arrière | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/) |
 | `pub-epreuve-niveau-deux` | Épreuve de niveau 2 : protéger, observer et diagnostiquer | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/web/epreuve-niveau-deux/) |
 | `pub-traefik-zero-downtime` | Basculer une version de backend, prouver le retour arrière et nommer le vrai domaine de panne | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-disponibilite/) |
-| `pub-traefik-dns01` | Émettre un joker avec DNS-01 dans un laboratoire isolé | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/web/certificats-acme/) |
+| `pub-traefik-dns01` | Émettre un joker avec DNS-01 dans un laboratoire isolé | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
 
 ### HAProxy : publier et exploiter des services web
 

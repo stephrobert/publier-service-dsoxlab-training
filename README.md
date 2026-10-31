@@ -216,7 +216,7 @@ Publish containers and host services behind Traefik, secure, observe, diagnose a
 | `pub-traefik-mise-a-jour` | Upgrade Traefik and prove a rollback | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/) |
 | `pub-epreuve-niveau-deux` | Level 2 assessment: protect, observe, and diagnose | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/epreuve-niveau-deux/) |
 | `pub-traefik-zero-downtime` | Roll out a backend version, prove rollback, and name the real failure domain | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-disponibilite/) |
-| `pub-traefik-dns01` | Issue a wildcard certificate with DNS-01 in an isolated lab | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/certificats-acme/) |
+| `pub-traefik-dns01` | Issue a wildcard certificate with DNS-01 in an isolated lab | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
 
 ### HAProxy: publish and operate web services
 
