@@ -1,0 +1,10 @@
+# Surcharge française du lab pub-epreuve-haproxy. Elle ne porte QUE `title`
+# et `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Épreuve HAProxy : livrer et exploiter deux services"
+description: |
+  À partir d'un besoin et de deux backends seulement, livrer deux services
+  derrière HAProxy avec routage, HTTPS et cycle de certificats, contrôle
+  d'accès, limitation de débit, flux long, supervision et restauration, puis
+  diagnostiquer une panne non annoncée sur une seconde instance sans retirer
+  aucune de ses protections.
