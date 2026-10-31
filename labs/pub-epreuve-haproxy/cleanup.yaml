@@ -7,6 +7,18 @@
   hosts: lab_target
   become: true
   tasks:
+    - name: Retirer le réglage de resolved posé par le banc
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d/pub-epreuve-haproxy.conf
+        state: absent
+      register: resolved_banc
+
+    - name: Recharger resolved si son réglage a été retiré
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted
+      when: resolved_banc.changed
+
     - name: Arrêter les services, l'instance en panne et la relance de la plateforme
       ansible.builtin.systemd:
         name: "{{ item }}"

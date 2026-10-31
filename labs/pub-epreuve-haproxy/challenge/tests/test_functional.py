@@ -397,6 +397,24 @@ def _exiger_archives_saines(poste, ip_edge: str) -> None:
     )
 
 
+def _attendre_limite_videe(poste, ip_edge: str) -> None:
+    """Laisse retomber la limite de débit qu'une rafale précédente a chargée.
+
+    Le dernier test finit sur une rafale de 80 requêtes vers le catalogue. Un
+    contrôle relancé juste après arrivait donc sur un compteur encore plein, et
+    le test 02 lisait un 429 qui ne disait rien du service : mesuré le
+    2026-10-31, le second passage tombait à 14/20 pour cette seule raison.
+    On n'attend que si le catalogue répond 429, et au plus deux fenêtres : un
+    429 qui persiste au-delà est un défaut réel, que le test signalera.
+    """
+    limite = time.monotonic() + 2 * FENETRE_COMPLETE
+    while time.monotonic() < limite:
+        code, _ = _https(poste, ip_edge, CATALOGUE, f"/?nonce={secrets.token_hex(4)}")
+        if code != 429:
+            return
+        time.sleep(3)
+
+
 def _exiger_catalogue_publie(poste, ip_edge: str) -> None:
     """Prémisse des tests longs : le catalogue répond en HTTPS strict.
 
@@ -466,6 +484,7 @@ def test_02_les_deux_services_repondent_en_https_strict(edge, poste, ip_edge) ->
     test, la requête doit échouer : le certificat n'est pas approuvé d'office.
     """
     _preparer(edge, poste)
+    _attendre_limite_videe(poste, ip_edge)
     for nom, service in ((CATALOGUE, "catalogue"), (NOTIFICATIONS, "notifications")):
         nonce = secrets.token_hex(6)
         code, corps = _https(poste, ip_edge, nom, f"/?nonce={nonce}")

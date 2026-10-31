@@ -241,11 +241,19 @@ UNIT
 
 # L'unite reprend celle du paquet Debian : `-Ws` (maitre-ouvriers, notification
 # systemd), validation avant demarrage, rechargement par USR2.
+#
+# MESURE DU 2026-10-31 : apres le redemarrage du dernier test, la validation
+# `haproxy -c` echouait cinq fois dans la meme seconde, puis systemd renoncait
+# (« Start request repeated too quickly »), alors que la meme configuration se
+# chargeait avant le redemarrage. L'echec est transitoire, en tout debut de
+# demarrage. L'unite reessaie donc toutes les deux secondes sans plafond :
+# l'instance archives est au banc, elle doit revenir seule.
 cat > /etc/systemd/system/pub-epreuve-haproxy-archives.service <<UNIT
 [Unit]
 Description=HAProxy instance for the archives service (epreuve pub-epreuve-haproxy)
 After=network-online.target pub-epreuve-haproxy-archives-backends.service
 Wants=network-online.target
+StartLimitIntervalSec=0
 
 [Service]
 Environment=CONFIG=${ARCH_ETC}/haproxy.cfg
@@ -256,6 +264,7 @@ ExecReload=/usr/sbin/haproxy -f \$CONFIG -c -q
 ExecReload=/bin/kill -USR2 \$MAINPID
 KillMode=mixed
 Restart=on-failure
+RestartSec=2
 SuccessExitStatus=143
 Type=notify
 
