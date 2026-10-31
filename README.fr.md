@@ -260,8 +260,9 @@ Publier une application avec Nginx et la protéger.
 | `pub-nginx-mise-a-jour` | Mettre à jour, restaurer et rebooter Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-mise-a-jour/) |
 | `pub-nginx-protection` | Protéger une application avec Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-proteger-observer/) |
 | `pub-nginx-observation` | Observer un reverse proxy Nginx | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-observer/) |
+| `pub-epreuve-nginx` | Épreuve Nginx : publier et exploiter un service | option-nginx | vm | [guide](https://www.stephane-robert.info/docs/services/web/nginx-epreuve/) |
 
-_61 labs, table générée par `scripts/gen_catalog.py`._
+_62 labs, table générée par `scripts/gen_catalog.py`._
 <!-- LABS:END -->
 
 ### Alignement sur la feuille de route

@@ -1,0 +1,61 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# L'hôte edge reçoit Nginx (paquet de l'éditeur, version épinglée) SANS
+# configuration, Docker, une autorité ACME de test, un site statique, une
+# API sur la boucle locale et un incident tiré au sort, qui ne sera posé
+# qu'APRÈS la recette initiale de l'apprenant. Le client indépendant ne
+# reçoit que de quoi valider une chaîne TLS et lire un flux.
+- name: Préparer le lab pub-epreuve-nginx
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Installer Nginx depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-nginx.yml
+
+    - name: Installer la couche machine (Docker, Compose, outils)
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les images épinglées
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    - name: Déposer l'API du catalogue
+      ansible.builtin.copy:
+        src: fixtures/api.py
+        dest: /tmp/pub-epn-api.py
+        mode: "0644"
+
+    - name: Déposer le script qui posera l'incident
+      ansible.builtin.copy:
+        src: fixtures/injecter.sh
+        dest: /tmp/pub-epn-injecter.sh
+        mode: "0700"
+
+    - name: Poser le banc et tirer l'incident
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_PEBBLE: >-
+          {{ socle_images.pebble.image }}:{{ socle_images.pebble.version
+          }}@{{ socle_images.pebble.digest }}
+        IMG_CHALLTESTSRV: >-
+          {{ socle_images.challtestsrv.image }}:{{
+          socle_images.challtestsrv.version
+          }}@{{ socle_images.challtestsrv.digest }}
+        IMG_LEGO: >-
+          {{ socle_images.lego.image }}:{{ socle_images.lego.version
+          }}@{{ socle_images.lego.digest }}
+
+- name: Préparer le client du lab pub-epreuve-nginx
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Outils du client indépendant
+      ansible.builtin.apt:
+        name: [curl, openssl, ca-certificates]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600

@@ -1,0 +1,109 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. Les paquets (Nginx, Docker)
+# restent installés ; partent les services, l'autorité de test, la
+# configuration et les certificats de l'apprenant, ses sauvegardes, l'incident
+# tiré au sort et tous les livrables.
+- name: Défaire le lab pub-epreuve-nginx sur l'edge
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter Nginx et les services du lab
+      ansible.builtin.systemd:
+        name: "{{ item.nom }}"
+        state: stopped
+        enabled: false
+      loop:
+        - { nom: nginx.service }
+        - { nom: pub-epn-incident.path }
+        - { nom: pub-epn-incident.service }
+        - { nom: pub-epn-api.service }
+        - { nom: renouveler-certificats.timer }
+      failed_when: false
+
+    - name: Arrêter l'autorité de test
+      ansible.builtin.command:
+        cmd: docker compose down --remove-orphans
+        chdir: /opt/pub-epreuve-nginx
+      failed_when: false
+      changed_when: true
+
+    - name: Lister la configuration Nginx déposée par l'apprenant
+      ansible.builtin.find:
+        paths: /etc/nginx/conf.d
+        patterns: "*"
+        file_type: any
+      register: conf_apprenant
+
+    - name: Retirer cette configuration
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ conf_apprenant.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: Supprimer unités, fichiers, état, sauvegardes et livrables
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-epn-api.service
+        - /etc/systemd/system/pub-epn-api.service.d
+        - /etc/systemd/system/pub-epn-incident.service
+        - /etc/systemd/system/pub-epn-incident.path
+        - /etc/systemd/system/renouveler-certificats.service
+        - /etc/systemd/system/renouveler-certificats.timer
+        - /etc/nginx/epn
+        - /opt/pub-epreuve-nginx
+        - /var/lib/pub-epn
+        - /var/backups/pub-epn
+        - /var/backups/epreuve
+        - /var/cache/nginx/epn
+        - /var/log/nginx/epreuve.json
+        - /root/.pub-epn
+        - /root/.pub-epn-secret.yaml
+        - /usr/local/bin/renouveler-certificats
+        - /usr/local/bin/sauvegarder-service
+        - /usr/local/bin/restaurer-service
+        - /usr/local/bin/sonde-alerte
+        - /home/student/README-epreuve
+        - /home/student/recette-initiale.md
+        - /home/student/incident.yaml
+        - /var/log/dsoxlab-pub-epreuve-nginx.log
+
+    - name: Retirer les noms du lab de /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '\s(www|api)\.epreuve\.test$'
+        state: absent
+
+    - name: Recharger systemd après nettoyage
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 80
+        - 443
+        - 8081
+        - 14000
+        - 15000
+        - 18201
+        - 18299
+
+- name: Défaire le lab pub-epreuve-nginx sur le client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Retirer la racine de test que l'apprenant a pu déposer
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/racine-lab.pem
+        - /tmp/racine-epn.pem

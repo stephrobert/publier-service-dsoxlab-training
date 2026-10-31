@@ -1,0 +1,35 @@
+id: pub-epreuve-nginx
+title: "Nginx assessment: publish and operate a service"
+section: nginx
+level: option-nginx
+description: |
+  With no template to copy, publish a static site and an API under two
+  names with strict HTTPS and a renewal that really renews, protect the
+  administration, cache safely, deliver a long-lived stream, observe the
+  service with a real alert, diagnose and fix an unannounced incident, and
+  prove your recovery plan with a restore followed by a reboot.
+skills:
+  - nginx
+  - tls
+  - security
+  - observability
+  - incident-response
+  - disaster-recovery
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/nginx-epreuve/
+lab_type: lab
+estimated_time: "150m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: true
