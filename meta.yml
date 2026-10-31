@@ -155,3 +155,4 @@ sections:
       - pub-nginx-mise-a-jour
       - pub-nginx-protection
       - pub-nginx-observation
+      - pub-epreuve-nginx

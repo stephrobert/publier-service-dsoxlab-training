@@ -1,0 +1,11 @@
+# Surcharge française du lab pub-epreuve-nginx. Elle ne porte QUE `title`
+# et `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Épreuve Nginx : publier et exploiter un service"
+description: |
+  Sans modèle à recopier, publiez un site statique et une API sous deux
+  noms, avec un HTTPS strict et un renouvellement qui renouvelle vraiment,
+  protégez l'administration, mettez en cache sans risque, livrez un flux
+  long, observez le service avec une vraie alerte, diagnostiquez et
+  corrigez un incident non annoncé, puis prouvez votre plan de reprise par
+  une restauration suivie d'un redémarrage.
