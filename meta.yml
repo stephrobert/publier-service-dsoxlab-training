@@ -138,6 +138,7 @@ sections:
       - pub-haproxy-depannage
       - pub-haproxy-mise-a-jour
       - pub-haproxy-ha
+      - pub-epreuve-haproxy
   - id: nginx
     title: "Nginx: publish and protect web services"
     description: "Publish an application with Nginx and protect it."
@@ -155,3 +156,4 @@ sections:
       - pub-nginx-mise-a-jour
       - pub-nginx-protection
       - pub-nginx-observation
+      - pub-epreuve-nginx

@@ -1,7 +1,7 @@
 {
-  "genere_le": "2026-10-31 08:38:55",
+  "genere_le": "2026-10-31 11:28:37",
   "act": "act version 0.2.84",
-  "dsoxlab": "dsoxlab 0.5.5",
+  "dsoxlab": "dsoxlab 0.6.1",
   "labs": {
     "pub-acme-pebble": {
       "id": "pub-acme-pebble",
@@ -14,6 +14,30 @@
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-26"
+    },
+    "pub-epreuve-haproxy": {
+      "id": "pub-epreuve-haproxy",
+      "chemin": "pub-epreuve-haproxy",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "20/20",
+      "duree_s": 795.4,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-31"
+    },
+    "pub-epreuve-nginx": {
+      "id": "pub-epreuve-nginx",
+      "chemin": "pub-epreuve-nginx",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "9/9",
+      "duree_s": 347.5,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-31"
     },
     "pub-epreuve-niveau-deux": {
       "id": "pub-epreuve-niveau-deux",

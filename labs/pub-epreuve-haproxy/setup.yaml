@@ -1,0 +1,221 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# Deux parties indépendantes sont posées sur edge.lab :
+#
+#   1. la livraison : HAProxy installé sans mission, deux services qui
+#      écoutent trop largement, une autorité de test et un client ACME ;
+#   2. la panne : une seconde instance HAProxy, `archives`, sur laquelle une
+#      panne tirée au sort a été posée. La famille reste hors de portée de
+#      l'apprenant dans /root.
+#
+# Le client indépendant, poste.lab, reçoit la racine de l'autorité de test et
+# deux outils : de quoi observer sans jamais relâcher la vérification TLS.
+- name: Préparer l'hôte edge du lab pub-epreuve-haproxy
+  hosts: lab_target
+  become: true
+  tasks:
+    # L'image Debian 13 lance systemd-resolved avec LLMNR actif : le port 5355
+    # écoute sur toutes les interfaces avant tout travail. Le test d'isolement
+    # n'admet que 22, 80, 443 et 8088 hors boucle locale ; ce port appartient
+    # au banc, pas à l'apprenant, donc c'est le banc qui le ferme.
+    - name: Répertoire des réglages de resolved
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d
+        state: directory
+        mode: "0755"
+
+    - name: Couper LLMNR et mDNS, qui écoutent hors de la boucle locale
+      ansible.builtin.copy:
+        dest: /etc/systemd/resolved.conf.d/pub-epreuve-haproxy.conf
+        mode: "0644"
+        content: |
+          [Resolve]
+          LLMNR=no
+          MulticastDNS=no
+      register: resolved_banc
+
+    - name: Recharger resolved si son réglage a changé
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted
+      when: resolved_banc.changed
+
+    - name: Installer HAProxy depuis le dépôt de l'éditeur, version déclarée
+      ansible.builtin.include_tasks: ../../shared/paquet-haproxy.yml
+
+    - name: Installer Docker, Compose et les outils du lab
+      ansible.builtin.include_tasks: ../../shared/machine-docker.yml
+
+    - name: Lire les images épinglées
+      ansible.builtin.include_vars:
+        file: ../../shared/images.yml
+        name: socle_images
+
+    # La plateforme partagée exige les ports 80, 443, 14000 et 15000 libres
+    # avant de se poser, et refuse de continuer sinon. Un second `dsoxlab run`
+    # trouverait HAProxy sur le 80 et Pebble sur le 14000 : on défait donc
+    # avant de reposer, plutôt que de laisser le refus ressembler à une panne.
+    - name: Libérer les ports 80 et 443 avant de reposer la plateforme
+      ansible.builtin.systemd:
+        name: haproxy
+        state: stopped
+      failed_when: false
+
+    - name: Vérifier si une plateforme ACME traîne déjà
+      ansible.builtin.stat:
+        path: /opt/pub-traefik-acme/platform.yaml
+      register: plateforme_precedente
+
+    - name: Défaire la plateforme ACME précédente, si elle existe
+      ansible.builtin.command: >-
+        docker compose -f /opt/pub-traefik-acme/platform.yaml down
+      when: plateforme_precedente.stat.exists
+      changed_when: true
+      failed_when: false
+
+    - name: Préparer Pebble et son répondeur de défis
+      ansible.builtin.script: ../pub-traefik-acme/fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_TRAEFIK: >-
+          {{ socle_images.traefik.image }}:{{ socle_images.traefik.version
+          }}@{{ socle_images.traefik.digest }}
+        IMG_WHOAMI: >-
+          {{ socle_images.whoami.image }}:{{ socle_images.whoami.version
+          }}@{{ socle_images.whoami.digest }}
+        IMG_PEBBLE: >-
+          {{ socle_images.pebble.image }}:{{ socle_images.pebble.version
+          }}@{{ socle_images.pebble.digest }}
+        IMG_CHALLTESTSRV: >-
+          {{ socle_images.challtestsrv.image
+          }}:{{ socle_images.challtestsrv.version
+          }}@{{ socle_images.challtestsrv.digest }}
+
+    - name: Déposer les deux services de la livraison
+      ansible.builtin.copy:
+        src: fixtures/services.py
+        dest: /tmp/pub-epreuve-haproxy-services.py
+        mode: "0644"
+
+    - name: Déposer les backends de l'instance archives
+      ansible.builtin.copy:
+        src: fixtures/incident.py
+        dest: /tmp/pub-epreuve-haproxy-incident.py
+        mode: "0644"
+
+    - name: Poser le banc, les services et l'instance en panne
+      ansible.builtin.script: fixtures/prepare.sh
+      args:
+        executable: /bin/bash
+      environment:
+        IMG_LEGO: >-
+          {{ socle_images.lego.image }}:{{ socle_images.lego.version
+          }}@{{ socle_images.lego.digest }}
+
+    - name: Précharger l'image du client ACME, pour que le cycle ne la télécharge pas
+      # Un renouvellement qui commence par un téléchargement de 30 Mo mesure
+      # le réseau avant de mesurer ACME, et son premier échec est illisible.
+      ansible.builtin.command: >-
+        docker pull {{ socle_images.lego.image }}:{{ socle_images.lego.version
+        }}@{{ socle_images.lego.digest }}
+      changed_when: false
+
+    - name: Lire la racine de l'autorité à redistribuer au client
+      ansible.builtin.slurp:
+        src: /opt/pub-epreuve-haproxy/pebble-root.pem
+      register: racine_brute
+
+    - name: Retenir la racine en clair pour la deuxième passe
+      ansible.builtin.set_fact:
+        racine_pem: "{{ racine_brute.content | b64decode }}"
+
+- name: Préparer le client du lab pub-epreuve-haproxy
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Installer curl, python3 et openssl
+      ansible.builtin.apt:
+        name: [curl, python3, openssl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Déposer la racine de l'autorité de test fournie au client
+      ansible.builtin.copy:
+        dest: /home/student/racine-acme.pem
+        content: "{{ hostvars[groups['lab_target'][0]]['racine_pem'] }}"
+        owner: student
+        group: student
+        mode: "0644"
+
+    - name: Une sonde qui envoie une rafale de requêtes
+      ansible.builtin.copy:
+        dest: /usr/local/bin/rafale
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          #!/usr/bin/env python3
+          # rafale <ip> <port> <hote> <chemin> <nombre> [racine.pem|-] [pause_s]
+          #
+          # Envoie <nombre> requetes GET successives sur UNE connexion
+          # persistante (reouverte si le serveur la ferme), chacune avec un
+          # X-Forwarded-For FORGE different, et affiche les codes de statut
+          # separes par des espaces. Avec une racine, la connexion est en TLS
+          # et la verification est stricte (chaine et nom). Un code 000 dit
+          # que la connexion a echoue, ce qui n'est pas un refus du service.
+          import http.client
+          import socket
+          import ssl
+          import sys
+          import time
+
+          ip, port, hote, chemin, nombre = (
+              sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4],
+              int(sys.argv[5]),
+          )
+          racine = sys.argv[6] if len(sys.argv) > 6 and sys.argv[6] != "-" else ""
+          pause = float(sys.argv[7]) if len(sys.argv) > 7 else 0.0
+
+
+          def ouvrir():
+              if racine:
+                  contexte = ssl.create_default_context(cafile=racine)
+                  brut = socket.create_connection((ip, port), timeout=10)
+                  chiffre = contexte.wrap_socket(brut, server_hostname=hote)
+                  conn = http.client.HTTPSConnection(
+                      hote, port, timeout=10, context=contexte
+                  )
+                  conn.sock = chiffre
+                  return conn
+              return http.client.HTTPConnection(ip, port, timeout=10)
+
+
+          codes = []
+          conn = None
+          for i in range(nombre):
+              entetes = {"Host": hote, "X-Forwarded-For": f"198.51.100.{i % 250 + 1}"}
+              url = f"{chemin}{'&' if '?' in chemin else '?'}nonce=rafale{i}"
+              code = "000"
+              for _essai in range(2):
+                  try:
+                      if conn is None:
+                          conn = ouvrir()
+                      conn.request("GET", url, headers=entetes)
+                      reponse = conn.getresponse()
+                      reponse.read()
+                      code = str(reponse.status)
+                      if reponse.will_close:
+                          conn.close()
+                          conn = None
+                      break
+                  except (OSError, http.client.HTTPException):
+                      if conn is not None:
+                          conn.close()
+                      conn = None
+              codes.append(code)
+              if pause:
+                  time.sleep(pause)
+          print(" ".join(codes))
