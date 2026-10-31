@@ -208,18 +208,18 @@ Publier des conteneurs et des services hôte derrière Traefik, sécuriser, obse
 | `pub-traefik-fichier` | Publier un service systemd avec le fournisseur fichier de Traefik | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-fichier/) |
 | `pub-traefik-routage` | Résoudre les priorités et collisions de routage | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-routage/) |
 | `pub-traefik-acme` | Configurer HTTPS, le renouvellement ACME et TLS moderne dans Traefik | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
+| `pub-traefik-dns01` | Émettre un joker avec DNS-01 dans un laboratoire isolé | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
 | `pub-traefik-restart-recovery` | Maintenir un service web conteneurisé disponible après un redémarrage de Docker | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-installation/) |
 | `pub-epreuve-niveau-un` | Épreuve de niveau 1 : publier et rétablir des services | niveau-1 | vm | [guide](https://www.stephane-robert.info/docs/services/web/epreuve-niveau-1/) |
 | `pub-traefik-middlewares` | Composer et vérifier des middlewares Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-middlewares/) |
+| `pub-traefik-flux-delais` | Borner les délais et conserver les flux applicatifs | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-flux-delais/) |
 | `pub-traefik-protection` | Protéger le point d'entrée Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-securite/) |
 | `pub-traefik-mtls` | Vérifier TLS backend et certificats clients | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-mtls/) |
-| `pub-traefik-flux-delais` | Borner les délais et conserver les flux applicatifs | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-flux-delais/) |
 | `pub-traefik-observabilite` | Observer Traefik avec des journaux JSON et Prometheus | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-observability/) |
 | `pub-traefik-depannage` | Dépanner le routage et TLS dans Traefik | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-depanner/) |
 | `pub-traefik-mise-a-jour` | Mettre à jour Traefik et prouver le retour arrière | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/) |
 | `pub-epreuve-niveau-deux` | Épreuve de niveau 2 : protéger, observer et diagnostiquer | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/web/epreuve-niveau-deux/) |
 | `pub-traefik-zero-downtime` | Basculer une version de backend, prouver le retour arrière et nommer le vrai domaine de panne | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-disponibilite/) |
-| `pub-traefik-dns01` | Émettre un joker avec DNS-01 dans un laboratoire isolé | niveau-2 | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
 
 ### HAProxy : publier et exploiter des services web
 
