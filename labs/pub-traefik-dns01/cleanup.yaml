@@ -1,0 +1,69 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : il défait ce que setup.yaml a
+# posé, pour que le lab se rejoue à l'identique.
+- name: Défaire le lab pub-traefik-dns01
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Arrêter la solution de l'apprenant si elle existe
+      ansible.builtin.command:
+        cmd: docker compose down -v --remove-orphans
+        chdir: /opt/pub-traefik-dns01
+      failed_when: false
+      changed_when: true
+
+    - name: Arrêter la plateforme de test
+      ansible.builtin.command:
+        cmd: docker compose -f platform.yaml down -v --remove-orphans
+        chdir: /opt/pub-traefik-dns01
+      failed_when: false
+      changed_when: true
+
+    - name: Retirer les conteneurs restants du lab
+      ansible.builtin.shell:
+        cmd: |
+          ids=$(docker ps -aq --filter name=^/pub-dns01-)
+          [ -z "$ids" ] || docker rm -f $ids
+        executable: /bin/bash
+      changed_when: true
+
+    - name: Retirer le réseau du lab
+      ansible.builtin.command: docker network rm dns01
+      failed_when: false
+      changed_when: true
+
+    - name: Arrêter le fournisseur DNS
+      ansible.builtin.systemd:
+        name: pub-traefik-dns01-fournisseur.service
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Retirer le fournisseur, ses comptes, ses traces et le répertoire
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/pub-traefik-dns01-fournisseur.service
+        - /etc/pub-traefik-dns01
+        - /opt/pub-traefik-dns01
+        - /home/student/fournisseur-dns-admin.txt
+        - /root/.pub-traefik-dns01-plateforme.sha256
+        - /tmp/pub-traefik-dns01-fournisseur.py
+        - /var/log/pub-traefik-dns01-fournisseur.jsonl
+        - /var/log/dsoxlab-pub-traefik-dns01.log
+
+    - name: Recharger systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Vérifier que les ports du lab sont libérés
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        host: 127.0.0.1
+        state: stopped
+        timeout: 60
+      loop:
+        - 80
+        - 443
+        - 8060

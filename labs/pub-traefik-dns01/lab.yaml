@@ -1,0 +1,30 @@
+id: pub-traefik-dns01
+title: "Issue a wildcard certificate with DNS-01 in an isolated lab"
+section: traefik
+level: niveau-2
+description: |
+  Obtain a wildcard certificate through Traefik with the ACME DNS-01
+  challenge, against a local test authority and DNS provider. Give the
+  automation an identity limited to its own zone instead of the provider's
+  administrator account, and prove that the temporary records are removed.
+skills:
+  - traefik
+  - acme
+  - dns
+  - tls
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/web/certificats-acme/
+lab_type: lab
+estimated_time: "50m"
+runtime:
+  type: vm
+  targets:
+    - name: edge
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+  default: edge
+validation:
+  functional: true
+  persistence_after_reboot: false
