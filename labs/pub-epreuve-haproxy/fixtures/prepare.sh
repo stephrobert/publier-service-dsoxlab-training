@@ -221,8 +221,16 @@ chmod 0644 "$ARCH_PKI"/*.crt
 chmod 0640 "$ARCH_PKI"/*.key
 chgrp -R student "$ARCH_PKI"
 
-grep -q 'dsoxlab-pub-epreuve-haproxy' /etc/hosts \
-    || echo "127.0.0.1 api.archives.lab # dsoxlab-pub-epreuve-haproxy" >> /etc/hosts
+# MESURE DU 2026-10-31 : cloud-init pose `manage_etc_hosts: true` et REECRIT
+# /etc/hosts a chaque demarrage depuis son modele. L'entree disparaissait donc
+# au redemarrage du dernier test, `haproxy -c` ne resolvait plus
+# api.archives.lab, et l'instance archives ne revenait jamais. L'entree vit
+# aussi dans le modele, pour survivre au demarrage.
+for fichier in /etc/hosts /etc/cloud/templates/hosts.debian.tmpl; do
+    [ -f "$fichier" ] || continue
+    grep -q 'dsoxlab-pub-epreuve-haproxy' "$fichier" \
+        || echo "127.0.0.1 api.archives.lab # dsoxlab-pub-epreuve-haproxy" >> "$fichier"
+done
 
 cat > /etc/systemd/system/pub-epreuve-haproxy-archives-backends.service <<UNIT
 [Unit]
