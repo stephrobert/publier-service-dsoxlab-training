@@ -81,9 +81,12 @@
 
     - name: Retirer la résolution du backend de l'instance en panne
       ansible.builtin.lineinfile:
-        path: /etc/hosts
+        path: "{{ item }}"
         regexp: 'dsoxlab-pub-epreuve-haproxy'
         state: absent
+      loop:
+        - /etc/hosts
+        - /etc/cloud/templates/hosts.debian.tmpl
 
     - name: HAProxy est-il seulement installé ?
       # Après un retour à la base figée, la VM n'a jamais vu HAProxy :
