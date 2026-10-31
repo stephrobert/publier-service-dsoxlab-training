@@ -135,16 +135,32 @@ def racine(poste, ip_edge):
     Elle change à chaque démarrage de Pebble : l'écrire en dur rendrait le
     test faux au premier redémarrage du banc. Le `-k` ne sert ici qu'à joindre
     l'interface de gestion de Pebble, jamais à valider le service.
+
+    Les racines SUCCESSIVES s'accumulent dans RACINE_POSTE. Le test de reprise
+    redémarre edge.lab : Pebble tire alors une racine neuve, alors que le
+    certificat servi a été signé, légitimement, par la précédente. Ne garder
+    que la racine courante rendait la suite impossible à rejouer : 9/9 au
+    premier passage, 8/9 au second (mesuré le 2026-10-31). Le paquet ne
+    contient que des racines de l'autorité de test, et `racine=None` reste le
+    cas qui doit échouer.
     """
+    courante = f"{RACINE_POSTE}.courante"
     poste.run(
-        f"curl -sk --max-time 10 https://{ip_edge}:15000/roots/0 -o {RACINE_POSTE}"
+        f"curl -sk --max-time 10 https://{ip_edge}:15000/roots/0 -o {courante}"
     )
-    presente = poste.run(f"grep -c 'BEGIN CERTIFICATE' {RACINE_POSTE}")
+    presente = poste.run(f"grep -c 'BEGIN CERTIFICATE' {courante}")
     assert presente.stdout.strip() not in ("", "0"), message(
         en="The test authority root could not be fetched from the client "
         f"(https://{ip_edge}:15000/roots/0).",
         fr="La racine de l'autorité de test n'a pas pu être récupérée depuis "
         f"le client (https://{ip_edge}:15000/roots/0).",
+    )
+    # La 2e ligne d'un PEM est la première de ses données : propre à chaque
+    # certificat, quand la ligne BEGIN est commune à toutes les racines.
+    poste.run(
+        f"touch {RACINE_POSTE}; "
+        f'grep -qF "$(sed -n 2p {courante})" {RACINE_POSTE} '
+        f"|| cat {courante} >> {RACINE_POSTE}"
     )
     return RACINE_POSTE
 
