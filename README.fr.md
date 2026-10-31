@@ -240,6 +240,7 @@ Publier en HTTPS avec l'ACME natif de HAProxy et l'observer avec Prometheus.
 | `pub-haproxy-depannage` | Diagnostiquer une panne HAProxy inconnue | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-depanner/) |
 | `pub-haproxy-mise-a-jour` | Recharger, mettre à jour et reprendre HAProxy | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-mise-a-jour/) |
 | `pub-haproxy-ha` | Prouver le domaine de panne de deux points d'entrée | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-disponibilite/) |
+| `pub-epreuve-haproxy` | Épreuve HAProxy : livrer et exploiter deux services | option-haproxy | vm | [guide](https://www.stephane-robert.info/docs/services/reseau/haproxy-epreuve/) |
 
 ### Nginx : publier et protéger des services web
 

@@ -1,0 +1,33 @@
+id: pub-epreuve-haproxy
+title: "HAProxy assessment: deliver and operate two services"
+section: haproxy
+level: option-haproxy
+description: |
+  With only a business need and two backends, deliver two services behind
+  HAProxy with routing, HTTPS and a certificate cycle, access control, a rate
+  limit, a long-lived stream, supervision and a restore, then diagnose an
+  unannounced fault on a second instance without removing any of its
+  safeguards.
+skills:
+  - haproxy
+  - acme
+  - tls
+  - troubleshooting
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/services/reseau/haproxy-epreuve/
+lab_type: lab
+estimated_time: "150m"
+runtime:
+  type: vm
+  targets:
+    - name: cible
+      host: edge.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: poste.lab
+  default: cible
+validation:
+  functional: true
+  persistence_after_reboot: true

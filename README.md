@@ -237,6 +237,7 @@ Publish HTTPS with HAProxy native ACME and observe it with Prometheus.
 | `pub-haproxy-depannage` | Diagnose an unknown HAProxy outage | option-haproxy | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/haproxy-depanner/) |
 | `pub-haproxy-mise-a-jour` | Reload, update and roll back HAProxy | option-haproxy | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/haproxy-mise-a-jour/) |
 | `pub-haproxy-ha` | Prove the failure domain of two entry points | option-haproxy | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/haproxy-disponibilite/) |
+| `pub-epreuve-haproxy` | HAProxy assessment: deliver and operate two services | option-haproxy | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/haproxy-epreuve/) |
 
 ### Nginx: publish and protect web services
 
