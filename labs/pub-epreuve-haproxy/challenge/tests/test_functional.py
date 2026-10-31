@@ -149,6 +149,46 @@ def secret(edge) -> dict:
     return yaml.safe_load(edge.run(f"sudo cat {CHEMIN_TIRAGE}").stdout) or {}
 
 
+@pytest.fixture(scope="module", autouse=True)
+def flux_long(edge, poste, ip_edge) -> dict:
+    """Ouvre le flux d'événements long DÈS LE DÉBUT de la suite.
+
+    `dsoxlab check` coupe la suite à 300 s, et ce flux en dure 75 par
+    construction : le mesurer à son tour, pendant que rien d'autre ne tourne,
+    faisait dépasser le délai (mesuré le 2026-10-31 : 422 s pour la suite
+    complète). Il s'écoule donc en tâche de fond pendant les premiers tests, et
+    le test 10 ne fait que relire ce qu'il a reçu. Un rechargement de HAProxy
+    pendant ce temps ne le coupe pas : l'ancien processus garde ses connexions.
+    """
+    resultat: dict = {}
+
+    def ecouter() -> None:
+        try:
+            racine = _preparer(edge, poste, marge=100)
+            resultat["sortie"] = poste.run(
+                shlex.join(
+                    [
+                        "curl",
+                        "-sN",
+                        "--max-time",
+                        "110",
+                        "--cacert",
+                        racine,
+                        "--resolve",
+                        f"{NOTIFICATIONS}:443:{ip_edge}",
+                        f"https://{NOTIFICATIONS}/flux?nonce={secrets.token_hex(4)}",
+                    ]
+                )
+            ).stdout
+        except Exception as erreur:  # noqa: BLE001 - le test 10 dira ce qui manque
+            resultat["erreur"] = str(erreur)
+
+    fil = threading.Thread(target=ecouter, daemon=True)
+    fil.start()
+    resultat["fil"] = fil
+    return resultat
+
+
 # ---------------------------------------------------------------------------
 # Outils
 # ---------------------------------------------------------------------------
@@ -849,32 +889,18 @@ def test_09_les_cles_privees_sont_protegees_et_absentes_des_sorties(edge) -> Non
 # ---------------------------------------------------------------------------
 
 
-def test_10_le_flux_long_arrive_entier(edge, poste, ip_edge) -> None:
+def test_10_le_flux_long_arrive_entier(flux_long) -> None:
     """Un flux d'événements espacés de 35 s dure 75 s sans être coupé.
 
     Le silence entre deux événements dépasse les bornes d'inactivité courantes
     (30 s) : une borne mal choisie coupe le flux après le premier événement. La
     mesure compte les événements et lit leurs horodatages côté serveur, pour
-    qu'un flux simulé par le proxy ne passe pas.
+    qu'un flux simulé par le proxy ne passe pas. Le flux est ouvert au début
+    de la suite par la fixture `flux_long`, et seulement relu ici.
     """
-    racine = _preparer(edge, poste, marge=200)
-    res = poste.run(
-        shlex.join(
-            [
-                "curl",
-                "-sN",
-                "--max-time",
-                "110",
-                "--cacert",
-                racine,
-                "--resolve",
-                f"{NOTIFICATIONS}:443:{ip_edge}",
-                f"https://{NOTIFICATIONS}/flux?nonce={secrets.token_hex(4)}",
-            ]
-        )
-    )
+    flux_long["fil"].join(120)
     evenements = []
-    for ligne in res.stdout.splitlines():
+    for ligne in flux_long.get("sortie", "").splitlines():
         if ligne.startswith("data:"):
             try:
                 evenements.append(json.loads(ligne[5:]))
@@ -1125,8 +1151,9 @@ def test_16_la_confiance_et_la_sonde_sont_conservees(poste, ip_edge) -> None:
     Le test exige d'abord le service réparé : ces deux garanties sont vraies
     sur l'état de départ, elles ne comptent donc qu'une fois le travail fait.
     """
+    # Aucune pause ici : la limite saine d'archives est de 60 requêtes par
+    # 10 s, et ce test plus le précédent n'en envoient que 49.
     _exiger_archives_saines(poste, ip_edge)
-    time.sleep(FENETRE_COMPLETE)
     for _ in range(3):
         code, corps, _jeton = _archives(poste, ip_edge, "/usurpe/")
         assert code != 200 and "archives-api" not in corps, message(
