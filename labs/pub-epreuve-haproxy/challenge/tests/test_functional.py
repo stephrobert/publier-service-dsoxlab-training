@@ -397,6 +397,24 @@ def _exiger_archives_saines(poste, ip_edge: str) -> None:
     )
 
 
+def _exiger_catalogue_publie(poste, ip_edge: str) -> None:
+    """Prémisse des tests longs : le catalogue répond en HTTPS strict.
+
+    `dsoxlab check` coupe la suite à 300 s. Avant le travail, un test qui
+    dormirait une fenêtre de limitation ou redémarrerait la machine avant de
+    constater l'absence du service ferait dépasser ce délai, et la suite
+    entière serait perdue au lieu de noter 0. Ces tests vérifient donc d'abord,
+    en une requête, qu'il y a un service à juger.
+    """
+    code, _ = _https(poste, ip_edge, CATALOGUE, f"/api/produits?nonce={secrets.token_hex(4)}")
+    assert code == 200, message(
+        en=f"https://{CATALOGUE}/api/produits answers {code} under strict TLS: "
+        "publish the service first, this guarantee is judged on it.",
+        fr=f"https://{CATALOGUE}/api/produits répond {code} sous TLS strict : "
+        "publiez d'abord le service, cette garantie se juge sur lui.",
+    )
+
+
 # ---------------------------------------------------------------------------
 # 01-04 : publication et protocoles (20 points)
 # ---------------------------------------------------------------------------
@@ -730,6 +748,7 @@ def test_08_la_limite_par_source_se_declenche_et_se_relache(edge, poste, ip_edge
     se lève pas est une interdiction, pas une limite.
     """
     racine = _preparer(edge, poste, marge=200)
+    _exiger_catalogue_publie(poste, ip_edge)
     time.sleep(FENETRE_COMPLETE)
     moderes = _rafale(poste, ip_edge, 443, CATALOGUE, "/api/produits", 20, racine)
     assert moderes.count("200") == 20, message(
@@ -909,6 +928,12 @@ def test_12_l_arret_d_un_service_se_lit_dans_les_metriques(edge, poste, ip_edge)
     rétablit et exige le retour à la valeur de départ.
     """
     _preparer(edge, poste)
+    assert "haproxy_server_status" in _metriques(edge), message(
+        en=f"No haproxy_server_status metric on 127.0.0.1:{PORT_METRIQUES}/metrics: "
+        "expose the metrics first, the outage is read from them.",
+        fr=f"Aucune métrique haproxy_server_status sur 127.0.0.1:{PORT_METRIQUES}/metrics : "
+        "exposez d'abord les métriques, la panne se lit dans elles.",
+    )
     base = _serveurs_down(_metriques(edge))
     unite = "pub-epreuve-haproxy-notifications.service"
     tombe = False
@@ -1081,8 +1106,8 @@ def test_16_la_confiance_et_la_sonde_sont_conservees(poste, ip_edge) -> None:
     Le test exige d'abord le service réparé : ces deux garanties sont vraies
     sur l'état de départ, elles ne comptent donc qu'une fois le travail fait.
     """
-    time.sleep(FENETRE_COMPLETE)
     _exiger_archives_saines(poste, ip_edge)
+    time.sleep(FENETRE_COMPLETE)
     for _ in range(3):
         code, corps, _jeton = _archives(poste, ip_edge, "/usurpe/")
         assert code != 200 and "archives-api" not in corps, message(
@@ -1111,7 +1136,6 @@ def test_17_la_limite_de_debit_et_la_borne_d_attente_sont_conservees(poste, ip_e
     avant. Le test exige d'abord le service réparé, parce que ces deux
     garanties sont vraies sur l'état de départ des autres familles de pannes.
     """
-    time.sleep(FENETRE_COMPLETE)
     _exiger_archives_saines(poste, ip_edge)
     time.sleep(FENETRE_COMPLETE)
     codes = _rafale(poste, ip_edge, PORT_ARCHIVES, "archives", "/", 300)
@@ -1290,6 +1314,7 @@ def test_20_le_service_et_ses_garanties_survivent_au_redemarrage(
     backends et des métriques, et la limite de débit.
     """
     _preparer(edge, poste, marge=200)
+    _exiger_catalogue_publie(poste, ip_edge)
     edge.run("nohup bash -c 'sleep 2 && systemctl reboot' >/dev/null 2>&1 &")
     time.sleep(10)
     assert _attendre_retour(edge, 240), message(
