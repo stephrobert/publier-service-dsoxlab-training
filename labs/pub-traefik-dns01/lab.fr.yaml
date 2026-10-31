@@ -1,0 +1,10 @@
+# Surcharge française du lab pub-traefik-dns01. Elle ne porte QUE `title` et
+# `description` : tout autre champ y est ignoré en silence, parce que le
+# contrat ne se traduit pas.
+title: "Émettre un joker avec DNS-01 dans un laboratoire isolé"
+description: |
+  Obtenez par Traefik un certificat joker grâce au défi ACME DNS-01, auprès
+  d'une autorité et d'un fournisseur DNS de test locaux. Donnez à
+  l'automatisation une identité limitée à sa zone plutôt que le compte
+  administrateur du fournisseur, et prouvez que les enregistrements
+  temporaires sont retirés.

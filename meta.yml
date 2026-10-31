@@ -109,12 +109,13 @@ sections:
       - pub-traefik-fichier
       - pub-traefik-routage
       - pub-traefik-acme
+      - pub-traefik-dns01
       - pub-traefik-restart-recovery
       - pub-epreuve-niveau-un
       - pub-traefik-middlewares
+      - pub-traefik-flux-delais
       - pub-traefik-protection
       - pub-traefik-mtls
-      - pub-traefik-flux-delais
       - pub-traefik-observabilite
       - pub-traefik-depannage
       - pub-traefik-mise-a-jour
