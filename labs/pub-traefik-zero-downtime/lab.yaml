@@ -17,7 +17,7 @@ skills:
   - tls
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/
+doc_url: https://www.stephane-robert.info/docs/services/reseau/traefik-disponibilite/
 lab_type: lab
 estimated_time: "60m"
 runtime:

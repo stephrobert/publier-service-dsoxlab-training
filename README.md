@@ -183,15 +183,15 @@ Identify the service behind a web response, read an HTTP exchange, switch a DNS 
 | `pub-socle-dns-http-tls` | Separate the resolved name, the certificate and the HTTP route | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
 | `pub-socle-reverse-proxy` | Define the responsibilities and the trust of a proxy chain | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
 | `pub-socle-tls` | Check a TLS identity and its chain of trust | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/reseaux/fondamentaux/tls-diagnostic/) |
-| `pub-socle-application` | Fix a session, its cookie, and its origins behind a proxy | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
-| `pub-socle-flux-longs` | Observe a WebSocket and an event stream | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
-| `pub-socle-disponibilite` | Measure a backend outage, removal and return | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/reverse-proxy/) |
-| `pub-socle-observabilite` | Define an SLI and an alert seen from the client | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/) |
-| `pub-socle-mise-en-service` | Hand over a release and prove it can be restored | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
-| `pub-socle-depannage` | Diagnose a publication, layer by layer | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
-| `pub-socle-securite` | Write and test a web service access policy | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
-| `pub-socle-cache-delais` | Measure the effects of a cache and of retries | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
-| `pub-epreuve-socle` | Socle assessment: design and hand over a service | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/publier-un-service/) |
+| `pub-socle-application` | Fix a session, its cookie, and its origins behind a proxy | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/application-derriere-proxy/) |
+| `pub-socle-flux-longs` | Observe a WebSocket and an event stream | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/flux-longs-protocoles/) |
+| `pub-socle-disponibilite` | Measure a backend outage, removal and return | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/equilibrer-sante-service/) |
+| `pub-socle-observabilite` | Define an SLI and an alert seen from the client | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/observer-service-publie/) |
+| `pub-socle-mise-en-service` | Hand over a release and prove it can be restored | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/mise-en-service-reprise/) |
+| `pub-socle-depannage` | Diagnose a publication, layer by layer | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/diagnostiquer-par-couches/) |
+| `pub-socle-securite` | Write and test a web service access policy | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/securite-point-entree/) |
+| `pub-socle-cache-delais` | Measure the effects of a cache and of retries | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/delais-tentatives-cache/) |
+| `pub-epreuve-socle` | Socle assessment: design and hand over a service | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/epreuve-socle/) |
 
 ### Traefik: publish, protect and operate a reverse proxy
 
@@ -203,19 +203,19 @@ Publish containers and host services behind Traefik, secure, observe, diagnose a
 | `pub-traefik-installation` | Install Traefik and master its entry-point lifecycle | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-installation/) |
 | `pub-traefik-docker` | Publish two containers behind Traefik, with the Docker provider | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-docker/) |
 | `pub-traefik-fichier` | Publish a systemd service with Traefik's file provider | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-fichier/) |
-| `pub-traefik-routage` | Resolve routing priorities and collisions | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
+| `pub-traefik-routage` | Resolve routing priorities and collisions | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-routage/) |
 | `pub-traefik-acme` | Configure HTTPS, ACME renewal, and modern TLS in Traefik | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-tls-acme/) |
 | `pub-traefik-restart-recovery` | Keep a containerized web service available after a Docker restart | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-installation/) |
 | `pub-epreuve-niveau-un` | Level 1 assessment: publish and recover services | niveau-1 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/epreuve-niveau-1/) |
 | `pub-traefik-middlewares` | Compose and verify Traefik middlewares | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-middlewares/) |
 | `pub-traefik-protection` | Protect the Traefik entry point | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-securite/) |
-| `pub-traefik-mtls` | Verify backend TLS and client certificates | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
-| `pub-traefik-flux-delais` | Bound delays and keep long-lived flows alive | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik/) |
+| `pub-traefik-mtls` | Verify backend TLS and client certificates | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-mtls/) |
+| `pub-traefik-flux-delais` | Bound delays and keep long-lived flows alive | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-flux-delais/) |
 | `pub-traefik-observabilite` | Observe Traefik with JSON access logs and Prometheus | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-observability/) |
 | `pub-traefik-depannage` | Troubleshoot Traefik routing and TLS failures | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-depanner/) |
 | `pub-traefik-mise-a-jour` | Upgrade Traefik and prove a rollback | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/) |
 | `pub-epreuve-niveau-deux` | Level 2 assessment: protect, observe, and diagnose | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/web/epreuve-niveau-deux/) |
-| `pub-traefik-zero-downtime` | Roll out a backend version, prove rollback, and name the real failure domain | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-upgrade/) |
+| `pub-traefik-zero-downtime` | Roll out a backend version, prove rollback, and name the real failure domain | niveau-2 | vm | [guide (FR)](https://www.stephane-robert.info/docs/services/reseau/traefik-disponibilite/) |
 
 ### HAProxy: publish and operate web services
 
