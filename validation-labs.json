@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-30 22:25:18",
+  "genere_le": "2026-10-31 08:38:55",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.5.5",
   "labs": {
@@ -46,10 +46,10 @@
       "score_avant": 0,
       "score_apres": 100,
       "tests": "4/4",
-      "duree_s": 48.8,
+      "duree_s": 49.8,
       "traces": [],
       "pourquoi": "",
-      "date": "2026-10-26"
+      "date": "2026-10-31"
     },
     "pub-haproxy-confiance": {
       "id": "pub-haproxy-confiance",
@@ -405,11 +405,11 @@
       "verdict": "VALIDE",
       "score_avant": 0,
       "score_apres": 100,
-      "tests": "4/4",
-      "duree_s": 45.5,
+      "tests": "3/3",
+      "duree_s": 44.7,
       "traces": [],
       "pourquoi": "",
-      "date": "2026-10-26"
+      "date": "2026-10-31"
     },
     "pub-socle-disponibilite": {
       "id": "pub-socle-disponibilite",
