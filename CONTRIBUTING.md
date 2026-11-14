@@ -41,9 +41,8 @@ duplication. Use the `message(en=…, fr=…)` helper of `conftest.py`.
 ```bash
 dsoxlab validate-structure     # the contract, offline
 pytest tests/                  # this repository's own guardrails
-dsoxlab list-labs              # FIRST: a lab.yaml that raises disappears here
 ```
 
-Run `list-labs` **before** `validate-structure`: the validator iterates over
-the labs already loaded, so a lab whose `lab.yaml` raises passes validation
-without a word.
+`validate-structure` also reports the labs the engine cannot load (a
+`lab.yaml` that raises, a lab listed in `meta.yml` but absent from the disk),
+and fails on them: it is enough on its own.
