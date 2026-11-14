@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-10-31 11:28:37",
+  "genere_le": "2026-10-31 12:12:03",
   "act": "act version 0.2.84",
   "dsoxlab": "dsoxlab 0.6.1",
   "labs": {
@@ -602,6 +602,18 @@
       "traces": [],
       "pourquoi": "",
       "date": "2026-10-26"
+    },
+    "pub-traefik-dns01": {
+      "id": "pub-traefik-dns01",
+      "chemin": "pub-traefik-dns01",
+      "verdict": "VALIDE",
+      "score_avant": 0,
+      "score_apres": 100,
+      "tests": "4/4",
+      "duree_s": 206.1,
+      "traces": [],
+      "pourquoi": "",
+      "date": "2026-10-31"
     },
     "pub-traefik-docker": {
       "id": "pub-traefik-docker",
