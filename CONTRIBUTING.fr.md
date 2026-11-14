@@ -42,9 +42,8 @@ version anglaise par duplication. Emploie le helper `message(en=…, fr=…)` de
 ```bash
 dsoxlab validate-structure     # le contrat, hors ligne
 pytest tests/                  # les garde-fous propres à ce dépôt
-dsoxlab list-labs              # D'ABORD : un lab.yaml qui lève disparaît ici
 ```
 
-Joue `list-labs` **avant** `validate-structure` : le validateur itère sur les
-labs déjà chargés, donc un lab dont le `lab.yaml` lève passe la validation sans
-un mot.
+`validate-structure` rapporte aussi les labs que le moteur ne peut pas charger
+(un `lab.yaml` qui lève, un lab listé dans le `meta.yml` mais absent du disque),
+et il échoue sur eux : il suffit à lui seul.
