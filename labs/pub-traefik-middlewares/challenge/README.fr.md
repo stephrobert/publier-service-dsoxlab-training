@@ -1,9 +1,23 @@
 # Défi : comportement des middlewares Traefik
 
+## La situation
+
+Traefik sur `edge.lab` sert déjà un backend local pour
+`middleware.lab.test`. Les anciens liens et les requêtes clientes atteignent
+actuellement le backend sans les transformations attendues.
+
+## Mission
+
+Faites correspondre les réponses du portail et le comportement des anciennes
+URL aux critères du défi. Gardez le backend et le proxy disponibles pendant
+l'application de vos changements.
+
+## Ce qui est demandé
+
 Traefik sur `edge.lab` route déjà `middleware.lab.test` vers un backend web
 local. Améliorez les réponses sans interrompre le proxy.
 
-## Critères
+### Critères
 
 - les requêtes sous `/portal/` atteignent le backend sans leur préfixe ;
 - les requêtes sous `/legacy/` reçoivent une redirection permanente vers le

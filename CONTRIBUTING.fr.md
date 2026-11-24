@@ -30,7 +30,7 @@ Avant qu'un lab soit fusionné :
 ## Tout ce qui s'affiche est bilingue
 
 L'énoncé existe en anglais et en français : `README.md` et `README.fr.md`,
-`scenario.md` et `scenario.fr.md`, `lab.yaml` et `lab.fr.yaml`.
+`challenge/README.md` et `challenge/README.fr.md`, `lab.yaml` et `lab.fr.yaml`.
 
 Les messages d'assertion sont un cas à part : le contrat impose un nom de
 fichier unique, `challenge/tests/test_functional.py`, donc il n'y a pas de

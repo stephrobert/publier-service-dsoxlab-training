@@ -1,9 +1,23 @@
-# Challenge: diagnose and repair Traefik
+# Diagnose and repair Traefik
+
+## The situation
+
+Several services behind Traefik have become unreliable. Users report missing
+pages, gateway failures, slow requests, a certificate warning, and redirects
+that never finish.
+
+## Mission
+
+Use the proxy and access logs to locate each fault, repair the dynamic
+configuration, and verify the real responses. Traefik must stay running while
+the file provider applies the changes.
+
+## What is asked
 
 Five faults have been injected across independent Traefik routes. Inspect the
 proxy and access logs before changing the file-provider configuration.
 
-## Criteria
+### Criteria
 
 - `notfound.lab.test` returns HTTP 200 instead of 404.
 - `badgateway.lab.test` returns HTTP 200 instead of 502.

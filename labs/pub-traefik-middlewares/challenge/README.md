@@ -1,9 +1,22 @@
-# Challenge: Traefik middleware behavior
+# Traefik middleware behavior
+
+## The situation
+
+Traefik on `edge.lab` already serves a local backend for
+`middleware.lab.test`. Legacy links and client requests currently reach the
+backend without the expected transformations.
+
+## Mission
+
+Make the portal responses and legacy URL behavior match the challenge criteria.
+Keep the backend and proxy available while applying your changes.
+
+## What is asked
 
 Traefik on `edge.lab` already routes `middleware.lab.test` to a local web
 backend. Improve the responses without interrupting the proxy.
 
-## Criteria
+### Criteria
 
 - requests under `/portal/` reach the backend with the prefix removed;
 - requests under `/legacy/` receive a permanent redirect to the matching
