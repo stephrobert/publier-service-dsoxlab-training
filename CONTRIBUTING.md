@@ -30,7 +30,7 @@ Before a lab is merged:
 ## Everything user-facing is bilingual
 
 The statement exists in English and in French: `README.md` and `README.fr.md`,
-`scenario.md` and `scenario.fr.md`, `lab.yaml` and `lab.fr.yaml`.
+`challenge/README.md` and `challenge/README.fr.md`, `lab.yaml` and `lab.fr.yaml`.
 
 Assertion messages are a special case: the contract imposes a single file name,
 `challenge/tests/test_functional.py`, so there is no English version by

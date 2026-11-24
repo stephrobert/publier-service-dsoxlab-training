@@ -1,10 +1,24 @@
 # Défi : diagnostiquer et réparer Traefik
 
+## La situation
+
+Plusieurs services derrière Traefik sont devenus instables. Les utilisateurs
+signalent des pages absentes, des erreurs de passerelle, des requêtes lentes,
+un avertissement de certificat et des redirections qui ne finissent jamais.
+
+## Mission
+
+Servez-vous des journaux du proxy et des accès pour localiser chaque panne,
+réparez la configuration dynamique et vérifiez les réponses réelles. Traefik
+doit rester actif pendant le rechargement du fournisseur fichier.
+
+## Ce qui est demandé
+
 Cinq pannes sont injectées dans des routes Traefik indépendantes. Inspectez
 les journaux du proxy et des accès avant de modifier la configuration du
 fournisseur fichier.
 
-## Critères
+### Critères
 
 - `notfound.lab.test` répond HTTP 200 au lieu de 404.
 - `badgateway.lab.test` répond HTTP 200 au lieu de 502.

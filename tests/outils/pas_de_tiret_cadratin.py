@@ -22,7 +22,7 @@ import sys
 
 RACINE = pathlib.Path(__file__).resolve().parent.parent.parent
 CADRATIN = "\u2014"
-MOTIFS = ("README.fr.md", "scenario.fr.md", "lab.fr.yaml", "hints.yaml")
+MOTIFS = ("README.fr.md", "lab.fr.yaml", "hints.yaml")
 
 
 def main() -> int:

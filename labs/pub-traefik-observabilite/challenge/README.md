@@ -1,10 +1,23 @@
-# Challenge: observe Traefik
+# Observe Traefik
+
+## The situation
+
+Traefik on `edge.lab` already routes `observabilite.lab.test` to a local
+systemd-managed backend. A local Prometheus instance is also running, but the
+proxy is not yet observable and the 5xx alert is missing.
+
+## Mission
+
+Instrument the proxy and configure a useful alert without exposing monitoring
+endpoints to the network.
+
+## What is asked
 
 Traefik serves `observabilite.lab.test`; its `/fail` backend path deliberately
 returns HTTP 503. Prometheus already scrapes the local target configured in
 `/opt/pub-observabilite/prometheus/prometheus.yml`.
 
-## Criteria
+### Criteria
 
 - Write Traefik access logs as JSON to
   `/opt/pub-observabilite/logs/access.json`.
